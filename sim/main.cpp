@@ -15,6 +15,12 @@ int main() {
     GL::Context& gl = window.GetContext();
     Sim::Gui gui{title};
 
+    std::string asm_code = 
+        "ASM_FIRST\n"
+        "ASM_SECOND\n"
+        "ASM_THIRD\n";
+
+
     GL::Event ev;
     while (window.IsOpen()) {
 
