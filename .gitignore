@@ -1,1 +1,5 @@
+# Scheme language build
 lang/build/*
+
+# Simulator build
+sim/build/*

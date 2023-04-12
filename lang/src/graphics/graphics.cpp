@@ -22,7 +22,7 @@ void __GLInit() {
     window.emplace(WIDTH, HEIGHT, "OpenGLWindow", GL::WindowStyle::Close);
     GL::Context& gl = window->GetContext();
 
-    GL::Shader vert( GL::ShaderType::Vertex,
+    GL::Shader vert(GL::ShaderType::Vertex,
         "#version 330 core\n"
         "in vec2 position;\n"
         "in vec2 texCoord;\n"
@@ -33,7 +33,7 @@ void __GLInit() {
         "   TexCoord = texCoord;\n"
         "}\0"
     );
-    GL::Shader frag( GL::ShaderType::Fragment,
+    GL::Shader frag(GL::ShaderType::Fragment,
         "#version 330 core\n"
         "in vec2 TexCoord;\n"
         "out vec4 FragColor;\n"
@@ -44,7 +44,7 @@ void __GLInit() {
         "}\0"
     );
     
-    program.emplace( vert, frag );
+    program.emplace(vert, frag);
 
     float vertices[] = {
         -1.0f, -1.0f,  0.0f,  0.0f,
@@ -52,16 +52,16 @@ void __GLInit() {
          1.0f,  1.0f,  1.0f,  1.0f,
         -1.0f,  1.0f,  0.0f,  1.0f,
     };
-    vbo.emplace( vertices, sizeof( vertices ), GL::BufferUsage::StaticDraw );
+    vbo.emplace(vertices, sizeof(vertices), GL::BufferUsage::StaticDraw);
 
     unsigned int indices[] = {
         0, 1, 2, 0, 2, 3
     };
-    ebo.emplace( indices, sizeof( indices ), GL::BufferUsage::StaticDraw );
+    ebo.emplace(indices, sizeof(indices), GL::BufferUsage::StaticDraw);
 
     vao.emplace();
-    vao->BindAttribute( program->GetAttribute( "position" ), vbo.value(), GL::Type::Float, 2, 4 * sizeof(float), 0 * sizeof(float) );
-    vao->BindAttribute( program->GetAttribute( "texCoord" ), vbo.value(), GL::Type::Float, 2, 4 * sizeof(float), 2 * sizeof(float) );
+    vao->BindAttribute(program->GetAttribute("position"), vbo.value(), GL::Type::Float, 2, 4 * sizeof(float), 0 * sizeof(float));
+    vao->BindAttribute(program->GetAttribute("texCoord"), vbo.value(), GL::Type::Float, 2, 4 * sizeof(float), 2 * sizeof(float));
     vao->BindElements(ebo.value());
 
     image.emplace(WIDTH, HEIGHT, pixels);
@@ -92,10 +92,10 @@ bool __GLIsOpen() {
 
 void __GLDraw() {
     GL::Event ev;
-    while ( window->GetEvent( ev ) );
-
-    if ((ev.Type == GL::Event::KeyDown) && (ev.Key.Code == GL::Key::Escape)) {
-        window->Close();
+    while (window->GetEvent(ev)) {
+        if ((ev.Type == GL::Event::KeyDown) && (ev.Key.Code == GL::Key::Escape)) {
+            window->Close();
+        }
     }
 
     GL::Context& gl = window->GetContext();
