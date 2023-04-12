@@ -1,0 +1,3 @@
+[submodule "include/OOGL"]
+	path = include/OOGL
+	url = https://github.com/BiscuitsLayer/OOGL.git
