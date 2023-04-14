@@ -22,6 +22,7 @@ std::string Scheme::Evaluate(const std::string& expression) {
     global_scope_->SetVariableValue("gl-put-pixel", std::make_shared<GLPutPixel>());
     global_scope_->SetVariableValue("gl-is-open", std::make_shared<GLIsOpen>());
     global_scope_->SetVariableValue("gl-draw", std::make_shared<GLDraw>());
+    global_scope_->SetVariableValue("gl-finish", std::make_shared<GLFinish>());
 
     // Print
     global_scope_->SetVariableValue("print", std::make_shared<Print>());

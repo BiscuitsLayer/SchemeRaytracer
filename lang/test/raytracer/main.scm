@@ -128,6 +128,7 @@
         (set! should-draw (+ should-draw 1))
     )
 )
+(gl-finish)
 
 ;; Legacy: iterate over all pixels, not randomly
 ; (gl-init)
@@ -136,10 +137,10 @@
 ;         (gl-clear)
 
 ;         (define i 0)
-;         (while (< i 100)
+;         (while (and (< i 100) (gl-is-open))
 ;             (begin
 ;                 (define j 0)
-;                 (while (< j 100)
+;                 (while (and (< j 100) (gl-is-open))
 ;                     (begin
 ;                         (if (= (mod j 5) 0)
 ;                             (gl-draw)
@@ -155,3 +156,4 @@
 ;         (gl-draw)
 ;     )
 ; )
+; (gl-finish)

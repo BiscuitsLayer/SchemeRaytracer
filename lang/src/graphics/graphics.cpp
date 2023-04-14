@@ -6,19 +6,21 @@
 
 const int WIDTH = 100;
 const int HEIGHT = 100;
+const int CHANNELS = 4;
 
-unsigned char* pixels;
+std::shared_ptr<unsigned char[]> pixels;
 std::optional<GL::Window> window;
-std::optional<GL::VertexBuffer> vbo;
+
+// TODO: vvv they all have GCs, so there is problem with having them as optionals
 std::optional<GL::VertexBuffer> ebo;
-std::optional<GL::VertexArray> vao;
+std::optional<GL::VertexBuffer> vbo;
 std::optional<GL::Program> program;
+std::optional<GL::VertexArray> vao;
 
 std::optional<GL::Image> image;
-std::optional<GL::Texture> texture;
 
 void __GLInit() {
-    pixels = new unsigned char [WIDTH * HEIGHT * 4] (0u);
+    pixels = std::make_shared<unsigned char[]>(WIDTH * HEIGHT * CHANNELS, 0u);
     window.emplace(WIDTH, HEIGHT, "OpenGLWindow", GL::WindowStyle::Close);
     GL::Context& gl = window->GetContext();
 
@@ -63,12 +65,6 @@ void __GLInit() {
     vao->BindAttribute(program->GetAttribute("position"), vbo.value(), GL::Type::Float, 2, 4 * sizeof(float), 0 * sizeof(float));
     vao->BindAttribute(program->GetAttribute("texCoord"), vbo.value(), GL::Type::Float, 2, 4 * sizeof(float), 2 * sizeof(float));
     vao->BindElements(ebo.value());
-
-    image.emplace(WIDTH, HEIGHT, pixels);
-    texture.emplace(image.value(), GL::InternalFormat::RGBA);
-
-    program->SetUniform(program->GetUniform("textureImage"), GL_TEXTURE1);
-    gl.BindTexture(texture.value(), GL_TEXTURE1);
 }
 
 void __GLClear() {
@@ -78,7 +74,7 @@ void __GLClear() {
 
 void __GLPutPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b) {
     if (0 <= x && x < WIDTH && 0 <= y && y < HEIGHT) {
-        int position = (x + y * WIDTH) * 4;
+        int position = (x + y * WIDTH) * CHANNELS;
         pixels[position] = r;
         pixels[position + 1] = g;
         pixels[position + 2] = b;
@@ -100,13 +96,20 @@ void __GLDraw() {
 
     GL::Context& gl = window->GetContext();
 
-    image.emplace(WIDTH, HEIGHT, pixels);
-    texture.emplace(image.value(), GL::InternalFormat::RGBA);
+    image.emplace(WIDTH, HEIGHT, pixels.get());
+    GL::Texture texture{image.value(), GL::InternalFormat::RGBA};
 
     program->SetUniform(program->GetUniform("textureImage"), GL_TEXTURE1);
-    gl.BindTexture(texture.value(), GL_TEXTURE1);
+    gl.BindTexture(texture, GL_TEXTURE1);
 
     gl.DrawElements(vao.value(), GL::Primitive::Triangles, 0, 6, GL::Type::UnsignedInt);
 
     window->Present();
+}
+
+void __GLFinish() {
+    program.reset();
+    vao.reset();
+    ebo.reset();
+    vbo.reset();
 }

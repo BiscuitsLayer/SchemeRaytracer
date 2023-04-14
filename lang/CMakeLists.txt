@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 project(Scheme)
-#add_compile_options(/std:c++17)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/tools/cmake")
@@ -8,9 +7,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
 find_package(Catch REQUIRED)
 
-# find_package(LLVM REQUIRED CONFIG)
-# message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-# message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+find_package(LLVM REQUIRED PATHS "D:/smartcar/LLVM0task/llvm-project/build" NO_DEFAULT_PATH)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 ### OOGL ###
 set(OOGL_DIR "../include/OOGL")
@@ -37,15 +36,15 @@ target_link_libraries(SchemeInterp libscheme)
 
 # Testing
 file(GLOB SRC_TEST "test/*.cpp")
-add_executable(SchemeTest ${SRC_TEST})
+add_executable(SchemeTest ${SRC_TEST} ${SRC_CATCH})
 target_link_libraries(SchemeTest libscheme contrib_catch_main)
 
 # LLVM Codegen
-# file(GLOB SRC_CODEGEN "codegen/main.cpp")
-# include_directories(${LLVM_INCLUDE_DIRS})
-# separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-# add_definitions(${LLVM_DEFINITIONS_LIST})
-# add_executable(SchemeCodegen ${SRC_CODEGEN})
+file(GLOB SRC_CODEGEN "codegen/main.cpp")
+include_directories(${LLVM_INCLUDE_DIRS})
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS_LIST})
+add_executable(SchemeCodegen ${SRC_CODEGEN})
 
 # {
 #     "demangle", "support", "tablegen", "core", "fuzzmutate", 
@@ -65,5 +64,5 @@ target_link_libraries(SchemeTest libscheme contrib_catch_main)
 #     "dlltooldriver", "libdriver", "xray", "windowsmanifest"
 # }
 
-# llvm_map_components_to_libnames(llvm_libs support core irreader executionengine)
-# target_link_libraries(SchemeCodegen libscheme ${llvm_libs})
+llvm_map_components_to_libnames(llvm_libs support core irreader executionengine)
+target_link_libraries(SchemeCodegen libscheme ${llvm_libs})

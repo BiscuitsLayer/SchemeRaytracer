@@ -276,6 +276,21 @@ public:
     }
 };
 
+class GLFinish : public Symbol {
+public:
+    GLFinish() : Symbol("gl-finish") {
+    }
+
+    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
+                                             std::shared_ptr<Scope>) override {
+        if (arguments.size() != 0) {
+            throw SyntaxError("No arguments required for \"GLFinish\" function");
+        }
+        __GLFinish();
+        return nullptr;
+    }
+};
+
 // FUNCTIONS //
 
 std::string ObjectToString(std::shared_ptr<Object> value);
