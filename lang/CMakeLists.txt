@@ -34,17 +34,23 @@ file(GLOB SRC_INTERP "interp/main.cpp")
 add_executable(SchemeInterp ${SRC_INTERP})
 target_link_libraries(SchemeInterp libscheme)
 
+include_directories(${LLVM_INCLUDE_DIRS})
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS_LIST})
+llvm_map_components_to_libnames(llvm_libs support core irreader executionengine interpreter)
+target_link_libraries(SchemeInterp libscheme ${llvm_libs})
+
+
 # Testing
 file(GLOB SRC_TEST "test/*.cpp")
 add_executable(SchemeTest ${SRC_TEST} ${SRC_CATCH})
 target_link_libraries(SchemeTest libscheme contrib_catch_main)
 
-# LLVM Codegen
-file(GLOB SRC_CODEGEN "codegen/main.cpp")
-include_directories(${LLVM_INCLUDE_DIRS})
-separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-add_definitions(${LLVM_DEFINITIONS_LIST})
-add_executable(SchemeCodegen ${SRC_CODEGEN})
+# # LLVM Codegen
+# file(GLOB SRC_CODEGEN "codegen/main.cpp")
+# include_directories(${LLVM_INCLUDE_DIRS})
+# separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+# add_executable(SchemeCodegen ${SRC_CODEGEN})
 
 # {
 #     "demangle", "support", "tablegen", "core", "fuzzmutate", 
@@ -64,5 +70,5 @@ add_executable(SchemeCodegen ${SRC_CODEGEN})
 #     "dlltooldriver", "libdriver", "xray", "windowsmanifest"
 # }
 
-llvm_map_components_to_libnames(llvm_libs support core irreader executionengine)
-target_link_libraries(SchemeCodegen libscheme ${llvm_libs})
+# llvm_map_components_to_libnames(llvm_libs support core irreader executionengine interpreter)
+# target_link_libraries(SchemeCodegen libscheme ${llvm_libs})

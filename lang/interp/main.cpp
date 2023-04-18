@@ -10,6 +10,43 @@ int main(int argc, char** argv) try {
     Scheme scheme;
     std::cout << "Scheme 1.0.0\n";
 
+    // CODEGEN
+    llvm::LLVMContext context;
+    std::shared_ptr<llvm::Module> module = std::make_shared<llvm::Module>("scheme.ll", context);
+    llvm::IRBuilder<> builder{context};
+
+    // declare void @main()
+    llvm::FunctionType* funcType = llvm::FunctionType::get(builder.getInt32Ty(), false);
+    llvm::Function* mainFunc = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "main", module.get());
+    llvm::BasicBlock* entryBB = llvm::BasicBlock::Create(context, "entry", mainFunc);
+    builder.SetInsertPoint(entryBB);
+
+    // CREATE OBJECT CLASS
+    llvm::StructType* object_type = llvm::StructType::create(context);
+    llvm::PointerType* object_ptr_type = llvm::PointerType::get(object_type, 0);
+    object_type->setName("SchemeObject");
+    std::vector<llvm::Type*> object_type_subtypes = {
+        builder.getInt32Ty(), // type
+        builder.getInt64Ty(), // number
+        builder.getInt1Ty(), // boolean
+        builder.getInt8PtrTy(), // string
+        object_ptr_type, // pointer to itself (first)
+        object_ptr_type // pointer to itself (second)
+    };
+    object_type->setBody(object_type_subtypes);
+
+    scheme.basic_block_stack.push(entryBB);
+    scheme.object_type = object_type;
+
+    // CODEGEN EXTERNAL FUNCTIONS
+    std::vector<llvm::Type*> PrintFuncArguments = { builder.getInt8PtrTy() };
+    funcType = llvm::FunctionType::get(builder.getInt32Ty(), PrintFuncArguments, false);
+    llvm::Function* PrintFunction = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLPrint", module.get());
+    // CODEGEN EXTERNAL FUNCTIONS
+
+
+    // CODEGEN
+
     if (argc != 2) {
         std::cout << "usage: ./SchemeInterp.exe file.scm" << std::endl;
         return 1;
@@ -89,8 +126,9 @@ int main(int argc, char** argv) try {
                         file_loader_stack.push(std::make_pair(buffer, 0));
                         break;
                     } else {
-                        auto result = scheme.Evaluate(last_expression);
-                        std::cout << "Result: " << result << std::endl;
+                        //auto result = scheme.Evaluate(last_expression);
+                        scheme.Codegen(last_expression, module, builder);
+                        //std::cout << "Result: " << result << std::endl;
                     }
                 }
             } else {
@@ -102,6 +140,23 @@ int main(int argc, char** argv) try {
             file_loader_stack.pop();
         }
     }
+
+    // CODEGEN
+    builder.CreateRet(builder.getInt32(0));
+    std::error_code EC;
+    llvm::raw_fd_ostream output_file("../codegen/outfile.ll", EC);
+    
+    llvm::outs() << "#[LLVM IR]:\n";
+    module->print(output_file, nullptr);
+
+    // Interpreter of LLVM IR
+    llvm::outs() << "Running code...\n";
+
+	llvm::ExecutionEngine *ee = llvm::EngineBuilder(std::unique_ptr<llvm::Module>(module.get())).create();
+    ee->finalizeObject();
+
+    std::cout << "Codegen happened" << std::endl;
+    // CODEGEN
 
     return 0;
 

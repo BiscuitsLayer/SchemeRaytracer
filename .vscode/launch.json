@@ -9,9 +9,9 @@
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/lang/build/Debug/SchemeInterp.exe",
-            "args": ["${workspaceFolder}/lang/test/raytracer/main.scm"],
+            "args": ["${workspaceFolder}/lang/test/codegen.scm"],
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceFolder}/lang/build",
             "environment": [],
             "console": "externalTerminal"
         }

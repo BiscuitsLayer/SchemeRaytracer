@@ -1,22 +1,23 @@
 #include "graphics.h"
 
+#include <iostream>
 #include <optional>
+#include <cassert>
 
 #include <GL/OOGL.hpp>
 
 const int WIDTH = 100;
 const int HEIGHT = 100;
 const int CHANNELS = 4;
+const long long PRECISION = 100;
 
 std::shared_ptr<unsigned char[]> pixels;
 std::optional<GL::Window> window;
 
-// TODO: vvv they all have GCs, so there is problem with having them as optionals
 std::optional<GL::VertexBuffer> ebo;
 std::optional<GL::VertexBuffer> vbo;
 std::optional<GL::Program> program;
 std::optional<GL::VertexArray> vao;
-
 std::optional<GL::Image> image;
 
 void __GLInit() {
@@ -112,4 +113,35 @@ void __GLFinish() {
     vao.reset();
     ebo.reset();
     vbo.reset();
+}
+
+void __GLPrint(SchemeObject* object) {
+    std::string value_to_print;
+    if (!object) {
+        value_to_print = "()";
+    } else {
+        switch(object->type) {
+            case ObjectType::TYPE_NUMBER: {
+                long long unhandled_value = object->number;
+                if (unhandled_value % PRECISION == 0) {
+                    long long value = unhandled_value / PRECISION;
+                    value_to_print = std::to_string(value);
+                } else {
+                    double value = 1.0 * unhandled_value / PRECISION;
+                    value_to_print = std::to_string(value);
+                }
+            } break;
+            case ObjectType::TYPE_BOOLEAN: {
+                value_to_print = object->boolean ? "#t" : "#f";
+            } break;
+            case ObjectType::TYPE_SYMBOL: {
+                value_to_print = std::string{object->symbol};
+            } break;
+            case ObjectType::TYPE_CELL: {
+                assert(false && "Printing cells is unimplemented");
+            } break;
+        }
+    }
+    
+    std::cout << "Print: " << value_to_print << std::endl;
 }

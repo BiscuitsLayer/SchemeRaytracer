@@ -33,6 +33,9 @@ class Object : public std::enable_shared_from_this<Object> {
 public:
     virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
                                              std::shared_ptr<Scope> scope) = 0;
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) {
+        throw std::runtime_error("Unimplemented codegen");
+    }
     virtual ~Object() = default;
 };
 
@@ -47,6 +50,28 @@ public:
                                              std::shared_ptr<Scope>) override {
 
         return shared_from_this();
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        llvm::AllocaInst* object_value = builder.CreateAlloca(object_type, nullptr, "number");
+
+        std::vector<llvm::Value*> object_value_type_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(0) // zeroth field - type
+        };
+        llvm::Value* object_value_type_field = builder.CreateGEP(object_type, object_value, object_value_type_field_indices);
+        // store 0 <- its a number
+        builder.CreateStore(builder.getInt32(0), object_value_type_field);
+
+        std::vector<llvm::Value*> object_value_number_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(1) // first field - number
+        };
+        llvm::Value* object_value_number_field = builder.CreateGEP(object_type, object_value, object_value_number_field_indices);
+        // store number value
+        builder.CreateStore(builder.getInt64(value_), object_value_number_field);
+
+        return object_value;
     }
 
     int64_t GetValue() const {
@@ -68,6 +93,29 @@ public:
         return value;
     }
 
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        llvm::AllocaInst* object_value = builder.CreateAlloca(object_type, nullptr, "symbol");
+
+        std::vector<llvm::Value*> object_value_type_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(0) // zeroth field - type
+        };
+        llvm::Value* object_value_type_field = builder.CreateGEP(object_type, object_value, object_value_type_field_indices);
+        // store 2 <- its a symbol
+        builder.CreateStore(builder.getInt32(2), object_value_type_field);
+
+        std::vector<llvm::Value*> object_value_symbol_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(3) // third field - symbol
+        };
+        llvm::Value* object_value_symbol_field = builder.CreateGEP(object_type, object_value, object_value_symbol_field_indices);
+        // store symbol value
+        llvm::Value* symbol_global = builder.CreateGlobalString(name_, "symbol_global");
+        builder.CreateStore(symbol_global, object_value_symbol_field);
+
+        return object_value;
+    }
+
     const std::string& GetName() const {
         return name_;
     }
@@ -84,6 +132,28 @@ public:
     virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>&,
                                              std::shared_ptr<Scope>) override {
         return shared_from_this();
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        llvm::AllocaInst* object_value = builder.CreateAlloca(object_type, nullptr, "boolean");
+
+        std::vector<llvm::Value*> object_value_type_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(0) // zeroth field - type
+        };
+        llvm::Value* object_value_type_field = builder.CreateGEP(object_type, object_value, object_value_type_field_indices);
+        // store 1 <- its a boolean
+        builder.CreateStore(builder.getInt32(1), object_value_type_field);
+
+        std::vector<llvm::Value*> object_value_boolean_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(2) // second field - boolean
+        };
+        llvm::Value* object_value_boolean_field = builder.CreateGEP(object_type, object_value, object_value_boolean_field_indices);
+        // store boolean value
+        builder.CreateStore(builder.getInt1(value_), object_value_boolean_field);
+
+        return object_value;
     }
 
     bool GetValue() const {
@@ -125,8 +195,7 @@ public:
             return lambda_to_eval_immediately->Evaluate({}, scope);
         } else if (!Is<Quote>(function)) {
             if (Is<Symbol>(function) || Is<Cell>(function)) {
-                function =
-                    function->Evaluate({}, scope);  // Get function object from scope variables
+                function = function->Evaluate({}, scope);  // Get function object from scope variables
             } else {
                 throw RuntimeError("Lists are not self evaliating, use \"quote\"");
             }
@@ -136,6 +205,23 @@ public:
 
         std::vector<std::shared_ptr<Object>> function_arguments = ListToVector(arguments_start);
         return function->Evaluate(function_arguments, scope);
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        std::shared_ptr<Object> function = GetFirst();
+
+        if (!Is<Quote>(function)) {
+            if (Is<Symbol>(function) || Is<Cell>(function)) {
+                function = function->Evaluate({}, scope);  // Get function object from scope variables
+            } else {
+                throw RuntimeError("Lists are not self evaliating, use \"quote\"");
+            }
+        }
+
+        std::shared_ptr<Object> arguments_start = GetSecond();
+
+        std::vector<std::shared_ptr<Object>> function_arguments = ListToVector(arguments_start);
+        return function->Codegen(module, builder, object_type, function_arguments, scope);
     }
 
     std::shared_ptr<Object> GetFirst() const {
@@ -309,6 +395,19 @@ public:
         std::cout << "Print: " << ObjectToString(object) << std::endl;
         return object;
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        if (arguments.size() != 1) {
+            throw SyntaxError("Exactly 1 argument required for \"Print\" function");
+        }
+        
+        // CODEGEN FUNCTION CALL
+        std::vector<llvm::Value*> print_function_call_arguments;
+        print_function_call_arguments.push_back(arguments[0]->Codegen(module, builder, object_type, {}, scope));
+
+        llvm::Function* PrintFunction = module->getFunction("__GLPrint");
+        builder.CreateCall(PrintFunction, print_function_call_arguments);
+    }
 };
 
 class IsBoolean : public Symbol {
@@ -459,6 +558,16 @@ public:
             throw SyntaxError("Exactly 1 argument (list) required for \"Quote\" function");
         }
         return arguments[0];
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        if (arguments.empty()) {
+            return nullptr;
+        }
+        if (arguments.size() > 1) {
+            throw SyntaxError("Exactly 1 argument (list) required for \"Quote\" function");
+        }
+        return arguments[0]->Codegen(module, builder, object_type, {}, scope);
     }
 };
 
