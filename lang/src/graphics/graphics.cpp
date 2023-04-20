@@ -73,7 +73,24 @@ void __GLClear() {
     gl.Clear();
 }
 
-void __GLPutPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b) {
+void __GLPutPixel(SchemeObject* x_object, SchemeObject* y_object, SchemeObject* r_object, SchemeObject* g_object, SchemeObject* b_object) {
+    assert(x_object->type == ObjectType::TYPE_NUMBER);
+    assert(x_object->number % PRECISION == 0);
+    int x = x_object->number / PRECISION;
+
+    assert(y_object->type == ObjectType::TYPE_NUMBER);
+    assert(y_object->number % PRECISION == 0);
+    int y = y_object->number / PRECISION;
+
+    assert(r_object->type == ObjectType::TYPE_NUMBER);
+    int r = r_object->number / PRECISION;
+
+    assert(g_object->type == ObjectType::TYPE_NUMBER);
+    int g = g_object->number / PRECISION;
+
+    assert(b_object->type == ObjectType::TYPE_NUMBER);
+    int b = b_object->number / PRECISION;
+
     if (0 <= x && x < WIDTH && 0 <= y && y < HEIGHT) {
         int position = (x + y * WIDTH) * CHANNELS;
         pixels[position] = r;
@@ -83,8 +100,11 @@ void __GLPutPixel(int x, int y, unsigned char r, unsigned char g, unsigned char 
     }
 }
 
-bool __GLIsOpen() {
-    return window->IsOpen();
+SchemeObject __GLIsOpen() {
+    SchemeObject ans;
+    ans.type = ObjectType::TYPE_BOOLEAN;
+    ans.boolean = window->IsOpen();
+    return ans;
 }
 
 void __GLDraw() {

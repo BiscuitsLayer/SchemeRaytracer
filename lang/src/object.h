@@ -61,7 +61,7 @@ public:
         };
         llvm::Value* object_value_type_field = builder.CreateGEP(object_type, object_value, object_value_type_field_indices);
         // store 0 <- its a number
-        builder.CreateStore(builder.getInt32(0), object_value_type_field);
+        builder.CreateStore(builder.getInt64(0), object_value_type_field);
 
         std::vector<llvm::Value*> object_value_number_field_indices {
             builder.getInt32(0), // because there is no array, so just the object itself
@@ -102,7 +102,7 @@ public:
         };
         llvm::Value* object_value_type_field = builder.CreateGEP(object_type, object_value, object_value_type_field_indices);
         // store 2 <- its a symbol
-        builder.CreateStore(builder.getInt32(2), object_value_type_field);
+        builder.CreateStore(builder.getInt64(2), object_value_type_field);
 
         std::vector<llvm::Value*> object_value_symbol_field_indices {
             builder.getInt32(0), // because there is no array, so just the object itself
@@ -143,7 +143,7 @@ public:
         };
         llvm::Value* object_value_type_field = builder.CreateGEP(object_type, object_value, object_value_type_field_indices);
         // store 1 <- its a boolean
-        builder.CreateStore(builder.getInt32(1), object_value_type_field);
+        builder.CreateStore(builder.getInt64(1), object_value_type_field);
 
         std::vector<llvm::Value*> object_value_boolean_field_indices {
             builder.getInt32(0), // because there is no array, so just the object itself
@@ -258,6 +258,18 @@ public:
         __GLInit();
         return nullptr;
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        if (arguments.size() != 0) {
+            throw SyntaxError("No arguments required for \"GLInit\" function");
+        }
+        
+        std::vector<llvm::Value*> function_call_arguments{};
+
+        llvm::Function* function = module->getFunction("__GLInit");
+        builder.CreateCall(function, function_call_arguments);
+        return nullptr;
+    }
 };
 
 class GLClear : public Symbol {
@@ -271,6 +283,18 @@ public:
             throw SyntaxError("No arguments required for \"GLClear\" function");
         }
         __GLClear();
+        return nullptr;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        if (arguments.size() != 0) {
+            throw SyntaxError("No arguments required for \"GLClear\" function");
+        }
+        
+        std::vector<llvm::Value*> function_call_arguments{};
+
+        llvm::Function* function = module->getFunction("__GLClear");
+        builder.CreateCall(function, function_call_arguments);
         return nullptr;
     }
 };
@@ -287,47 +311,31 @@ public:
         }
 
         std::shared_ptr<Object> x_object = arguments[0]->Evaluate({}, scope);
-        if (!Is<Number>(x_object)) {
-            throw RuntimeError("GLPutPixel: not a number given for x coordinate");
-        }
-        int64_t unhandled_x_value = As<Number>(x_object)->GetValue();
-        if (unhandled_x_value % PRECISION != 0) {
-            throw RuntimeError("GLPutPixel: not an integer given for x coordinate");
-        }
-        int64_t x_coord = unhandled_x_value / PRECISION;
-
         std::shared_ptr<Object> y_object = arguments[1]->Evaluate({}, scope);
-        if (!Is<Number>(y_object)) {
-            throw RuntimeError("GLPutPixel: not a number given for y coordinate");
-        }
-        int64_t unhandled_y_value = As<Number>(y_object)->GetValue();
-        if (unhandled_y_value % PRECISION != 0) {
-            throw RuntimeError("GLPutPixel: not an integer given for y coordinate");
-        }
-        int64_t y_coord = unhandled_y_value / PRECISION;
-
         std::shared_ptr<Object> r_object = arguments[2]->Evaluate({}, scope);
-        if (!Is<Number>(r_object)) {
-            throw RuntimeError("GLPutPixel: not a number given for red color commponent");
-        }
-        int unhandled_r_value = As<Number>(r_object)->GetValue();
-        int r_component = 255 * unhandled_r_value / PRECISION;
-
         std::shared_ptr<Object> g_object = arguments[3]->Evaluate({}, scope);
-        if (!Is<Number>(g_object)) {
-            throw RuntimeError("GLPutPixel: not a number given for green color commponent");
-        }
-        int unhandled_g_value = As<Number>(g_object)->GetValue();
-        int g_component = 255 * unhandled_g_value / PRECISION;
-
         std::shared_ptr<Object> b_object = arguments[4]->Evaluate({}, scope);
-        if (!Is<Number>(b_object)) {
-            throw RuntimeError("GLPutPixel: not a number given for blue color commponent");
-        }
-        int unhandled_b_value = As<Number>(b_object)->GetValue();
-        int b_component = 255 * unhandled_b_value / PRECISION;
 
-        __GLPutPixel(x_coord, y_coord, r_component, g_component, b_component);
+        // TODO: fix
+        //__GLPutPixel(x_coord, y_coord, r_component, g_component, b_component);
+        return nullptr;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        if (arguments.size() != 5) {
+            throw SyntaxError("Exactly 5 arguments required for \"GLPutPixel\" function");
+        }
+        
+        llvm::Value* x_object = arguments[0]->Codegen(module, builder, object_type, {}, scope);
+        llvm::Value* y_object = arguments[1]->Codegen(module, builder, object_type, {}, scope);
+        llvm::Value* r_object = arguments[2]->Codegen(module, builder, object_type, {}, scope);
+        llvm::Value* g_object = arguments[3]->Codegen(module, builder, object_type, {}, scope);
+        llvm::Value* b_object = arguments[4]->Codegen(module, builder, object_type, {}, scope);
+
+        std::vector<llvm::Value*> function_call_arguments{ x_object, y_object, r_object, g_object, b_object };
+
+        llvm::Function* function = module->getFunction("__GLPutPixel");
+        builder.CreateCall(function, function_call_arguments);
         return nullptr;
     }
 };
@@ -342,8 +350,21 @@ public:
         if (arguments.size() != 0) {
             throw SyntaxError("No arguments required for \"GLIsOpen\" function");
         }
-        return __GLIsOpen() ? std::make_shared<Boolean>(true)
+        return __GLIsOpen().boolean ? std::make_shared<Boolean>(true)
                                   : std::make_shared<Boolean>(false);
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        if (arguments.size() != 0) {
+            throw SyntaxError("No arguments required for \"GLIsOpen\" function");
+        }
+        
+        std::vector<llvm::Value*> function_call_arguments{};
+
+        llvm::Function* function = module->getFunction("__GLIsOpen");
+        llvm::Value* is_open_return_value = builder.CreateAlloca(object_type, nullptr, "is-open");
+        builder.CreateStore(builder.CreateCall(function, function_call_arguments), is_open_return_value);
+        return is_open_return_value;
     }
 };
 
@@ -360,6 +381,18 @@ public:
         __GLDraw();
         return nullptr;
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        if (arguments.size() != 0) {
+            throw SyntaxError("No arguments required for \"GLDraw\" function");
+        }
+        
+        std::vector<llvm::Value*> function_call_arguments{};
+
+        llvm::Function* function = module->getFunction("__GLDraw");
+        builder.CreateCall(function, function_call_arguments);
+        return nullptr;
+    }
 };
 
 class GLFinish : public Symbol {
@@ -373,6 +406,18 @@ public:
             throw SyntaxError("No arguments required for \"GLFinish\" function");
         }
         __GLFinish();
+        return nullptr;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        if (arguments.size() != 0) {
+            throw SyntaxError("No arguments required for \"GLFinish\" function");
+        }
+        
+        std::vector<llvm::Value*> function_call_arguments{};
+
+        llvm::Function* function = module->getFunction("__GLFinish");
+        builder.CreateCall(function, function_call_arguments);
         return nullptr;
     }
 };
@@ -401,12 +446,13 @@ public:
             throw SyntaxError("Exactly 1 argument required for \"Print\" function");
         }
         
-        // CODEGEN FUNCTION CALL
-        std::vector<llvm::Value*> print_function_call_arguments;
-        print_function_call_arguments.push_back(arguments[0]->Codegen(module, builder, object_type, {}, scope));
+        std::vector<llvm::Value*> function_call_arguments;
+        llvm::Value* object = arguments[0]->Codegen(module, builder, object_type, {}, scope);
+        function_call_arguments.push_back(object);
 
-        llvm::Function* PrintFunction = module->getFunction("__GLPrint");
-        builder.CreateCall(PrintFunction, print_function_call_arguments);
+        llvm::Function* function = module->getFunction("__GLPrint");
+        builder.CreateCall(function, function_call_arguments);
+        return object;
     }
 };
 

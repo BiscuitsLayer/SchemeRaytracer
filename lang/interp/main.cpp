@@ -6,7 +6,7 @@
 
 std::string last_expression;
 
-int main(int argc, char** argv) try {
+int main(int argc, char** argv) {
     Scheme scheme;
     std::cout << "Scheme 1.0.0\n";
 
@@ -26,7 +26,7 @@ int main(int argc, char** argv) try {
     llvm::PointerType* object_ptr_type = llvm::PointerType::get(object_type, 0);
     object_type->setName("SchemeObject");
     std::vector<llvm::Type*> object_type_subtypes = {
-        builder.getInt32Ty(), // type
+        builder.getInt64Ty(), // type
         builder.getInt64Ty(), // number
         builder.getInt1Ty(), // boolean
         builder.getInt8PtrTy(), // string
@@ -38,10 +38,39 @@ int main(int argc, char** argv) try {
     scheme.basic_block_stack.push(entryBB);
     scheme.object_type = object_type;
 
+    std::vector<llvm::Type*> function_arguments;
+    llvm::Function* function;
+
+
     // CODEGEN EXTERNAL FUNCTIONS
-    std::vector<llvm::Type*> PrintFuncArguments = { builder.getInt8PtrTy() };
-    funcType = llvm::FunctionType::get(builder.getInt32Ty(), PrintFuncArguments, false);
-    llvm::Function* PrintFunction = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLPrint", module.get());
+    function_arguments = {};
+    funcType = llvm::FunctionType::get(builder.getVoidTy(), function_arguments, false);
+    function = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLInit", module.get());
+    
+    function_arguments = {};
+    funcType = llvm::FunctionType::get(builder.getVoidTy(), function_arguments, false);
+    function = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLClear", module.get());
+
+    // function_arguments = { object_type, object_type, object_type, object_type, object_type };
+    function_arguments = { builder.getInt8PtrTy(), builder.getInt8PtrTy(), builder.getInt8PtrTy(), builder.getInt8PtrTy(), builder.getInt8PtrTy() };
+    funcType = llvm::FunctionType::get(builder.getVoidTy(), function_arguments, false);
+    function = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLPutPixel", module.get());
+
+    function_arguments = {};
+    funcType = llvm::FunctionType::get(object_type, function_arguments, false);
+    function = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLIsOpen", module.get());
+
+    function_arguments = {};
+    funcType = llvm::FunctionType::get(builder.getVoidTy(), function_arguments, false);
+    function = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLDraw", module.get());
+
+    function_arguments = {};
+    funcType = llvm::FunctionType::get(builder.getVoidTy(), function_arguments, false);
+    function = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLFinish", module.get());
+
+    function_arguments = { builder.getInt8PtrTy() };
+    funcType = llvm::FunctionType::get(builder.getVoidTy(), function_arguments, false);
+    function = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLPrint", module.get());
     // CODEGEN EXTERNAL FUNCTIONS
 
 
@@ -126,8 +155,8 @@ int main(int argc, char** argv) try {
                         file_loader_stack.push(std::make_pair(buffer, 0));
                         break;
                     } else {
-                        //auto result = scheme.Evaluate(last_expression);
                         scheme.Codegen(last_expression, module, builder);
+                        //auto result = scheme.Evaluate(last_expression);
                         //std::cout << "Result: " << result << std::endl;
                     }
                 }
@@ -142,6 +171,8 @@ int main(int argc, char** argv) try {
     }
 
     // CODEGEN
+    scheme.basic_block_stack.pop();
+
     builder.CreateRet(builder.getInt32(0));
     std::error_code EC;
     llvm::raw_fd_ostream output_file("../codegen/outfile.ll", EC);
@@ -149,18 +180,9 @@ int main(int argc, char** argv) try {
     llvm::outs() << "#[LLVM IR]:\n";
     module->print(output_file, nullptr);
 
-    // Interpreter of LLVM IR
-    llvm::outs() << "Running code...\n";
-
-	llvm::ExecutionEngine *ee = llvm::EngineBuilder(std::unique_ptr<llvm::Module>(module.get())).create();
-    ee->finalizeObject();
-
     std::cout << "Codegen happened" << std::endl;
     // CODEGEN
 
     return 0;
 
-} catch (const std::runtime_error& ex) {
-    std::cout << ex.what() << std::endl;
-    std::cout << "Expression: " << last_expression << std::endl;
 }

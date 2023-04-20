@@ -1,8 +1,10 @@
+#include <cstdint>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-enum ObjectType : int {
+enum ObjectType : int64_t {
     TYPE_NUMBER = 0,
     TYPE_BOOLEAN = 1,
     TYPE_SYMBOL = 2,
@@ -11,7 +13,7 @@ enum ObjectType : int {
 
 struct SchemeObject {
     ObjectType type;
-    long long number;
+    int64_t number;
     bool boolean;
     char* symbol;
     SchemeObject* first;
@@ -20,8 +22,8 @@ struct SchemeObject {
 
 void __GLInit();
 void __GLClear() ;
-void __GLPutPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b);
-bool __GLIsOpen();
+void __GLPutPixel(SchemeObject* x, SchemeObject* y, SchemeObject* r, SchemeObject* g, SchemeObject* b);
+SchemeObject __GLIsOpen();
 void __GLDraw();
 void __GLFinish();
 void __GLPrint(SchemeObject* object);
