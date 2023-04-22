@@ -1474,6 +1474,86 @@ public:
         }
         return nullptr;
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        if ((arguments.size() < 2) || (arguments.size() > 3)) {
+            throw SyntaxError("Exactly 2 or 3 arguments required for \"If\" function");
+        }
+        
+        auto& context = builder.getContext();
+        llvm::Function* current_function = builder.GetInsertBlock()->getParent();
+        llvm::BasicBlock* true_branch = llvm::BasicBlock::Create(context, "true_branch", current_function);
+        llvm::BasicBlock* false_branch = nullptr;
+        if (arguments.size() == 3) {
+            false_branch = llvm::BasicBlock::Create(context, "false_branch", current_function);
+        }
+        llvm::BasicBlock* merge_branch = llvm::BasicBlock::Create(context, "merge_branch", current_function);
+
+        // CODEGEN CONDITION
+        llvm::Value* condition_value = arguments[0]->Codegen(module, builder, object_type, {}, scope);
+
+        // CONDITION GET TYPE
+        std::vector<llvm::Value*> condition_value_type_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(0) // zeroth field - type
+        };
+        llvm::Value* condition_value_type_field = builder.CreateGEP(object_type, condition_value, condition_value_type_field_indices);
+        llvm::Value* condition_value_type = builder.CreateLoad(builder.getInt64Ty(), condition_value_type_field);
+
+        // ASSERT
+        std::vector<llvm::Value*> assert_function_call_arguments = { builder.CreateICmpEQ(condition_value_type, builder.getInt64(ObjectType::TYPE_BOOLEAN)) };
+        llvm::Function* assert_function = module->getFunction("__GLAssert");
+
+        // CONDITION GET BOOLEAN
+        std::vector<llvm::Value*> condition_value_boolean_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(2) // second field - boolean
+        };
+        llvm::Value* condition_value_boolean_field = builder.CreateGEP(object_type, condition_value, condition_value_boolean_field_indices);
+        llvm::Value* condition_value_boolean = builder.CreateLoad(builder.getInt1Ty(), condition_value_boolean_field);
+
+        // CONDITION CHECK
+        if (arguments.size() == 3) {
+            // if we have false branch
+            builder.CreateCondBr(condition_value_boolean, true_branch, false_branch);
+        } else {
+            // if we don't have false branch
+            builder.CreateCondBr(condition_value_boolean, true_branch, merge_branch);
+        }
+        llvm::Value* return_result = nullptr;
+
+        // TRUE BRANCH
+        builder.SetInsertPoint(true_branch);
+        llvm::Value* true_branch_return_result = arguments[1]->Codegen(module, builder, object_type, {}, scope);
+        builder.CreateBr(merge_branch);
+        true_branch = builder.GetInsertBlock();
+
+        // FALSE BRANCH
+        llvm::Value* false_branch_return_result = nullptr;
+        if (arguments.size() == 3) {
+            builder.SetInsertPoint(false_branch);
+            false_branch_return_result = arguments[2]->Codegen(module, builder, object_type, {}, scope);
+            builder.CreateBr(merge_branch);
+            false_branch = builder.GetInsertBlock();
+        }
+
+        // MERGE BRANCH
+        builder.SetInsertPoint(merge_branch);
+
+        llvm::PHINode* phi_node = nullptr;
+        if (arguments.size() == 3) {
+            // if we have false branch
+            phi_node = builder.CreatePHI(builder.getInt8PtrTy(), 2);
+            phi_node->addIncoming(true_branch_return_result, true_branch);
+            phi_node->addIncoming(false_branch_return_result, false_branch);
+        } else {
+            // if we don't have false branch
+            phi_node = builder.CreatePHI(builder.getInt8PtrTy(), 1);
+            phi_node->addIncoming(true_branch_return_result, true_branch);
+        }
+
+        return phi_node;
+    }
 };
 
 class While : public Symbol {
@@ -1498,6 +1578,58 @@ public:
             condition = arguments[0]->Evaluate({}, scope);
         }
         return result;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        if (arguments.size() != 2) {
+            throw SyntaxError("Exactly 2 arguments required for \"While\" function");
+        }
+        
+        auto& context = builder.getContext();
+        llvm::Function* current_function = builder.GetInsertBlock()->getParent();
+        llvm::BasicBlock* condition_branch = llvm::BasicBlock::Create(context, "condition_branch", current_function);
+        llvm::BasicBlock* loop_branch = llvm::BasicBlock::Create(context, "loop_branch", current_function);
+        llvm::BasicBlock* merge_branch = llvm::BasicBlock::Create(context, "merge_branch", current_function);
+
+        builder.CreateBr(condition_branch);
+        builder.SetInsertPoint(condition_branch);
+
+        // CODEGEN CONDITION
+        llvm::Value* condition_value = arguments[0]->Codegen(module, builder, object_type, {}, scope);
+
+        // CONDITION GET TYPE
+        std::vector<llvm::Value*> condition_value_type_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(0) // zeroth field - type
+        };
+        llvm::Value* condition_value_type_field = builder.CreateGEP(object_type, condition_value, condition_value_type_field_indices);
+        llvm::Value* condition_value_type = builder.CreateLoad(builder.getInt64Ty(), condition_value_type_field);
+
+        // ASSERT
+        std::vector<llvm::Value*> assert_function_call_arguments = { builder.CreateICmpEQ(condition_value_type, builder.getInt64(ObjectType::TYPE_BOOLEAN)) };
+        llvm::Function* assert_function = module->getFunction("__GLAssert");
+
+        // CONDITION GET BOOLEAN
+        std::vector<llvm::Value*> condition_value_boolean_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(2) // second field - boolean
+        };
+        llvm::Value* condition_value_boolean_field = builder.CreateGEP(object_type, condition_value, condition_value_boolean_field_indices);
+        llvm::Value* condition_value_boolean = builder.CreateLoad(builder.getInt1Ty(), condition_value_boolean_field);
+
+        // CONDITION CHECK
+        builder.CreateCondBr(condition_value_boolean, loop_branch, merge_branch);
+
+        // LOOP BRANCH
+        builder.SetInsertPoint(loop_branch);
+        llvm::Value* loop_branch_return_result = arguments[1]->Codegen(module, builder, object_type, {}, scope);
+        builder.CreateBr(condition_branch);
+        loop_branch = builder.GetInsertBlock();
+
+
+        // MERGE BRANCH
+        builder.SetInsertPoint(merge_branch);
+        return loop_branch_return_result;
     }
 };
 
