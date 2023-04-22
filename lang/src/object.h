@@ -1092,6 +1092,73 @@ public:
         }
         return ans;
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        // INIT TYPE
+        llvm::Value* ans = builder.CreateAlloca(object_type, nullptr);
+        std::vector<llvm::Value*> ans_value_type_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(0) // zeroth field - type
+        };
+        llvm::Value* ans_value_type_field = builder.CreateGEP(object_type, ans, ans_value_type_field_indices);
+        builder.CreateStore(builder.getInt64(0), ans_value_type_field);
+            
+        // INIT NUMBER
+        std::vector<llvm::Value*> ans_value_number_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(1) // first field - number
+        };
+        llvm::Value* ans_value_number_field = builder.CreateGEP(object_type, ans, ans_value_number_field_indices);
+        builder.CreateStore(builder.getInt64(0 * PRECISION), ans_value_number_field);
+
+        // NEW READ VALUE
+        llvm::Value* value = nullptr;
+
+        for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
+            value = arguments[argument_idx]->Codegen(module, builder, object_type, {}, scope);
+
+            // OBJECT GET TYPE
+            std::vector<llvm::Value*> object_value_type_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(0) // zeroth field - type
+            };
+            llvm::Value* object_value_type_field = builder.CreateGEP(object_type, value, object_value_type_field_indices);
+            llvm::Value* object_value_type = builder.CreateLoad(builder.getInt64Ty(), object_value_type_field);
+
+            // ASSERT
+            std::vector<llvm::Value*> assert_function_call_arguments = { builder.CreateICmpEQ(object_value_type, builder.getInt64(0)) };
+            llvm::Function* assert_function = module->getFunction("__GLAssert");
+            builder.CreateCall(assert_function, assert_function_call_arguments);
+
+            // ANS
+            std::vector<llvm::Value*> ans_value_number_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(1) // first field - number
+            };
+            llvm::Value* ans_value_number_field = builder.CreateGEP(object_type, ans, ans_value_number_field_indices);
+            llvm::Value* ans_value_number = builder.CreateLoad(builder.getInt64Ty(), ans_value_number_field);
+
+            // OBJECT
+            std::vector<llvm::Value*> object_value_number_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(1) // first field - number
+            };
+            llvm::Value* object_value_number_field = builder.CreateGEP(object_type, value, object_value_number_field_indices);
+            llvm::Value* object_value_number = builder.CreateLoad(builder.getInt64Ty(), object_value_number_field);
+
+            // COMPUTE
+            llvm::Value* new_ans_number = builder.CreateSub(ans_value_number, object_value_number);
+            
+            // STORE NUMBER
+            llvm::Value* new_ans_value_number_field = builder.CreateGEP(object_type, ans, ans_value_number_field_indices);
+            if (argument_idx == 0) {
+                builder.CreateStore(object_value_number, new_ans_value_number_field);
+            } else {
+                builder.CreateStore(new_ans_number, new_ans_value_number_field);
+            }
+        }
+        return ans;
+    }
 };
 
 class Divide : public Symbol {
@@ -1122,6 +1189,100 @@ public:
 
                     ans = std::make_shared<Number>(old_number * PRECISION / (update_number != 0 ? update_number : 1));
                 }
+            }
+        }
+        return ans;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        // INIT TYPE
+        llvm::Value* ans = builder.CreateAlloca(object_type, nullptr);
+        std::vector<llvm::Value*> ans_value_type_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(0) // zeroth field - type
+        };
+        llvm::Value* ans_value_type_field = builder.CreateGEP(object_type, ans, ans_value_type_field_indices);
+        builder.CreateStore(builder.getInt64(0), ans_value_type_field);
+            
+        // INIT NUMBER
+        std::vector<llvm::Value*> ans_value_number_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(1) // first field - number
+        };
+        llvm::Value* ans_value_number_field = builder.CreateGEP(object_type, ans, ans_value_number_field_indices);
+        builder.CreateStore(builder.getInt64(1 * PRECISION), ans_value_number_field);
+
+        // NEW READ VALUE
+        llvm::Value* value = nullptr;
+
+        for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
+            value = arguments[argument_idx]->Codegen(module, builder, object_type, {}, scope);
+
+            // OBJECT GET TYPE
+            std::vector<llvm::Value*> object_value_type_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(0) // zeroth field - type
+            };
+            llvm::Value* object_value_type_field = builder.CreateGEP(object_type, value, object_value_type_field_indices);
+            llvm::Value* object_value_type = builder.CreateLoad(builder.getInt64Ty(), object_value_type_field);
+
+            // ASSERT
+            std::vector<llvm::Value*> assert_function_call_arguments = { builder.CreateICmpEQ(object_value_type, builder.getInt64(0)) };
+            llvm::Function* assert_function = module->getFunction("__GLAssert");
+            builder.CreateCall(assert_function, assert_function_call_arguments);
+
+            // ANS
+            std::vector<llvm::Value*> ans_value_number_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(1) // first field - number
+            };
+            llvm::Value* ans_value_number_field = builder.CreateGEP(object_type, ans, ans_value_number_field_indices);
+            llvm::Value* ans_value_number = builder.CreateLoad(builder.getInt64Ty(), ans_value_number_field);
+
+            // OBJECT
+            std::vector<llvm::Value*> object_value_number_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(1) // first field - number
+            };
+            llvm::Value* object_value_number_field = builder.CreateGEP(object_type, value, object_value_number_field_indices);
+            llvm::Value* object_value_number_not_checked = builder.CreateLoad(builder.getInt64Ty(), object_value_number_field);
+
+            // WARNING: CHECK THAT OBJECT_VALUE_NUMBER IS NOT ZERO
+            // CREATE BRANCHES
+            auto object_value_branch = builder.GetInsertBlock();
+            auto& context = builder.getContext();
+            llvm::Function* current_function = builder.GetInsertBlock()->getParent();
+            llvm::BasicBlock* modify_branch = llvm::BasicBlock::Create(context, "modify_branch", current_function);
+            llvm::BasicBlock* continue_branch = llvm::BasicBlock::Create(context, "continue_branch", current_function);
+
+            // COMPUTE CONDITION
+            llvm::Value* is_not_zero = builder.CreateICmpNE(object_value_number_not_checked, builder.getInt64(0));
+            builder.CreateCondBr(is_not_zero, continue_branch, modify_branch);
+
+            // MODIFY BRANCH
+            builder.SetInsertPoint(modify_branch);
+            llvm::Value* modify_branch_return_result = builder.getInt64(1);
+            builder.CreateBr(continue_branch);
+            modify_branch = builder.GetInsertBlock();
+
+            // CONTINUE BRANCH
+            builder.SetInsertPoint(continue_branch);
+            llvm::PHINode* object_value_number_checked = builder.CreatePHI(builder.getInt64Ty(), 2);
+            object_value_number_checked->addIncoming(modify_branch_return_result, modify_branch);
+            object_value_number_checked->addIncoming(object_value_number_not_checked, object_value_branch);
+            // continue_branch = builder.GetInsertBlock();
+
+            // COMPUTE
+            // ans = std::make_shared<Number>(old_number * PRECISION / (update_number != 0 ? update_number : 1));
+            llvm::Value* new_ans_number_not_precised = builder.CreateMul(ans_value_number, builder.getInt64(PRECISION));
+            llvm::Value* new_ans_number = builder.CreateSDiv(new_ans_number_not_precised, object_value_number_checked);
+
+            // STORE NUMBER
+            llvm::Value* new_ans_value_number_field = builder.CreateGEP(object_type, ans, ans_value_number_field_indices);
+            if (argument_idx == 0) {
+                builder.CreateStore(object_value_number_not_checked, new_ans_value_number_field);
+            } else {
+                builder.CreateStore(new_ans_number, new_ans_value_number_field);
             }
         }
         return ans;
@@ -1625,7 +1786,6 @@ public:
         llvm::Value* loop_branch_return_result = arguments[1]->Codegen(module, builder, object_type, {}, scope);
         builder.CreateBr(condition_branch);
         loop_branch = builder.GetInsertBlock();
-
 
         // MERGE BRANCH
         builder.SetInsertPoint(merge_branch);
