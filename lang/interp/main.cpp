@@ -71,6 +71,18 @@ int main(int argc, char** argv) {
     function_arguments = { builder.getInt8PtrTy() };
     funcType = llvm::FunctionType::get(builder.getVoidTy(), function_arguments, false);
     function = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLPrint", module.get());
+
+    function_arguments = { builder.getInt1Ty() };
+    funcType = llvm::FunctionType::get(builder.getVoidTy(), function_arguments, false);
+    function = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLAssert", module.get());
+
+    function_arguments = { builder.getInt8PtrTy(), builder.getInt8PtrTy() };
+    funcType = llvm::FunctionType::get(object_type, function_arguments, false);
+    function = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLExpt", module.get());
+
+    function_arguments = { builder.getInt8PtrTy() };
+    funcType = llvm::FunctionType::get(object_type, function_arguments, false);
+    function = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "__GLSqrt", module.get());
     // CODEGEN EXTERNAL FUNCTIONS
 
 
@@ -176,8 +188,6 @@ int main(int argc, char** argv) {
     builder.CreateRet(builder.getInt32(0));
     std::error_code EC;
     llvm::raw_fd_ostream output_file("../codegen/outfile.ll", EC);
-    
-    llvm::outs() << "#[LLVM IR]:\n";
     module->print(output_file, nullptr);
 
     std::cout << "Codegen happened" << std::endl;

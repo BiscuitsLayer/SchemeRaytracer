@@ -9,7 +9,7 @@
 const int WIDTH = 100;
 const int HEIGHT = 100;
 const int CHANNELS = 4;
-const long long PRECISION = 100;
+const int64_t PRECISION = 100;
 
 std::shared_ptr<unsigned char[]> pixels;
 std::optional<GL::Window> window;
@@ -121,7 +121,7 @@ void __GLDraw() {
     GL::Texture texture{image.value(), GL::InternalFormat::RGBA};
 
     program->SetUniform(program->GetUniform("textureImage"), GL_TEXTURE1);
-    gl.BindTexture(texture, GL_TEXTURE1);
+    gl.BindTexture(texture, static_cast<GL::uchar>(GL_TEXTURE1));
 
     gl.DrawElements(vao.value(), GL::Primitive::Triangles, 0, 6, GL::Type::UnsignedInt);
 
@@ -135,33 +135,99 @@ void __GLFinish() {
     vbo.reset();
 }
 
+// Auxiliary functions for print formatting
+std::string GLObjectToString(SchemeObject* object);
+std::string GLListToString(SchemeObject* object);
+
 void __GLPrint(SchemeObject* object) {
-    std::string value_to_print;
+    std::cout << "Print: " << GLObjectToString(object) << std::endl;
+}
+
+std::string GLObjectToString(SchemeObject* object) {
+    std::string ans{};
+
     if (!object) {
-        value_to_print = "()";
+        ans = "()";
     } else {
         switch(object->type) {
             case ObjectType::TYPE_NUMBER: {
-                long long unhandled_value = object->number;
+                int64_t unhandled_value = object->number;
                 if (unhandled_value % PRECISION == 0) {
-                    long long value = unhandled_value / PRECISION;
-                    value_to_print = std::to_string(value);
+                    int64_t value = unhandled_value / PRECISION;
+                    ans = std::to_string(value);
                 } else {
                     double value = 1.0 * unhandled_value / PRECISION;
-                    value_to_print = std::to_string(value);
+                    ans = std::to_string(value);
                 }
             } break;
             case ObjectType::TYPE_BOOLEAN: {
-                value_to_print = object->boolean ? "#t" : "#f";
+                ans = object->boolean ? "#t" : "#f";
             } break;
             case ObjectType::TYPE_SYMBOL: {
-                value_to_print = std::string{object->symbol};
+                ans = std::string{object->symbol};
             } break;
             case ObjectType::TYPE_CELL: {
-                assert(false && "Printing cells is unimplemented");
+                ans = GLListToString(object);
             } break;
         }
     }
-    
-    std::cout << "Print: " << value_to_print << std::endl;
+
+    return ans;
+}
+
+std::string GLListToString(SchemeObject* object) {
+    std::string ans = "(";
+
+    for (SchemeObject* cell = object; cell; cell = cell->second) {
+        SchemeObject* first = cell->first;
+        if (!first) {
+            ans += ")";
+            return ans;
+        }
+
+        std::string value = GLObjectToString(first);
+        SchemeObject* second = cell->second;
+        if (!second) {
+            ans += value + ")";
+            return ans;
+        } else {
+            ans += value + " ";
+            if (second->type != ObjectType::TYPE_CELL) {  // If second is not Cell, we should use Dot
+                value = GLObjectToString(second); 
+                ans += ". " + value + ")";
+                return ans;
+            }
+        }
+    }
+
+    return ans;
+}
+
+void __GLAssert(bool value) {
+    assert(value);
+}
+
+SchemeObject __GLExpt(SchemeObject* value_object, SchemeObject* power_object) {
+    SchemeObject ans;
+    ans.type = ObjectType::TYPE_NUMBER;
+
+    assert(value_object->type == ObjectType::TYPE_NUMBER);
+    double value_number = static_cast<double>(value_object->number) / PRECISION;
+
+    assert(power_object->type == ObjectType::TYPE_NUMBER);
+    double power_number = static_cast<double>(power_object->number) / PRECISION;
+
+    ans.number = std::pow(value_number, power_number) * PRECISION;
+    return ans;
+}
+
+SchemeObject __GLSqrt(SchemeObject* value_object) {
+    SchemeObject ans;
+    ans.type = ObjectType::TYPE_NUMBER;
+
+    assert(value_object->type == ObjectType::TYPE_NUMBER);
+    double value_number = static_cast<double>(value_object->number) / PRECISION;
+
+    ans.number = std::sqrt(value_number) * PRECISION;
+    return ans;
 }

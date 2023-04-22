@@ -210,6 +210,8 @@ public:
     virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
         std::shared_ptr<Object> function = GetFirst();
 
+        // TODO: fix function build
+
         if (!Is<Quote>(function)) {
             if (Is<Symbol>(function) || Is<Cell>(function)) {
                 function = function->Evaluate({}, scope);  // Get function object from scope variables
@@ -470,6 +472,10 @@ public:
         return Is<Boolean>(value) ? std::make_shared<Boolean>(true)
                                   : std::make_shared<Boolean>(false);
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
+    }
 };
 
 class IsNumber : public Symbol {
@@ -486,6 +492,10 @@ public:
         return Is<Number>(value) ? std::make_shared<Boolean>(true)
                                  : std::make_shared<Boolean>(false);
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("number? codegen not implemented");
+    }
 };
 
 class IsSymbol : public Symbol {
@@ -501,6 +511,10 @@ public:
         std::shared_ptr<Object> value = arguments[0]->Evaluate({}, scope);
         return Is<Symbol>(value) ? std::make_shared<Boolean>(true)
                                  : std::make_shared<Boolean>(false);
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
     }
 };
 
@@ -536,6 +550,10 @@ public:
             }
         }
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
+    }
 };
 
 class IsNull : public Symbol {
@@ -563,6 +581,10 @@ public:
         }
         return std::make_shared<Boolean>(false);
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("null? codegen not implemented");
+    }
 };
 
 class IsList : public Symbol {
@@ -587,6 +609,10 @@ public:
             }
         }
         return std::make_shared<Boolean>(true);
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("list? codegen not implemented");
     }
 };
 
@@ -635,6 +661,10 @@ public:
         }
         return std::make_shared<Boolean>(false);
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
+    }
 };
 
 class And : public Symbol {
@@ -659,6 +689,10 @@ public:
         }
         return ans;
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("and codegen not implemented");
+    }
 };
 
 class Or : public Symbol {
@@ -682,6 +716,10 @@ public:
             }
         }
         return ans;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
     }
 };
 
@@ -711,6 +749,10 @@ public:
         }
         return ans;
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
+    }
 };
 
 class Greater : public Symbol {
@@ -738,6 +780,10 @@ public:
             }
         }
         return ans;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("> codegen not implemented");
     }
 };
 
@@ -767,6 +813,10 @@ public:
         }
         return ans;
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
+    }
 };
 
 class Less : public Symbol {
@@ -794,6 +844,10 @@ public:
             }
         }
         return ans;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("< codegen not implemented");
     }
 };
 
@@ -823,6 +877,10 @@ public:
         }
         return ans;
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
+    }
 };
 
 class Add : public Symbol {
@@ -848,6 +906,69 @@ public:
         }
         return ans;
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        // INIT TYPE
+        llvm::Value* ans = builder.CreateAlloca(object_type, nullptr);
+        std::vector<llvm::Value*> ans_value_type_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(0) // zeroth field - type
+        };
+        llvm::Value* ans_value_type_field = builder.CreateGEP(object_type, ans, ans_value_type_field_indices);
+        builder.CreateStore(builder.getInt64(0), ans_value_type_field);
+            
+        // INIT NUMBER
+        std::vector<llvm::Value*> ans_value_number_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(1) // first field - number
+        };
+        llvm::Value* ans_value_number_field = builder.CreateGEP(object_type, ans, ans_value_number_field_indices);
+        builder.CreateStore(builder.getInt64(0 * PRECISION), ans_value_number_field);
+
+        // NEW READ VALUE
+        llvm::Value* value = nullptr;
+
+        for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
+            value = arguments[argument_idx]->Codegen(module, builder, object_type, {}, scope);
+
+            // OBJECT GET TYPE
+            std::vector<llvm::Value*> object_value_type_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(0) // zeroth field - type
+            };
+            llvm::Value* object_value_type_field = builder.CreateGEP(object_type, value, object_value_type_field_indices);
+            llvm::Value* object_value_type = builder.CreateLoad(builder.getInt64Ty(), object_value_type_field);
+
+            // ASSERT
+            std::vector<llvm::Value*> assert_function_call_arguments = { builder.CreateICmpEQ(object_value_type, builder.getInt64(0)) };
+            llvm::Function* assert_function = module->getFunction("__GLAssert");
+            builder.CreateCall(assert_function, assert_function_call_arguments);
+
+            // ANS
+            std::vector<llvm::Value*> ans_value_number_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(1) // first field - number
+            };
+            llvm::Value* ans_value_number_field = builder.CreateGEP(object_type, ans, ans_value_number_field_indices);
+            llvm::Value* ans_value_number = builder.CreateLoad(builder.getInt64Ty(), ans_value_number_field);
+
+            // OBJECT
+            std::vector<llvm::Value*> object_value_number_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(1) // first field - number
+            };
+            llvm::Value* object_value_number_field = builder.CreateGEP(object_type, value, object_value_number_field_indices);
+            llvm::Value* object_value_number = builder.CreateLoad(builder.getInt64Ty(), object_value_number_field);
+
+            // COMPUTE
+            llvm::Value* new_ans_number = builder.CreateAdd(ans_value_number, object_value_number);
+            
+            // STORE NUMBER
+            llvm::Value* new_ans_value_number_field = builder.CreateGEP(object_type, ans, ans_value_number_field_indices);
+            builder.CreateStore(new_ans_number, new_ans_value_number_field);
+        }
+        return ans;
+    }
 };
 
 class Multiply : public Symbol {
@@ -870,6 +991,70 @@ public:
                 
                 ans = std::make_shared<Number>((old_number * update_number) / PRECISION);
             }
+        }
+        return ans;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        // INIT TYPE
+        llvm::Value* ans = builder.CreateAlloca(object_type, nullptr);
+        std::vector<llvm::Value*> ans_value_type_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(0) // zeroth field - type
+        };
+        llvm::Value* ans_value_type_field = builder.CreateGEP(object_type, ans, ans_value_type_field_indices);
+        builder.CreateStore(builder.getInt64(0), ans_value_type_field);
+            
+        // INIT NUMBER
+        std::vector<llvm::Value*> ans_value_number_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(1) // first field - number
+        };
+        llvm::Value* ans_value_number_field = builder.CreateGEP(object_type, ans, ans_value_number_field_indices);
+        builder.CreateStore(builder.getInt64(1 * PRECISION), ans_value_number_field);
+
+        // NEW READ VALUE
+        llvm::Value* value = nullptr;
+
+        for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
+            value = arguments[argument_idx]->Codegen(module, builder, object_type, {}, scope);
+
+            // OBJECT GET TYPE
+            std::vector<llvm::Value*> object_value_type_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(0) // zeroth field - type
+            };
+            llvm::Value* object_value_type_field = builder.CreateGEP(object_type, value, object_value_type_field_indices);
+            llvm::Value* object_value_type = builder.CreateLoad(builder.getInt64Ty(), object_value_type_field);
+
+            // ASSERT
+            std::vector<llvm::Value*> assert_function_call_arguments = { builder.CreateICmpEQ(object_value_type, builder.getInt64(0)) };
+            llvm::Function* assert_function = module->getFunction("__GLAssert");
+            builder.CreateCall(assert_function, assert_function_call_arguments);
+
+            // ANS
+            std::vector<llvm::Value*> ans_value_number_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(1) // first field - number
+            };
+            llvm::Value* ans_value_number_field = builder.CreateGEP(object_type, ans, ans_value_number_field_indices);
+            llvm::Value* ans_value_number = builder.CreateLoad(builder.getInt64Ty(), ans_value_number_field);
+
+            // OBJECT
+            std::vector<llvm::Value*> object_value_number_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(1) // first field - number
+            };
+            llvm::Value* object_value_number_field = builder.CreateGEP(object_type, value, object_value_number_field_indices);
+            llvm::Value* object_value_number = builder.CreateLoad(builder.getInt64Ty(), object_value_number_field);
+
+            // COMPUTE
+            llvm::Value* new_ans_number_not_precised = builder.CreateMul(ans_value_number, object_value_number);
+            llvm::Value* new_ans_number = builder.CreateSDiv(new_ans_number_not_precised, builder.getInt64(PRECISION));
+
+            // STORE NUMBER
+            llvm::Value* new_ans_value_number_field = builder.CreateGEP(object_type, ans, ans_value_number_field_indices);
+            builder.CreateStore(new_ans_number, new_ans_value_number_field);
         }
         return ans;
     }
@@ -1037,6 +1222,23 @@ public:
         std::shared_ptr<Object> ans = std::make_shared<Number>(std::pow(value_number, power_number) * PRECISION);
         return ans;
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        if (arguments.size() != 2) {
+            throw RuntimeError("Exactly 2 arguments required for \"Expt\" function");
+        }
+        
+        std::vector<llvm::Value*> function_call_arguments{};
+        llvm::Value* value = arguments[0]->Codegen(module, builder, object_type, {}, scope);
+        function_call_arguments.push_back(value);
+        llvm::Value* power = arguments[1]->Codegen(module, builder, object_type, {}, scope);
+        function_call_arguments.push_back(power);
+
+        llvm::Function* function = module->getFunction("__GLExpt");
+        llvm::Value* expt_return_value = builder.CreateAlloca(object_type, nullptr, "expt");
+        builder.CreateStore(builder.CreateCall(function, function_call_arguments), expt_return_value);
+        return expt_return_value;
+    }
 };
 
 class Sqrt : public Symbol {
@@ -1058,6 +1260,21 @@ public:
 
         std::shared_ptr<Object> ans = std::make_shared<Number>(std::sqrt(value_number) * PRECISION);
         return ans;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        if (arguments.size() != 1) {
+            throw RuntimeError("Exactly 1 argument required for \"Sqrt\" function");
+        }
+        
+        std::vector<llvm::Value*> function_call_arguments{};
+        llvm::Value* value = arguments[0]->Codegen(module, builder, object_type, {}, scope);
+        function_call_arguments.push_back(value);
+
+        llvm::Function* function = module->getFunction("__GLSqrt");
+        llvm::Value* sqrt_return_value = builder.CreateAlloca(object_type, nullptr, "sqrt");
+        builder.CreateStore(builder.CreateCall(function, function_call_arguments), sqrt_return_value);
+        return sqrt_return_value;
     }
 };
 
@@ -1094,6 +1311,10 @@ public:
             }
         }
         return ans;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
     }
 };
 
@@ -1156,6 +1377,10 @@ public:
         ans = std::make_shared<Number>(new_number);
 
         return ans;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
     }
 };
 
@@ -1353,6 +1578,10 @@ public:
         As<Cell>(source)->SetFirst(value);
         return nullptr;
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
+    }
 };
 
 class SetCdr : public Symbol {
@@ -1373,6 +1602,10 @@ public:
         std::shared_ptr<Object> value = arguments[1]->Evaluate({}, scope);
         As<Cell>(source)->SetSecond(value);
         return nullptr;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
     }
 };
 
@@ -1396,8 +1629,68 @@ public:
             previous = current;
             current = next;
         }
+
         if (previous) {
             As<Cell>(previous)->SetSecond(nullptr);
+        }
+
+        return ans;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        // INIT TYPE
+        llvm::Value* previous = nullptr;
+
+        llvm::Value* current = builder.CreateAlloca(object_type, nullptr);
+        std::vector<llvm::Value*> current_value_type_field_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+            builder.getInt32(0) // zeroth field - type
+        };
+        llvm::Value* current_value_type_field = builder.CreateGEP(object_type, current, current_value_type_field_indices);
+        builder.CreateStore(builder.getInt64(3), current_value_type_field);
+
+        llvm::Value* ans = current;
+        llvm::Value* next = nullptr;
+            
+        for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
+            // CURRENT SET FIRST
+            std::vector<llvm::Value*> current_value_first_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(4) // fourth field - first child
+            };
+            llvm::Value* current_value_first_field = builder.CreateGEP(object_type, current, current_value_first_field_indices);
+            llvm::Value* first = arguments[argument_idx]->Codegen(module, builder, object_type, {}, scope);
+            builder.CreateStore(first, current_value_first_field);
+
+            // CREATE NEXT
+            llvm::Value* next = builder.CreateAlloca(object_type, nullptr);
+            std::vector<llvm::Value*> next_value_type_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(0) // zeroth field - type
+            };
+            llvm::Value* next_value_type_field = builder.CreateGEP(object_type, current, next_value_type_field_indices);
+            builder.CreateStore(builder.getInt64(3), next_value_type_field);
+
+            // CURRENT SET SECOND
+            std::vector<llvm::Value*> current_value_second_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(5) // fifth field - second child
+            };
+            llvm::Value* current_value_second_field = builder.CreateGEP(object_type, current, current_value_second_field_indices);
+            builder.CreateStore(next, current_value_second_field);
+
+            previous = current;
+            current = next;
+        }
+
+        if (previous) {
+            // PREVIOUS SET SECOND
+            std::vector<llvm::Value*> previous_value_second_field_indices {
+                builder.getInt32(0), // because there is no array, so just the object itself
+                builder.getInt32(5) // fifth field - second child
+            };
+            llvm::Value* previous_value_second_field = builder.CreateGEP(object_type, previous, previous_value_second_field_indices);
+            builder.CreateStore(builder.getInt64(0), previous_value_second_field);
         }
 
         return ans;
@@ -1431,6 +1724,10 @@ public:
         }
         throw RuntimeError("\"ListRef\" error: idx out of bounds");
     }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
+    }
 };
 
 class ListTail : public Symbol {
@@ -1461,6 +1758,10 @@ public:
             return nullptr;
         }
         throw RuntimeError("\"ListTail\" error: idx out of bounds");
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override {
+        throw std::runtime_error("Ignoring by now, TODO later");
     }
 };
 
