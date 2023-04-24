@@ -51,3 +51,31 @@ void Scope::SetVariableValue(std::string name, std::shared_ptr<Object> value) {
 std::unordered_map<std::string, std::shared_ptr<Object>> Scope::GetVariablesMap() {
     return variables_;
 }
+
+///// CODEGEN
+
+llvm::Value* Scope::GetVariableValueRecursiveCodegen(std::string name) {
+    std::unordered_map<std::string, llvm::Value*>* cur_variables = &codegen_variables_;
+    std::shared_ptr<Scope> cur_scope = shared_from_this();
+
+    while (cur_scope) {
+        auto found = std::find_if(cur_variables->begin(), cur_variables->end(),
+                                  [&](const auto& p) { return p.first == name; });
+        if (found != cur_variables->end()) {
+            return found->second;
+        }
+        cur_scope = cur_scope->previous_scope_;
+        if (cur_scope) {
+            cur_variables = &cur_scope->codegen_variables_;
+        }
+    }
+
+    if (name == "lambda") {
+        throw SyntaxError("Syntax Error: trying to get lambda as a variable");
+    }
+    throw NameError(name);
+}
+
+void Scope::SetVariableValueCodegen(std::string name, llvm::Value* value) {
+    codegen_variables_[name] = value;
+}
