@@ -21,8 +21,10 @@ public:
 
     ///// CODEGEN
 
+    std::optional<llvm::Value*> GetVariableValueLocalCodegen(std::string name);
     llvm::Value* GetVariableValueRecursiveCodegen(std::string name);
     void SetVariableValueCodegen(std::string name, llvm::Value* value);
+    std::unordered_map<std::string, llvm::Value*> GetVariablesMapCodegen();
 
 private:
     std::shared_ptr<Scope> previous_scope_ = nullptr;
@@ -30,5 +32,4 @@ private:
 
     ///// CODEGEN
     std::unordered_map<std::string, llvm::Value*> codegen_variables_{};
-    std::unordered_map<std::string, llvm::Function*> codegen_functions_{};
 };

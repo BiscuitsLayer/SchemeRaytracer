@@ -17,20 +17,20 @@ int main() {
     llvm::IRBuilder<> builder{context};
 
     // declare void @main()
-    llvm::FunctionType* funcType = llvm::FunctionType::get(builder.getInt32Ty(), false);
-    llvm::Function* mainFunc = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "main", module.get());
-    // entry:
-    llvm::BasicBlock* entryBB = llvm::BasicBlock::Create(context, "entry", mainFunc);
-    builder.SetInsertPoint(entryBB);
+    // llvm::FunctionType* funcType = llvm::FunctionType::get(builder.getInt32Ty(), false);
+    // llvm::Function* mainFunc = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "main", module.get());
+    // // entry:
+    // llvm::BasicBlock* entryBB = llvm::BasicBlock::Create(context, "entry", mainFunc);
+    // builder.SetInsertPoint(entryBB);
 
     // CODEGEN HAPPENS HERE
 
     // FUNCTION GENERATION
-    std::vector<llvm::Type*> addFuncArguments = { builder.getInt32Ty() };
-    funcType = llvm::FunctionType::get(builder.getInt32Ty(), addFuncArguments, false);
-    llvm::Function* AddFunction = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "AddFunction", module.get());
+    // std::vector<llvm::Type*> addFuncArguments = { builder.getInt32Ty() };
+    // funcType = llvm::FunctionType::get(builder.getInt32Ty(), addFuncArguments, false);
+    // llvm::Function* AddFunction = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, "AddFunction", module.get());
 
-    llvm::Value* greater_than_zero = builder.CreateICmpSGT(read_result, builder.getInt32(0));
+    // llvm::Value* greater_than_zero = builder.CreateICmpSGT(read_result, builder.getInt32(0));
     // llvm::Function *current_function = builder.GetInsertBlock()->getParent();
     // llvm::BasicBlock *true_branch = llvm::BasicBlock::Create(context, "true_branch", current_function);
     // llvm::BasicBlock *false_branch = llvm::BasicBlock::Create(context, "false_branch", current_function);
@@ -58,37 +58,37 @@ int main() {
     // phi_node->addIncoming(false_branch_result, false_branch);
 
    
-    llvm::Function* AddFunctionAlreadyDefinedByExtern = module->getFunction("AddFunction");
-    if (AddFunctionAlreadyDefinedByExtern->empty()) {
-        llvm::BasicBlock* AddFunctionBB = llvm::BasicBlock::Create(context, "entry", AddFunction);
-        builder.SetInsertPoint(AddFunctionBB);
+    // llvm::Function* AddFunctionAlreadyDefinedByExtern = module->getFunction("AddFunction");
+    // if (AddFunctionAlreadyDefinedByExtern->empty()) {
+    //     llvm::BasicBlock* AddFunctionBB = llvm::BasicBlock::Create(context, "entry", AddFunction);
+    //     builder.SetInsertPoint(AddFunctionBB);
 
-        llvm::Value* value_lhs = AddFunction->getArg(0);
-        llvm::Value* value_rhs = builder.getInt32(7);
-        llvm::Value* value_add = builder.CreateAdd(value_lhs, value_rhs);
-        builder.CreateRet(value_add);
+    //     llvm::Value* value_lhs = AddFunction->getArg(0);
+    //     llvm::Value* value_rhs = builder.getInt32(7);
+    //     llvm::Value* value_add = builder.CreateAdd(value_lhs, value_rhs);
+    //     builder.CreateRet(value_add);
 
-        llvm::verifyFunction(*AddFunction);
+    //     llvm::verifyFunction(*AddFunction);
     }
-    builder.SetInsertPoint(merge_branch);
+    // builder.SetInsertPoint(merge_branch);
 
-    std::vector<llvm::Value*> printFuncCallArguments = { phi_node };
-    builder.CreateCall(PrintFunction, printFuncCallArguments);
+    // std::vector<llvm::Value*> printFuncCallArguments = { phi_node };
+    // builder.CreateCall(PrintFunction, printFuncCallArguments);
 
 
-    llvm::Value* value_ret = builder.CreateRet(builder.getInt32(0));
+    // llvm::Value* value_ret = builder.CreateRet(builder.getInt32(0));
 
-    std::error_code EC;
-    llvm::raw_fd_ostream output_file("outfile.ll", EC);
+    // std::error_code EC;
+    // llvm::raw_fd_ostream output_file("outfile.ll", EC);
     
-    llvm::outs() << "#[LLVM IR]:\n";
-    module->print(output_file, nullptr);
+    // llvm::outs() << "#[LLVM IR]:\n";
+    // module->print(output_file, nullptr);
 
-    // Interpreter of LLVM IR
-    llvm::outs() << "Running code...\n";
+    // // Interpreter of LLVM IR
+    // llvm::outs() << "Running code...\n";
 
-	llvm::ExecutionEngine *ee = llvm::EngineBuilder(std::unique_ptr<llvm::Module>(module.get())).create();
-    ee->finalizeObject();
+	// llvm::ExecutionEngine *ee = llvm::EngineBuilder(std::unique_ptr<llvm::Module>(module.get())).create();
+    // ee->finalizeObject();
 
 	//std::vector<llvm::GenericValue> noargs;
 	//llvm::GenericValue res = ee->runFunction(mainFunc, noargs);

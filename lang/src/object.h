@@ -173,8 +173,8 @@ private:
 std::vector<std::shared_ptr<Object>> ListToVector(std::shared_ptr<Object> init);
 std::string ListToString(std::shared_ptr<Object> init);
 std::shared_ptr<Object> BuildLambda(std::shared_ptr<Object> init, std::shared_ptr<Scope> scope, bool eval_immediately = false);
-std::pair<std::string, std::shared_ptr<Object>> BuildLambdaSugar(
-    std::vector<std::shared_ptr<Object>> parts, std::shared_ptr<Scope> scope);
+std::shared_ptr<Object> BuildLambdaCodegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, std::shared_ptr<Object> init, std::shared_ptr<Scope> scope, bool eval_immediately = false);
+std::pair<std::string, std::shared_ptr<Object>> BuildLambdaSugar(std::vector<std::shared_ptr<Object>> parts, std::shared_ptr<Scope> scope);
 
 class Cell : public Object {
 public:
@@ -212,13 +212,29 @@ public:
     }
 
     virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override {
+        // TODO: empty list case
         std::shared_ptr<Object> function = GetFirst();
 
-        // TODO: fix function build
-
-        if (!Is<Quote>(function)) {
+        std::shared_ptr<Object> maybe_lambda_keyword = function;
+        if (Is<Symbol>(maybe_lambda_keyword) && (As<Symbol>(maybe_lambda_keyword)->GetName() == "lambda")) {
+            // TODO: return??
+            // function = BuildLambdaCodegen(module, builder, object_type, GetSecond(), scope);
+            // return nullptr;
+        } else if (Is<Symbol>(maybe_lambda_keyword) && (As<Symbol>(maybe_lambda_keyword)->GetName() == "begin")) {
+            auto lambda_to_eval_immediately = BuildLambdaCodegen(module, builder, object_type, GetSecond(), scope, true);
+            return lambda_to_eval_immediately->Codegen(module, builder, object_type, {}, scope);
+        } else if (!Is<Quote>(function)) {
             if (Is<Symbol>(function) || Is<Cell>(function)) {
-                function = function->Evaluate({}, scope);  // Get function object from scope variables
+                // WARNING: there we need to evaluate, not codegen
+                // but handle one special case, when we need codegen, not evaluate:
+                if (Is<Cell>(function) && Is<Symbol>(As<Cell>(function)->GetFirst()) && As<Symbol>(As<Cell>(function)->GetFirst())->GetName() == "lambda") {
+                    auto child_first = As<Cell>(function)->GetFirst();
+                    auto child_second = As<Cell>(function)->GetSecond();
+
+                    function = BuildLambdaCodegen(module, builder, object_type, child_second, scope);
+                } else {
+                    function = function->Evaluate({}, scope);  // Get function object from scope variables
+                }
             } else {
                 throw RuntimeError("Lists are not self evaliating, use \"quote\"");
             }
@@ -2927,13 +2943,15 @@ public:
            std::vector<std::string>& arguments_idx_to_name, std::shared_ptr<Scope> self_scope)
         : commands_(commands),
           arguments_idx_to_name_(arguments_idx_to_name),
-          self_scope_(self_scope) {
-    }
+          self_scope_(self_scope) {}
+
+    Lambda(llvm::Function* function, std::shared_ptr<Scope> self_scope)
+        : function_(function), self_scope_(self_scope) {}
 
     virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
                                              std::shared_ptr<Scope> scope) override {
-        std::shared_ptr<Scope> cur_scope = std::make_shared<Scope>();
-        cur_scope->SetPreviousScope(scope);
+        std::shared_ptr<Scope> lambda_call_scope = std::make_shared<Scope>();
+        lambda_call_scope->SetPreviousScope(scope);
 
         if (arguments_idx_to_name_.size() != arguments.size()) {
             throw RuntimeError("\"Lambda\" call error: wrong number of arguments passed");
@@ -2942,36 +2960,73 @@ public:
         for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
             std::string name = arguments_idx_to_name_[argument_idx];
             std::shared_ptr<Object> value = arguments[argument_idx]->Evaluate({}, scope);
-            cur_scope->SetVariableValue(name, value);
+            lambda_call_scope->SetVariableValue(name, value);
         }
 
         // Set variables before entering the function
         auto self_scope_variables = self_scope_->GetVariablesMap();
         for (auto& [name, value] : self_scope_variables) {
-            if (!cur_scope->GetVariableValueLocal(name).has_value()) {
-                cur_scope->SetVariableValue(name, value);
+            if (!lambda_call_scope->GetVariableValueLocal(name).has_value()) {
+                lambda_call_scope->SetVariableValue(name, value);
             }
         }
 
         std::shared_ptr<Object> ans = nullptr;
         for (size_t command_idx = 0; command_idx < commands_.size(); ++command_idx) {
-            ans = commands_[command_idx]->Evaluate({}, cur_scope);
+            ans = commands_[command_idx]->Evaluate({}, lambda_call_scope);
         }
 
         // Update variables after finishing the function
-        auto cur_scope_variables = cur_scope->GetVariablesMap();
-        for (auto& [name, value] : cur_scope_variables) {
+        auto lambda_call_scope_variables = lambda_call_scope->GetVariablesMap();
+        for (auto& [name, value] : lambda_call_scope_variables) {
             self_scope_->SetVariableValue(name, value);
         }
         return ans;
     }
 
     virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override {
-        throw std::runtime_error("lambda unimplemented codegen");
+        // std::shared_ptr<Scope> lambda_call_scope = std::make_shared<Scope>();
+        // lambda_call_scope->SetPreviousScope(scope);
+
+        // if (arguments_idx_to_name_.size() != arguments.size()) {
+        //     throw RuntimeError("\"Lambda\" call error: wrong number of arguments passed");
+        // }
+
+        std::vector<llvm::Value*> function_call_arguments{};
+        for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
+            //std::string name = arguments_idx_to_name_[argument_idx];
+            llvm::Value* value = arguments[argument_idx]->Codegen(module, builder, object_type, {}, scope);
+            // TODO: take this away: in lambda's scope there will be %smth not from function
+            // lambda_call_scope->SetVariableValueCodegen(name, value);
+            function_call_arguments.push_back(value);
+        }
+
+        // Set variables before entering the function
+        // auto self_scope_variables = self_scope_->GetVariablesMapCodegen();
+        // for (auto& [name, value] : self_scope_variables) {
+        //     if (!lambda_call_scope->GetVariableValueLocalCodegen(name).has_value()) {
+        //         lambda_call_scope->SetVariableValueCodegen(name, value);
+        //     }
+        // }
+
+        // FUNCTION CALL
+        builder.CreateCall(function_, function_call_arguments);
+        // FUNCTION CALL
+
+        // TODO: implement that!!!
+        // Update variables after finishing the function
+        // auto lambda_call_scope_variables = lambda_call_scope->GetVariablesMap();
+        // for (auto& [name, value] : lambda_call_scope_variables) {
+        //     self_scope_->SetVariableValue(name, value);
+        // }
+        return nullptr;
     }
 
 private:
     std::vector<std::shared_ptr<Object>> commands_{};
     std::vector<std::string> arguments_idx_to_name_{};
     std::shared_ptr<Scope> self_scope_{};
+
+    // CODEGEN
+    llvm::Function* function_;
 };
