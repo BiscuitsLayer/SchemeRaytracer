@@ -97,15 +97,32 @@ std::shared_ptr<Object> BuildLambda(std::shared_ptr<Object> init, std::shared_pt
     return ans;
 }
 
-std::shared_ptr<Object> BuildLambdaCodegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, std::shared_ptr<Object> init, std::shared_ptr<Scope> scope, bool eval_immediately) {
+std::shared_ptr<Object> BuildLambdaCodegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, std::shared_ptr<Object> init, std::shared_ptr<Scope> scope, bool eval_immediately, std::optional<std::shared_ptr<Object>> ans) {
     // ARGUMENTS TO VECTOR
     std::vector<std::shared_ptr<Object>> arguments = ListToVector(init);
     std::shared_ptr<Scope> self_scope = std::make_shared<Scope>();
 
     // LLVM CTORS
-    std::vector<llvm::Type*> new_function_arguments(arguments.size() - 1, builder.getInt8PtrTy());
-    llvm::FunctionType* new_function_type = llvm::FunctionType::get(builder.getInt8PtrTy(), new_function_arguments, false);
-    llvm::Function* new_function = llvm::Function::Create(new_function_type, llvm::Function::ExternalLinkage, "LambdaFunction", module.get());
+    int temp_argument_counter = 0; // TODO: fix
+    std::shared_ptr<Cell> lambda_arg_init = As<Cell>(arguments[0]);
+    for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell; cell = As<Cell>(cell->GetSecond())) {
+        ++temp_argument_counter;
+    }
+    int arguments_count = eval_immediately ? 0 : temp_argument_counter;
+    std::vector<llvm::Type*> new_function_arguments(arguments_count, builder.getInt8PtrTy());
+    llvm::FunctionType* new_function_type = llvm::FunctionType::get(object_type, new_function_arguments, false);
+    
+
+    //// TODO: SO BAD CODE
+    llvm::Function* new_function = nullptr;
+    if (ans.has_value()) {
+        new_function = As<Lambda>(ans.value())->function_;
+    } else {
+        new_function = llvm::Function::Create(new_function_type, llvm::Function::ExternalLinkage, "LambdaFunction", module.get());
+    }
+    // llvm::Function* new_function = llvm::Function::Create(new_function_type, llvm::Function::ExternalLinkage, "LambdaFunction", module.get());
+    
+    
     assert(new_function->empty());
     
     // SET INSERT POINT
@@ -127,8 +144,7 @@ std::shared_ptr<Object> BuildLambdaCodegen(std::shared_ptr<llvm::Module> module,
             throw RuntimeError("\"BuildLambda\" error: first argument (lambda arguments) is not a list");
         }
         std::shared_ptr<Cell> lambda_arg_init = As<Cell>(arguments[argument_idx]);
-        for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell;
-            cell = As<Cell>(cell->GetSecond())) {
+        for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell; cell = As<Cell>(cell->GetSecond())) {
             if (!Is<Symbol>(cell->GetFirst())) {
                 throw RuntimeError("\"BuildLambda\" error: first argument (lambda arguments): not a symbol met");
             }
@@ -150,7 +166,9 @@ std::shared_ptr<Object> BuildLambdaCodegen(std::shared_ptr<llvm::Module> module,
         throw RuntimeError("\"Lambda\" error: second argument (body) is not a list");
     }
 
-    std::shared_ptr<Object> ans;
+    if (!ans.has_value()) {
+        ans = std::make_shared<Lambda>(nullptr, nullptr);
+    }
     
     if (!eval_immediately) {
         // If we do not evaluate immediately, we create a new scope and fill with variables
@@ -165,10 +183,18 @@ std::shared_ptr<Object> BuildLambdaCodegen(std::shared_ptr<llvm::Module> module,
             return_value = arguments[argument_idx]->Codegen(module, builder, object_type, {}, self_scope);
         }
         // TODO: fix function return value
-        builder.CreateRet(return_value);
+
+        std::vector<llvm::Value*> return_value_scheme_object_indices {
+            builder.getInt32(0), // because there is no array, so just the object itself
+        };
+        llvm::Value* return_value_scheme_object_field = builder.CreateGEP(object_type, return_value, return_value_scheme_object_indices);
+        llvm::Value* return_value_scheme_object = builder.CreateLoad(object_type, return_value_scheme_object_field);
+        builder.CreateRet(return_value_scheme_object);
 
         // ANS = BUILT LAMBDA
-        ans = std::make_shared<Lambda>(new_function, self_scope);
+        // ans = std::make_shared<Lambda>(new_function, self_scope);
+        As<Lambda>(ans.value())->function_ = new_function;
+        As<Lambda>(ans.value())->self_scope_ = self_scope;
     } else {
         llvm::Value* return_value = nullptr;
         // CODEGEN COMMANDS
@@ -180,12 +206,14 @@ std::shared_ptr<Object> BuildLambdaCodegen(std::shared_ptr<llvm::Module> module,
         
         // ANS = BUILT LAMBDA
         // If we evaluate immediately, this means we are using "begin" keyword and don't need a new scope
-        ans = std::make_shared<Lambda>(new_function, scope);
+        // ans = std::make_shared<Lambda>(new_function, scope);
+        As<Lambda>(ans.value())->function_ = new_function;
+        As<Lambda>(ans.value())->self_scope_ = scope;
     }
 
     llvm::verifyFunction(*new_function);
     builder.SetInsertPoint(old_insert_point);
-    return ans;
+    return ans.value();
 }
 
 std::pair<std::string, std::shared_ptr<Object>> BuildLambdaSugar(

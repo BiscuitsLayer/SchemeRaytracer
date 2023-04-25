@@ -82,9 +82,30 @@
 ; (lambda (x) (+ 1 x))
 ; ((lambda (x) (+ 1 x)) 5)
 
-(define x 2)
+;;;; LAMBDA CLOSURE 
+; (define x 2)
 
-((lambda (x) (print x)) 10)
-((lambda (x) (print (+ x 1))) 10)
+; ((lambda (x) (print x)) 10)
+; ((lambda (x) (print (+ x 1))) 10)
 
-(print x)
+; (print x)
+
+; (define new-print (lambda (x) (print (+ x 1))))
+; (new-print 7)
+
+;;;; NOT WORKING
+
+; (define pair-op (lambda (op f s) (op f s)))
+; (print (pair-op + 1 2))
+
+(define slow-add 
+    (lambda (x y)
+        (if (= x 0) 
+            y 
+            (slow-add (- x 1) (+ y 1))
+        )
+    )
+)
+(define a (slow-add 3 3))
+(print a)
+(print (+ a 1))

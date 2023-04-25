@@ -173,7 +173,7 @@ private:
 std::vector<std::shared_ptr<Object>> ListToVector(std::shared_ptr<Object> init);
 std::string ListToString(std::shared_ptr<Object> init);
 std::shared_ptr<Object> BuildLambda(std::shared_ptr<Object> init, std::shared_ptr<Scope> scope, bool eval_immediately = false);
-std::shared_ptr<Object> BuildLambdaCodegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, std::shared_ptr<Object> init, std::shared_ptr<Scope> scope, bool eval_immediately = false);
+std::shared_ptr<Object> BuildLambdaCodegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, std::shared_ptr<Object> init, std::shared_ptr<Scope> scope, bool eval_immediately = false, std::optional<std::shared_ptr<Object>> ans = std::nullopt);
 std::pair<std::string, std::shared_ptr<Object>> BuildLambdaSugar(std::vector<std::shared_ptr<Object>> parts, std::shared_ptr<Scope> scope);
 
 class Cell : public Object {
@@ -2368,76 +2368,6 @@ public:
     }
 };
 
-class Define : public Symbol {
-public:
-    Define() : Symbol("define") {
-    }
-
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-                                             std::shared_ptr<Scope> scope) override {
-        if (arguments.size() != 2) {
-            throw SyntaxError("Exactly 2 arguments required for \"Define\" function");
-        }
-
-        if (Is<Cell>(arguments[0])) {
-            auto name_and_value = BuildLambdaSugar(arguments, scope);
-            scope->SetVariableValue(name_and_value.first, name_and_value.second);
-            return nullptr;
-        }
-        if (!Is<Symbol>(arguments[0])) {
-            throw RuntimeError(
-                "\"Define\" error: first argument should be a variable name or sugar like \"(f x "
-                "y) (x + y)\"");
-        }
-        std::string name = As<Symbol>(arguments[0])->GetName();
-        std::shared_ptr<Object> value = nullptr;
-
-        if (Is<Cell>(arguments[1])) {
-            std::shared_ptr<Object> maybe_lambda_keyword = As<Cell>(arguments[1])->GetFirst();
-            if (Is<Symbol>(maybe_lambda_keyword) && As<Symbol>(maybe_lambda_keyword)->GetName() == "lambda") {
-                value = BuildLambda(As<Cell>(arguments[1])->GetSecond(), scope);
-            } else {
-                value = arguments[1]->Evaluate({}, scope);
-            }
-        } else {
-            value = arguments[1]->Evaluate({}, scope);
-        }
-        scope->SetVariableValue(name, value);
-        return nullptr;
-    }
-
-    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override {
-        if (arguments.size() != 2) {
-            throw SyntaxError("Exactly 2 arguments required for \"Define\" function");
-        }
-
-        if (Is<Cell>(arguments[0])) {
-            // TODO: codegen lambda sugar part
-            return nullptr;
-        }
-
-        if (!Is<Symbol>(arguments[0])) {
-            throw RuntimeError("\"Define\" error: first argument should be a variable name or sugar like \"(f x y) (x + y)\"");
-        }
-        std::string name = As<Symbol>(arguments[0])->GetName();
-        llvm::Value* object = nullptr;
-
-        if (Is<Cell>(arguments[1])) {
-            std::shared_ptr<Object> maybe_lambda_keyword = As<Cell>(arguments[1])->GetFirst();
-            if (Is<Symbol>(maybe_lambda_keyword) && As<Symbol>(maybe_lambda_keyword)->GetName() == "lambda") {
-                // TODO: codegen build lambda
-            } else {
-                object = arguments[1]->Codegen(module, builder, object_type, {}, scope);
-            }
-        } else {
-            object = arguments[1]->Codegen(module, builder, object_type, {}, scope);
-        }
-
-        scope->SetVariableValueCodegen(name, object);
-        return nullptr;
-    }
-};
-
 class Set : public Symbol {
 public:
     Set() : Symbol("set!") {
@@ -3010,7 +2940,9 @@ public:
         // }
 
         // FUNCTION CALL
-        builder.CreateCall(function_, function_call_arguments);
+        llvm::AllocaInst* function_returned_object = builder.CreateAlloca(object_type, nullptr, "function_returned");
+        builder.CreateStore(builder.CreateCall(function_, function_call_arguments), function_returned_object);
+        return function_returned_object;
         // FUNCTION CALL
 
         // TODO: implement that!!!
@@ -3019,14 +2951,116 @@ public:
         // for (auto& [name, value] : lambda_call_scope_variables) {
         //     self_scope_->SetVariableValue(name, value);
         // }
-        return nullptr;
     }
 
-private:
+// private:
     std::vector<std::shared_ptr<Object>> commands_{};
     std::vector<std::string> arguments_idx_to_name_{};
     std::shared_ptr<Scope> self_scope_{};
 
     // CODEGEN
     llvm::Function* function_;
+};
+
+class Define : public Symbol {
+public:
+    Define() : Symbol("define") {
+    }
+
+    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
+                                             std::shared_ptr<Scope> scope) override {
+        if (arguments.size() != 2) {
+            throw SyntaxError("Exactly 2 arguments required for \"Define\" function");
+        }
+
+        if (Is<Cell>(arguments[0])) {
+            auto name_and_value = BuildLambdaSugar(arguments, scope);
+            scope->SetVariableValue(name_and_value.first, name_and_value.second);
+            return nullptr;
+        }
+        if (!Is<Symbol>(arguments[0])) {
+            throw RuntimeError(
+                "\"Define\" error: first argument should be a variable name or sugar like \"(f x "
+                "y) (x + y)\"");
+        }
+        std::string name = As<Symbol>(arguments[0])->GetName();
+        std::shared_ptr<Object> value = nullptr;
+
+        if (Is<Cell>(arguments[1])) {
+            std::shared_ptr<Object> maybe_lambda_keyword = As<Cell>(arguments[1])->GetFirst();
+            if (Is<Symbol>(maybe_lambda_keyword) && As<Symbol>(maybe_lambda_keyword)->GetName() == "lambda") {
+                value = BuildLambda(As<Cell>(arguments[1])->GetSecond(), scope);
+            } else {
+                value = arguments[1]->Evaluate({}, scope);
+            }
+        } else {
+            value = arguments[1]->Evaluate({}, scope);
+        }
+        scope->SetVariableValue(name, value);
+        return nullptr;
+    }
+
+    virtual llvm::Value* Codegen(std::shared_ptr<llvm::Module> module, llvm::IRBuilder<>& builder, llvm::StructType* object_type, const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override {
+        if (arguments.size() != 2) {
+            throw SyntaxError("Exactly 2 arguments required for \"Define\" function");
+        }
+
+        if (Is<Cell>(arguments[0])) {
+            // TODO: codegen lambda sugar part
+            return nullptr;
+        }
+
+        if (!Is<Symbol>(arguments[0])) {
+            throw RuntimeError("\"Define\" error: first argument should be a variable name or sugar like \"(f x y) (x + y)\"");
+        }
+        std::string name = As<Symbol>(arguments[0])->GetName();
+        llvm::Value* object = nullptr;
+
+        if (Is<Cell>(arguments[1])) {
+            std::shared_ptr<Object> maybe_lambda_keyword = As<Cell>(arguments[1])->GetFirst();
+            if (Is<Symbol>(maybe_lambda_keyword) && As<Symbol>(maybe_lambda_keyword)->GetName() == "lambda") {
+                // WARNING: predefined_function === function, because we
+                // predefine lambda before its body is filled, so we can use recursion
+
+
+
+
+
+                // TODO: this is argument counter to create llvm::Function* to fill std::shared_ptr<Lambda>
+                //// SO BAD CODE
+
+                bool eval_immediately = false;
+                std::vector<std::shared_ptr<Object>> bad_code_arguments = ListToVector(As<Cell>(arguments[1])->GetSecond());
+                int temp_argument_counter = 0;
+                std::shared_ptr<Cell> lambda_arg_init = As<Cell>(bad_code_arguments[0]);
+                for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell; cell = As<Cell>(cell->GetSecond())) {
+                    ++temp_argument_counter;
+                }
+                int arguments_count = eval_immediately ? 0 : temp_argument_counter;
+                std::vector<llvm::Type*> new_function_arguments(arguments_count, builder.getInt8PtrTy());
+                llvm::FunctionType* new_function_type = llvm::FunctionType::get(object_type, new_function_arguments, false);
+                llvm::Function* new_function = llvm::Function::Create(new_function_type, llvm::Function::ExternalLinkage, "LambdaFunction", module.get());
+
+                //// SO BAD CODE
+
+
+
+
+
+
+                std::shared_ptr<Object> predefined_function = std::make_shared<Lambda>(new_function, nullptr);
+                scope->SetVariableValue(name, predefined_function);
+                auto function = BuildLambdaCodegen(module, builder, object_type, As<Cell>(arguments[1])->GetSecond(), scope, false, predefined_function);
+                // scope->SetVariableValue(name, function);
+                return nullptr;
+            } else {
+                object = arguments[1]->Codegen(module, builder, object_type, {}, scope);
+            }
+        } else {
+            object = arguments[1]->Codegen(module, builder, object_type, {}, scope);
+        }
+
+        scope->SetVariableValueCodegen(name, object);
+        return nullptr;
+    }
 };
