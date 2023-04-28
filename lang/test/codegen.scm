@@ -79,8 +79,7 @@
 ;     (set! x (+ 1 x))
 ; )
 
-; (lambda (x) (+ 1 x))
-; ((lambda (x) (+ 1 x)) 5)
+; (print ((lambda (x) (+ 1 x)) 5))
 
 ;;;; LAMBDA CLOSURE 
 ; (define x 2)
@@ -98,14 +97,22 @@
 ; (define pair-op (lambda (op f s) (op f s)))
 ; (print (pair-op + 1 2))
 
-(define slow-add 
-    (lambda (x y)
-        (if (= x 0) 
-            y 
-            (slow-add (- x 1) (+ y 1))
-        )
+; (define slow-add 
+;     (lambda (x y)
+;         (if (= x 0) 
+;             y 
+;             (slow-add (- x 1) (+ y 1))
+;         )
+;     )
+; )
+; (define a (slow-add 3 3))
+; (print a)
+; (print (+ a 1))
+
+;; should be error: x not found
+(while (>= x 0)
+    (if (= x 0)
+        (print 'DONE)
+        (set! x (- x 1))
     )
 )
-(define a (slow-add 3 3))
-(print a)
-(print (+ a 1))
