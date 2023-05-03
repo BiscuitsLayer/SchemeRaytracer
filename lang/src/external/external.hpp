@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+constexpr int64_t PRECISION = 100;
+
 enum ObjectType : int64_t {
     TYPE_NUMBER = 0,
     TYPE_BOOLEAN = 1,

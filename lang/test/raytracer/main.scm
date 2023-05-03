@@ -110,7 +110,7 @@
 
 ;; RNG generates number from 0 to 1 with
 ;; given precision (digits after dot)
-(define PRECISION 100) 
+; (define PRECISION 100) 
 
 (gl-init)
 (while (gl-is-open)

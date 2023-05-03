@@ -1,4 +1,5 @@
 #pragma once
+#include "object_fwd.hpp"
 
 #include <iostream>
 #include <memory>
@@ -11,15 +12,16 @@
 #include <external/external.hpp>
 #include <helpers/helpers.hpp>
 
-const int64_t PRECISION = 100;
+#include <scope/scope_fwd.hpp>
+#include <lambda/lambda_fwd.hpp>
 
 template <class T>
-std::shared_ptr<T> As(const std::shared_ptr<Object>& obj) {
+std::shared_ptr<T> As(const ObjectPtr& obj) {
     return std::dynamic_pointer_cast<T>(obj);
 }
 
 template <class T>
-bool Is(const std::shared_ptr<Object>& obj) {
+bool Is(const ObjectPtr& obj) {
     return std::dynamic_pointer_cast<T>(obj) != nullptr;
 }
 
@@ -27,8 +29,8 @@ bool Is(const std::shared_ptr<Object>& obj) {
 
 class Object : public std::enable_shared_from_this<Object> {
 public:
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) = 0;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) = 0;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) = 0;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) = 0;
     virtual ~Object() = default;
 };
 
@@ -39,8 +41,8 @@ public:
     Number(int64_t value) : value_(value) {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 
     int64_t GetValue() const {
         return value_;
@@ -50,13 +52,37 @@ private:
     int64_t value_ = 0;
 };
 
+class Function : public Object {
+public:
+    Function(const std::string& name) : name_(name) {
+    }
+
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override {
+        throw RuntimeError("Tried to run Evaluate method with Function!");
+    }
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override {
+        throw RuntimeError("Tried to run Codegen method with Function!");
+    }
+
+    const std::string& GetName() const {
+        return name_;
+    }
+
+private:
+    std::string name_{};
+};
+
 class Symbol : public Object {
 public:
     Symbol(const std::string& name) : name_(name) {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+
+    ObjectPtr GetVariableInterp(ScopePtr scope);
+    llvm::Value* GetVariableCodegen(ScopePtr scope);
+    ObjectPtr GetFunctionInterp(ScopePtr scope);
 
     const std::string& GetName() const {
         return name_;
@@ -71,8 +97,8 @@ public:
     Boolean(bool value) : value_(value) {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 
     bool GetValue() const {
         return value_;
@@ -82,464 +108,469 @@ private:
     bool value_ = 0;
 };
 
-// CELL //
-
 class Cell : public Object {
 public:
-    Cell(std::shared_ptr<Object> first, std::shared_ptr<Object> second)
+    Cell(ObjectPtr first, ObjectPtr second)
         : first_(first), second_(second) {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 
-    std::shared_ptr<Object> GetFirst() const {
+    ObjectPtr GetFirst() const {
         return first_;
     }
-    std::shared_ptr<Object> GetSecond() const {
+    ObjectPtr GetSecond() const {
         return second_;
     }
 
-    void SetFirst(std::shared_ptr<Object> first) {
+    void SetFirst(ObjectPtr first) {
         first_ = first;
     }
-    void SetSecond(std::shared_ptr<Object> second) {
+    void SetSecond(ObjectPtr second) {
         second_ = second;
     }
 
 private:
-    std::shared_ptr<Object> first_{};
-    std::shared_ptr<Object> second_{};
+    ObjectPtr first_{};
+    ObjectPtr second_{};
 };
 
 // GRAPHICS //
 
-class GLInit : public Symbol {
+class GLInit : public Function {
 public:
-    GLInit() : Symbol("gl-init") {
+    GLInit() : Function("gl-init") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class GLClear : public Symbol {
+class GLClear : public Function {
 public:
-    GLClear() : Symbol("gl-clear") {
+    GLClear() : Function("gl-clear") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class GLPutPixel : public Symbol {
+class GLPutPixel : public Function {
 public:
-    GLPutPixel() : Symbol("gl-put-pixel") {
+    GLPutPixel() : Function("gl-put-pixel") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class GLIsOpen : public Symbol {
+class GLIsOpen : public Function {
 public:
-    GLIsOpen() : Symbol("gl-is-open") {
+    GLIsOpen() : Function("gl-is-open") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class GLDraw : public Symbol {
+class GLDraw : public Function {
 public:
-    GLDraw() : Symbol("gl-draw") {
+    GLDraw() : Function("gl-draw") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class GLFinish : public Symbol {
+class GLFinish : public Function {
 public:
-    GLFinish() : Symbol("gl-finish") {
+    GLFinish() : Function("gl-finish") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
 // FUNCTIONS //
 
-class Print : public Symbol {
+class Print : public Function {
 public:
-    Print() : Symbol("print") {
+    Print() : Function("print") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class IsBoolean : public Symbol {
+class IsBoolean : public Function {
 public:
-    IsBoolean() : Symbol("boolean?") {
+    IsBoolean() : Function("boolean?") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class IsNumber : public Symbol {
+class IsNumber : public Function {
 public:
-    IsNumber() : Symbol("number?") {
+    IsNumber() : Function("number?") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class IsSymbol : public Symbol {
+class IsSymbol : public Function {
 public:
-    IsSymbol() : Symbol("symbol?") {
+    IsSymbol() : Function("symbol?") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class IsPair : public Symbol {
+class IsPair : public Function {
 public:
-    IsPair() : Symbol("pair?") {
+    IsPair() : Function("pair?") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class IsNull : public Symbol {
+class IsNull : public Function {
 public:
-    IsNull() : Symbol("null?") {
+    IsNull() : Function("null?") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class IsList : public Symbol {
+class IsList : public Function {
 public:
-    IsList() : Symbol("list?") {
+    IsList() : Function("list?") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Quote : public Symbol {
+class Quote : public Function {
 public:
-    Quote() : Symbol("quote") {
+    Quote() : Function("quote") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Not : public Symbol {
+class Not : public Function {
 public:
-    Not() : Symbol("not") {
+    Not() : Function("not") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class And : public Symbol {
+class And : public Function {
 public:
-    And() : Symbol("and") {
+    And() : Function("and") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Or : public Symbol {
+class Or : public Function {
 public:
-    Or() : Symbol("or") {
+    Or() : Function("or") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Equal : public Symbol {
+class Equal : public Function {
 public:
-    Equal() : Symbol("=") {
+    Equal() : Function("=") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Greater : public Symbol {
+class Greater : public Function {
 public:
-    Greater() : Symbol(">") {
+    Greater() : Function(">") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class GreaterEqual : public Symbol {
+class GreaterEqual : public Function {
 public:
-    GreaterEqual() : Symbol(">=") {
+    GreaterEqual() : Function(">=") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Less : public Symbol {
+class Less : public Function {
 public:
-    Less() : Symbol("<") {
+    Less() : Function("<") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class LessEqual : public Symbol {
+class LessEqual : public Function {
 public:
-    LessEqual() : Symbol("<=") {
+    LessEqual() : Function("<=") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Add : public Symbol {
+class Add : public Function {
 public:
-    Add() : Symbol("+") {
+    Add() : Function("+") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Multiply : public Symbol {
+class Multiply : public Function {
 public:
-    Multiply() : Symbol("*") {
+    Multiply() : Function("*") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Subtract : public Symbol {
+class Subtract : public Function {
 public:
-    Subtract() : Symbol("-") {
+    Subtract() : Function("-") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Divide : public Symbol {
+class Divide : public Function {
 public:
-    Divide() : Symbol("/") {
+    Divide() : Function("/") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Quotient : public Symbol {
+class Quotient : public Function {
 public:
-    Quotient() : Symbol("quotient") {
+    Quotient() : Function("quotient") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Mod : public Symbol {
+class Mod : public Function {
 public:
-    Mod() : Symbol("mod") {
+    Mod() : Function("mod") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Expt : public Symbol {
+class Expt : public Function {
 public:
-    Expt() : Symbol("expt") {
+    Expt() : Function("expt") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Sqrt : public Symbol {
+class Sqrt : public Function {
 public:
-    Sqrt() : Symbol("sqrt") {
+    Sqrt() : Function("sqrt") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Max : public Symbol {
+class Max : public Function {
 public:
-    Max() : Symbol("max") {
+    Max() : Function("max") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Min : public Symbol {
+class Min : public Function {
 public:
-    Min() : Symbol("min") {
+    Min() : Function("min") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Abs : public Symbol {
+class Abs : public Function {
 public:
-    Abs() : Symbol("abs") {
+    Abs() : Function("abs") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Set : public Symbol {
+class Set : public Function {
 public:
-    Set() : Symbol("set!") {
+    Set() : Function("set!") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class If : public Symbol {
+class If : public Function {
 public:
-    If() : Symbol("if") {
+    If() : Function("if") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class While : public Symbol {
+class While : public Function {
 public:
-    While() : Symbol("while") {
+    While() : Function("while") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Cons : public Symbol {
+class Cons : public Function {
 public:
-    Cons() : Symbol("cons") {
+    Cons() : Function("cons") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Car : public Symbol {
+class Car : public Function {
 public:
-    Car() : Symbol("car") {
+    Car() : Function("car") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Cdr : public Symbol {
+class Cdr : public Function {
 public:
-    Cdr() : Symbol("cdr") {
+    Cdr() : Function("cdr") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class SetCar : public Symbol {
+class SetCar : public Function {
 public:
-    SetCar() : Symbol("set-car!") {
+    SetCar() : Function("set-car!") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class SetCdr : public Symbol {
+class SetCdr : public Function {
 public:
-    SetCdr() : Symbol("set-cdr!") {
+    SetCdr() : Function("set-cdr!") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class List : public Symbol {
+class List : public Function {
 public:
-    List() : Symbol("list") {
+    List() : Function("list") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class ListRef : public Symbol {
+class ListRef : public Function {
 public:
-    ListRef() : Symbol("list-ref") {
+    ListRef() : Function("list-ref") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class ListTail : public Symbol {
+class ListTail : public Function {
 public:
-    ListTail() : Symbol("list-tail") {
+    ListTail() : Function("list-tail") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };
 
-class Lambda : public Object {
+class LambdaInterp : public Object {
 public:
-    Lambda(std::vector<std::shared_ptr<Object>>& commands,
-           std::vector<std::string>& arguments_idx_to_name, std::shared_ptr<Scope> self_scope)
-        : commands_(commands),
-          arguments_idx_to_name_(arguments_idx_to_name),
-          self_scope_(self_scope) {}
+    LambdaInterp(std::vector<ObjectPtr>& commands, std::vector<std::string>& arguments_idx_to_name, ScopePtr lambda_self_scope)
+        : commands_(commands), arguments_idx_to_name_(arguments_idx_to_name), lambda_self_scope_(lambda_self_scope) {}
 
-    Lambda(llvm::Function* function, std::shared_ptr<Scope> self_scope)
-        : function_(function), self_scope_(self_scope) {}
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override {
+        throw RuntimeError("Tried to run Codegen method with LambdaInterp!");
+    }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
-
-// private:
-    std::vector<std::shared_ptr<Object>> commands_{};
+private:
+    std::vector<ObjectPtr> commands_{};
     std::vector<std::string> arguments_idx_to_name_{};
-    std::shared_ptr<Scope> self_scope_{};
+    ScopePtr lambda_self_scope_{};
+};
 
-    // CODEGEN
+class LambdaCodegen : public Object {
+public:
+    LambdaCodegen(llvm::Function* function)
+        : function_(function) {}
+
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override {
+        throw RuntimeError("Tried to run Evaluate method with LambdaCodegen!");
+    }
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+
+private:
     llvm::Function* function_;
 };
 
-class Define : public Symbol {
+class Define : public Function {
 public:
-    Define() : Symbol("define") {
+    Define() : Function("define") {
     }
 
-    virtual std::shared_ptr<Object> Evaluate(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope) override;
-    virtual llvm::Value* Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote = false) override;
+    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
+    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 };

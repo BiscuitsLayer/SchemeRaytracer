@@ -4,7 +4,7 @@
 
 namespace Interp {
 
-std::string ObjectToString(std::shared_ptr<Object> value) {
+std::string ObjectToString(ObjectPtr value) {
     std::string ans{};
 
     if (!value) {
@@ -26,16 +26,16 @@ std::string ObjectToString(std::shared_ptr<Object> value) {
     } else if (Is<Symbol>(value)) {
         ans = As<Symbol>(value)->GetName();
     } else {
-        throw std::runtime_error("Unimplemented");
+        throw RuntimeError("Cannot handle output!");
     }
 
     return ans;
 }
 
-std::vector<std::shared_ptr<Object>> ListToVector(std::shared_ptr<Object> init) {
-    std::vector<std::shared_ptr<Object>> ans{};
+std::vector<ObjectPtr> ListToVector(ObjectPtr init) {
+    std::vector<ObjectPtr> ans{};
     for (std::shared_ptr<Cell> cell = As<Cell>(init); cell; cell = As<Cell>(cell->GetSecond())) {
-        std::shared_ptr<Object> obj = cell->GetFirst();
+        ObjectPtr obj = cell->GetFirst();
         if (!obj && !cell->GetSecond()) {
             return ans;
         }
@@ -44,17 +44,17 @@ std::vector<std::shared_ptr<Object>> ListToVector(std::shared_ptr<Object> init) 
     return ans;
 }
 
-std::string ListToString(std::shared_ptr<Object> init) {
+std::string ListToString(ObjectPtr init) {
     std::string ans = "(";
     for (std::shared_ptr<Cell> cell = As<Cell>(init); cell; cell = As<Cell>(cell->GetSecond())) {
-        std::shared_ptr<Object> first = cell->GetFirst();
+        ObjectPtr first = cell->GetFirst();
         if (!first) {
             ans += ")";
             return ans;
         }
 
         std::string value = ObjectToString(first);
-        std::shared_ptr<Object> second = cell->GetSecond();
+        ObjectPtr second = cell->GetSecond();
         if (!second) {
             ans += value + ")";
             return ans;
@@ -68,98 +68,6 @@ std::string ListToString(std::shared_ptr<Object> init) {
         }
     }
     return ans;
-}
-
-std::shared_ptr<Object> BuildLambda(std::shared_ptr<Object> init, std::shared_ptr<Scope> scope, bool eval_immediately) {
-    std::vector<std::shared_ptr<Object>> arguments = ListToVector(init);
-
-    std::vector<std::shared_ptr<Object>> commands{};
-    std::vector<std::string> arguments_idx_to_name{};
-
-    if (arguments.size() < 2) {
-        throw SyntaxError("More than 1 argument required for \"BuildLambda\" function");
-    }
-
-    int64_t argument_idx = 0;
-
-    if (!eval_immediately) {
-        // Handle lambda arguments
-        if (arguments[argument_idx] && !Is<Cell>(arguments[argument_idx]) && !eval_immediately) {
-            throw RuntimeError(
-                "\"BuildLambda\" error: first argument (lambda arguments) is not a list");
-        }
-        std::shared_ptr<Cell> lambda_arg_init = As<Cell>(arguments[argument_idx]);
-        for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell;
-             cell = As<Cell>(cell->GetSecond())) {
-            if (!Is<Symbol>(cell->GetFirst())) {
-                throw RuntimeError(
-                    "\"BuildLambda\" error: first argument (lambda arguments): not a symbol met");
-            }
-            std::string argument_name = As<Symbol>(cell->GetFirst())->GetName();
-            arguments_idx_to_name.push_back(argument_name);
-        }
-
-        // Prepare for lambda body
-        ++argument_idx;
-    }
-
-    // Handle lambda body
-    if (!Is<Cell>(arguments[argument_idx])) {
-        throw RuntimeError("\"Lambda\" error: second argument (body) is not a list");
-    }
-
-    for (; argument_idx < arguments.size(); ++argument_idx) {
-        commands.push_back(arguments[argument_idx]);
-    }
-
-    std::shared_ptr<Object> ans;
-    
-    if (!eval_immediately) {
-        // If we do not evaluate immediately, we create a new scope and fill with variables
-        auto scope_variables = scope->GetVariablesMap();
-        std::shared_ptr<Scope> self_scope = std::make_shared<Scope>();
-        for (auto& [name, value] : scope_variables) {
-            self_scope->SetVariableValue(name, value);
-        }
-        ans = std::make_shared<Lambda>(commands, arguments_idx_to_name, self_scope);
-    } else {
-        // If we evaluate immediately, this means we are using "begin" keyword and don't need a new scope
-        ans = std::make_shared<Lambda>(commands, arguments_idx_to_name, scope);
-    }
-    return ans;
-}
-
-std::pair<std::string, std::shared_ptr<Object>> BuildLambdaSugar(
-    std::vector<std::shared_ptr<Object>> parts, std::shared_ptr<Scope> scope) {
-    if (parts.size() != 2) {
-        throw SyntaxError("Exactly 2 arguments required for \"BuildLambdaSugar\" function");
-    }
-
-    std::vector<std::shared_ptr<Object>> arguments = ListToVector(parts[0]);
-    std::shared_ptr<Object> command = parts[1];
-
-    std::vector<std::shared_ptr<Object>> commands{};
-    std::vector<std::string> arguments_idx_to_name{};
-    std::shared_ptr<Scope> self_scope = std::make_shared<Scope>();
-
-    std::string lambda_name = As<Symbol>(arguments[0])->GetName();
-    for (size_t argument_idx = 1; argument_idx < arguments.size(); ++argument_idx) {
-        if (!Is<Symbol>(arguments[argument_idx])) {
-            throw SyntaxError("\"BuildLambdaSugar\" function error: argument passed is not a symbol");
-        }
-        std::string argument_name = As<Symbol>(arguments[argument_idx])->GetName();
-        arguments_idx_to_name.push_back(argument_name);
-    }
-    commands.push_back(command);
-
-    auto scope_variables = scope->GetVariablesMap();
-    for (auto& [name, value] : scope_variables) {
-        self_scope->SetVariableValue(name, value);
-    }
-
-    std::shared_ptr<Object> ans =
-        std::make_shared<Lambda>(commands, arguments_idx_to_name, self_scope);
-    return std::make_pair(lambda_name, ans);
 }
 
 } // namespace Interp
@@ -526,127 +434,6 @@ llvm::Value* CreateIsZeroThanOneCheck(llvm::Value* number_value) {
     continue_branch = context.builder->GetInsertBlock();
 
     return ans;
-}
-
-std::shared_ptr<Object> BuildLambdaCodegen(std::shared_ptr<Object> init, std::shared_ptr<Scope> scope, bool eval_immediately, std::optional<std::shared_ptr<Object>> ans) {
-    auto& context = Codegen::Context::Get();
-
-    // ARGUMENTS TO VECTOR
-    std::vector<std::shared_ptr<Object>> arguments = Interp::ListToVector(init);
-    std::shared_ptr<Scope> self_scope = std::make_shared<Scope>();
-
-    // LLVM CTORS
-    int temp_argument_counter = 0; // TODO: fix
-    std::shared_ptr<Cell> lambda_arg_init = As<Cell>(arguments[0]);
-    for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell; cell = As<Cell>(cell->GetSecond())) {
-        ++temp_argument_counter;
-    }
-    int arguments_count = eval_immediately ? 0 : temp_argument_counter;
-    std::vector<llvm::Type*> new_function_arguments(arguments_count, context.builder->getInt8PtrTy());
-    llvm::FunctionType* new_function_type = llvm::FunctionType::get(context.object_type, new_function_arguments, false);
-    
-
-    //// TODO: SO BAD CODE
-    llvm::Function* new_function = nullptr;
-    if (ans.has_value()) {
-        new_function = As<Lambda>(ans.value())->function_;
-    } else {
-        new_function = llvm::Function::Create(new_function_type, llvm::Function::ExternalLinkage, "LambdaFunction", context.llvm_module.value());
-    }
-    // llvm::Function* new_function = llvm::Function::Create(new_function_type, llvm::Function::ExternalLinkage, "LambdaFunction", context.llvm_module.value());
-    
-    
-    assert(new_function->empty());
-    
-    // SET INSERT POINT
-    llvm::BasicBlock* old_insert_point = context.builder->GetInsertBlock();
-    auto& llvm_context = context.builder->getContext();
-    llvm::BasicBlock* new_function_main = llvm::BasicBlock::Create(llvm_context, "entry", new_function);
-    context.builder->SetInsertPoint(new_function_main);
-
-    // HANDLE ARGUMENTS
-    std::vector<std::string> arguments_idx_to_name{};
-    if (arguments.size() < 2) {
-        throw SyntaxError("More than 1 argument required for \"BuildLambda\" function");
-    }
-    int64_t argument_idx = 0;
-
-    if (!eval_immediately) {
-        // Handle lambda arguments
-        if (arguments[argument_idx] && !Is<Cell>(arguments[argument_idx]) && !eval_immediately) {
-            throw RuntimeError("\"BuildLambda\" error: first argument (lambda arguments) is not a list");
-        }
-        std::shared_ptr<Cell> lambda_arg_init = As<Cell>(arguments[argument_idx]);
-        for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell; cell = As<Cell>(cell->GetSecond())) {
-            if (!Is<Symbol>(cell->GetFirst())) {
-                throw RuntimeError("\"BuildLambda\" error: first argument (lambda arguments): not a symbol met");
-            }
-            std::string argument_name = As<Symbol>(cell->GetFirst())->GetName();
-            arguments_idx_to_name.push_back(argument_name);
-        }
-
-        for (int idx = 0; idx < arguments_idx_to_name.size(); ++idx) {
-            llvm::Value* argument_value = new_function->getArg(idx);
-            self_scope->SetVariableValueCodegen(arguments_idx_to_name[idx], argument_value);
-        }
-
-        // Prepare for lambda body
-        ++argument_idx;
-    }
-
-    // Handle lambda body
-    if (!Is<Cell>(arguments[argument_idx])) {
-        throw RuntimeError("\"Lambda\" error: second argument (body) is not a list");
-    }
-
-    if (!ans.has_value()) {
-        ans = std::make_shared<Lambda>(nullptr, nullptr);
-    }
-    
-    if (!eval_immediately) {
-        // If we do not evaluate immediately, we create a new scope and fill with variables
-        auto scope_variables = scope->GetVariablesMap();
-        for (auto& [name, value] : scope_variables) {
-            self_scope->SetVariableValue(name, value);
-        }
-
-        llvm::Value* return_value = nullptr;
-        // CODEGEN COMMANDS
-        for (; argument_idx < arguments.size(); ++argument_idx) {
-            return_value = arguments[argument_idx]->Codegen({}, self_scope);
-        }
-        // TODO: fix function return value
-
-        std::vector<llvm::Value*> return_value_scheme_object_indices {
-            context.builder->getInt32(0), // because there is no array, so just the object itself
-        };
-        llvm::Value* return_value_scheme_object_field = context.builder->CreateGEP(context.object_type, return_value, return_value_scheme_object_indices);
-        llvm::Value* return_value_scheme_object = context.builder->CreateLoad(context.object_type, return_value_scheme_object_field);
-        context.builder->CreateRet(return_value_scheme_object);
-
-        // ANS = BUILT LAMBDA
-        // ans = std::make_shared<Lambda>(new_function, self_scope);
-        As<Lambda>(ans.value())->function_ = new_function;
-        As<Lambda>(ans.value())->self_scope_ = self_scope;
-    } else {
-        llvm::Value* return_value = nullptr;
-        // CODEGEN COMMANDS
-        for (; argument_idx < arguments.size(); ++argument_idx) {
-            return_value = arguments[argument_idx]->Codegen({}, scope);
-        }
-        // TODO: fix function return value
-        context.builder->CreateRet(return_value);
-        
-        // ANS = BUILT LAMBDA
-        // If we evaluate immediately, this means we are using "begin" keyword and don't need a new scope
-        // ans = std::make_shared<Lambda>(new_function, scope);
-        As<Lambda>(ans.value())->function_ = new_function;
-        As<Lambda>(ans.value())->self_scope_ = scope;
-    }
-
-    llvm::verifyFunction(*new_function);
-    context.builder->SetInsertPoint(old_insert_point);
-    return ans.value();
 }
 
 } // namespace Codegen

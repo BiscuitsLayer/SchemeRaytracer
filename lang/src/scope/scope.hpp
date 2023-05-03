@@ -1,35 +1,44 @@
+#pragma once
+#include "scope_fwd.hpp"
+
 #include <memory>
 #include <algorithm>
 #include <unordered_map>
 #include <optional>
 
 #include <helpers/llvm_headers.hpp>
+#include <error/error.hpp>
 
-// Forward declaration
-class Object;
+#include <object/object.hpp>
 
 class Scope : public std::enable_shared_from_this<Scope> {
 public:
-    Scope() : previous_scope_(nullptr), variables_({}) {
+    Scope() : previous_scope_(nullptr) {
     }
 
-    void SetPreviousScope(std::shared_ptr<Scope> previous_scope);
-    std::optional<std::shared_ptr<Object>> GetVariableValueLocal(std::string name);
-    std::shared_ptr<Object> GetVariableValueRecursive(std::string name);
-    void SetVariableValue(std::string name, std::shared_ptr<Object> value);
-    std::unordered_map<std::string, std::shared_ptr<Object>> GetVariablesMap();
+    void SetPreviousScope(ScopePtr previous_scope) {
+        previous_scope_ = previous_scope;
+    }
 
-    ///// CODEGEN
-
+    std::optional<ObjectPtr> GetVariableValueLocal(std::string name);
     std::optional<llvm::Value*> GetVariableValueLocalCodegen(std::string name);
+
+    ObjectPtr GetVariableValueRecursive(std::string name);
     llvm::Value* GetVariableValueRecursiveCodegen(std::string name);
+    ObjectPtr GetVariableFunctionRecursive(std::string name);
+
+    void SetVariableValue(std::string name, ObjectPtr value);
     void SetVariableValueCodegen(std::string name, llvm::Value* value);
-    std::unordered_map<std::string, llvm::Value*> GetVariablesMapCodegen();
+    void SetVariableFunction(std::string name, ObjectPtr value);
+
+    std::unordered_map<std::string, ObjectPtr> GetVariableValueMap();
+    std::unordered_map<std::string, llvm::Value*> GetVariableValueMapCodegen();
+    std::unordered_map<std::string, ObjectPtr> GetVariableFunctionMap();
 
 private:
-    std::shared_ptr<Scope> previous_scope_ = nullptr;
-    std::unordered_map<std::string, std::shared_ptr<Object>> variables_{};
-
-    ///// CODEGEN
+    ScopePtr previous_scope_ = nullptr;
+    
+    std::unordered_map<std::string, ObjectPtr> variables_{};
     std::unordered_map<std::string, llvm::Value*> codegen_variables_{};
+    std::unordered_map<std::string, ObjectPtr> functions_{};
 };

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <scheme.h>
-#include <error.h>
+#include <scheme/scheme.hpp>
+#include <error/error.hpp>
 #include <catch.hpp>
 
 class SchemeTest {
@@ -38,5 +38,5 @@ public:
     }
 
 private:
-    Scheme scheme_;
+    Scheme::Scheme scheme_;
 };

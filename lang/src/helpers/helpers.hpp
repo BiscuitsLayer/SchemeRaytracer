@@ -5,16 +5,13 @@
 
 #include "llvm_headers.hpp"
 #include <external/external.hpp>
-#include <object/object.hpp>
+#include <scope/scope.hpp>
 
 namespace Interp {
 
-std::string ObjectToString(std::shared_ptr<Object> value);
-
-std::vector<std::shared_ptr<Object>> ListToVector(std::shared_ptr<Object> init);
-std::string ListToString(std::shared_ptr<Object> init);
-std::shared_ptr<Object> BuildLambda(std::shared_ptr<Object> init, std::shared_ptr<Scope> scope, bool eval_immediately = false);
-std::pair<std::string, std::shared_ptr<Object>> BuildLambdaSugar(std::vector<std::shared_ptr<Object>> parts, std::shared_ptr<Scope> scope);
+std::string ObjectToString(ObjectPtr value);
+std::vector<ObjectPtr> ListToVector(ObjectPtr init);
+std::string ListToString(ObjectPtr init);
 
 } // namespace Interp
 
@@ -43,8 +40,6 @@ private:
     void SetExternalFunctions();
     void SetExternalFunction(std::string name, llvm::Type* return_value_type, const std::vector<llvm::Type*>& argument_types);
 };
-
-
 
 // CELL
 llvm::Value* CreateStoreNewCell();
@@ -75,7 +70,5 @@ llvm::Value* CreateLoadBoolean(llvm::Value* object_value);
 void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type);
 void CreateIsIntegerCheck(llvm::Value* number_value);
 llvm::Value* CreateIsZeroThanOneCheck(llvm::Value* number_value);
-
-std::shared_ptr<Object> BuildLambdaCodegen(std::shared_ptr<Object> init, std::shared_ptr<Scope> scope, bool eval_immediately = false, std::optional<std::shared_ptr<Object>> ans = std::nullopt);
 
 } // namespace Codegen

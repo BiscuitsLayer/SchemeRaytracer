@@ -9,14 +9,14 @@
 
 namespace Parser {
 
-std::shared_ptr<Object> Parser::Read(Tokenizer::Tokenizer* tokenizer) {
-    std::shared_ptr<Object> first = nullptr;
-    std::shared_ptr<Object> second = nullptr;
+ObjectPtr Parser::Read(Tokenizer::Tokenizer* tokenizer) {
+    ObjectPtr first = nullptr;
+    ObjectPtr second = nullptr;
 
-    std::shared_ptr<Object> previous = nullptr;
-    std::shared_ptr<Object> current = std::make_shared<Cell>(nullptr, nullptr);
-    std::shared_ptr<Object> ans = current;
-    std::shared_ptr<Object> next = nullptr;
+    ObjectPtr previous = nullptr;
+    ObjectPtr current = std::make_shared<Cell>(nullptr, nullptr);
+    ObjectPtr ans = current;
+    ObjectPtr next = nullptr;
 
     Tokenizer::Token token{};
 
@@ -47,14 +47,14 @@ std::shared_ptr<Object> Parser::Read(Tokenizer::Tokenizer* tokenizer) {
     return ans;
 }
 
-std::shared_ptr<Object> Parser::ReadList(Tokenizer::Tokenizer* tokenizer) {
-    std::shared_ptr<Object> first = nullptr;
-    std::shared_ptr<Object> second = nullptr;
+ObjectPtr Parser::ReadList(Tokenizer::Tokenizer* tokenizer) {
+    ObjectPtr first = nullptr;
+    ObjectPtr second = nullptr;
 
-    std::shared_ptr<Object> previous = nullptr;
-    std::shared_ptr<Object> current = std::make_shared<Cell>(nullptr, nullptr);
-    std::shared_ptr<Object> ans = current;
-    std::shared_ptr<Object> next = nullptr;
+    ObjectPtr previous = nullptr;
+    ObjectPtr current = std::make_shared<Cell>(nullptr, nullptr);
+    ObjectPtr ans = current;
+    ObjectPtr next = nullptr;
 
     Tokenizer::Token token{};
     if (tokenizer->IsEnd()) {
@@ -123,8 +123,8 @@ std::shared_ptr<Object> Parser::ReadList(Tokenizer::Tokenizer* tokenizer) {
     }
 }
 
-std::shared_ptr<Object> Parser::GetSymbolQuoteConstant(Tokenizer::Tokenizer* tokenizer, Tokenizer::Token& token) {
-    std::shared_ptr<Object> first = nullptr;
+ObjectPtr Parser::GetSymbolQuoteConstant(Tokenizer::Tokenizer* tokenizer, Tokenizer::Token& token) {
+    ObjectPtr first = nullptr;
 
     if (Tokenizer::SymbolToken* symbol_token = std::get_if<Tokenizer::SymbolToken>(&token); symbol_token) {
         if (symbol_token->name == "#t") {
@@ -135,19 +135,19 @@ std::shared_ptr<Object> Parser::GetSymbolQuoteConstant(Tokenizer::Tokenizer* tok
             first = std::make_shared<Symbol>(symbol_token->name);
         }
     } else if (Tokenizer::QuoteToken* quote_token = std::get_if<Tokenizer::QuoteToken>(&token); quote_token) {
-        std::shared_ptr<Object> quote_cell = std::make_shared<Cell>(nullptr, nullptr);
+        ObjectPtr quote_cell = std::make_shared<Cell>(nullptr, nullptr);
         As<Cell>(quote_cell)->SetFirst(std::make_shared<Quote>());
         token = tokenizer->GetToken();
         if (Tokenizer::BracketToken* open_bracket = std::get_if<Tokenizer::BracketToken>(&token);
             open_bracket && *open_bracket == Tokenizer::BracketToken::OPEN) {
             tokenizer->Next();
-            std::shared_ptr<Object> argument = std::make_shared<Cell>(nullptr, nullptr);
+            ObjectPtr argument = std::make_shared<Cell>(nullptr, nullptr);
             As<Cell>(argument)->SetFirst(ReadList(tokenizer));
             As<Cell>(quote_cell)->SetSecond(argument);
             first = quote_cell;
         } else if (Tokenizer::SymbolToken* symbol_token = std::get_if<Tokenizer::SymbolToken>(&token); symbol_token) {
-            std::shared_ptr<Object> argument = std::make_shared<Cell>(nullptr, nullptr);
-            std::shared_ptr<Object> symbol = std::make_shared<Symbol>(symbol_token->name);
+            ObjectPtr argument = std::make_shared<Cell>(nullptr, nullptr);
+            ObjectPtr symbol = std::make_shared<Symbol>(symbol_token->name);
             tokenizer->Next();
             As<Cell>(argument)->SetFirst(symbol);
             As<Cell>(quote_cell)->SetSecond(argument);

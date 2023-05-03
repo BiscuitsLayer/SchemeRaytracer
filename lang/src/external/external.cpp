@@ -9,7 +9,6 @@
 const int WIDTH = 100;
 const int HEIGHT = 100;
 const int CHANNELS = 4;
-const int64_t PRECISION = 100;
 
 std::shared_ptr<unsigned char[]> pixels;
 

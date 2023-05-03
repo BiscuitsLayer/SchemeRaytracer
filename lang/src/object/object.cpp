@@ -1,106 +1,138 @@
 #include "object.hpp"
 
-std::shared_ptr<Object> Number::Evaluate(const std::vector<std::shared_ptr<Object>>&,
-    std::shared_ptr<Scope>) {
+#include <scope/scope.hpp>
+#include <lambda/lambda.hpp>
+
+ObjectPtr Number::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
 
     return shared_from_this();
 }
 
-llvm::Value* Number::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Number::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     return Codegen::CreateStoreNewNumber(value_);
 }
 
-std::shared_ptr<Object> Symbol::Evaluate(const std::vector<std::shared_ptr<Object>>&,
-    std::shared_ptr<Scope> scope) {
-    std::shared_ptr<Object> value = scope->GetVariableValueRecursive(name_);
+ObjectPtr Symbol::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    if (is_quote) {
+        return shared_from_this();
+    }
+    return scope->GetVariableValueRecursive(name_);
+}
+
+llvm::Value* Symbol::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    if (is_quote) {
+        return Codegen::CreateStoreNewSymbol(name_);
+    }
+    return scope->GetVariableValueRecursiveCodegen(name_);
+}
+
+ObjectPtr Symbol::GetVariableInterp(ScopePtr scope) {
+    ObjectPtr value = scope->GetVariableValueRecursive(name_);
     return value;
 }
 
-llvm::Value* Symbol::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
-    if (is_quote) {
-        is_quote = false;
-        return Codegen::CreateStoreNewSymbol(name_);
-    }
+llvm::Value* Symbol::GetVariableCodegen(ScopePtr scope) {
     llvm::Value* object = scope->GetVariableValueRecursiveCodegen(name_);
     return object;
 }
 
-std::shared_ptr<Object> Boolean::Evaluate(const std::vector<std::shared_ptr<Object>>&,
-    std::shared_ptr<Scope>) {
+ObjectPtr Symbol::GetFunctionInterp(ScopePtr scope) {
+    ObjectPtr value = scope->GetVariableFunctionRecursive(name_);
+    return value;
+}
+
+ObjectPtr Boolean::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     return shared_from_this();
 }
 
-llvm::Value* Boolean::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Boolean::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     return Codegen::CreateStoreNewBoolean(value_);
 }
 
-std::shared_ptr<Object> Cell::Evaluate(const std::vector<std::shared_ptr<Object>>&,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Cell::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (!GetFirst()) {  // Empty list case
         return shared_from_this();
     }
 
-    std::shared_ptr<Object> function = GetFirst();
-    std::shared_ptr<Object> maybe_lambda_keyword = function;
-    if (Is<Symbol>(maybe_lambda_keyword) &&
-        (As<Symbol>(maybe_lambda_keyword)->GetName() == "lambda")) {
-        return Interp::BuildLambda(GetSecond(), scope);
-    } else if (Is<Symbol>(maybe_lambda_keyword) &&
-        (As<Symbol>(maybe_lambda_keyword)->GetName() == "begin")) {
-        auto lambda_to_eval_immediately = Interp::BuildLambda(GetSecond(), scope, true);
-        return lambda_to_eval_immediately->Evaluate({}, scope);
-    } else if (!Is<Quote>(function)) {
-        if (Is<Symbol>(function) || Is<Cell>(function)) {
-            function = function->Evaluate({}, scope);  // Get function object from scope variables
-        } else {
-            throw RuntimeError("Lists are not self evaliating, use \"quote\"");
-        }
+    ObjectPtr first = GetFirst();
+    if (Is<Quote>(first)) {
+        std::vector<ObjectPtr> quote_arguments = Interp::ListToVector(GetSecond());
+        return first->Evaluate(quote_arguments, scope);
     }
 
-    std::shared_ptr<Object> arguments_start = GetSecond();
-
-    std::vector<std::shared_ptr<Object>> function_arguments = Interp::ListToVector(arguments_start);
+    ObjectPtr function = nullptr;
+    if (Is<Symbol>(first)) {
+        if (As<Symbol>(first)->GetName() == "begin") {
+            // auto lambda_to_eval_immediately = Interp::BuildLambda(std::nullopt, GetSecond(), scope, true);
+            // return lambda_to_eval_immediately->Evaluate({}, scope);
+            std::vector<ObjectPtr> commands = Interp::ListToVector(GetSecond());
+            ObjectPtr return_value = nullptr;
+            for (auto command : commands) {
+                return_value = command->Evaluate({}, scope);
+            }
+            return return_value;
+        }
+        function = As<Symbol>(first)->GetFunctionInterp(scope);
+    } else if (Is<Cell>(first)) {
+        // in this case this is definetely lambda in-place call
+        std::shared_ptr<Cell> lambda_cell = As<Cell>(first);
+        std::shared_ptr<Symbol> maybe_lambda_keyword = As<Symbol>(lambda_cell->GetFirst());
+        if (!maybe_lambda_keyword) {
+            throw RuntimeError("Unknown cell first argument!");
+        }
+        if (maybe_lambda_keyword->GetName() == "lambda") {
+            function = Interp::BuildLambda(std::nullopt, lambda_cell->GetSecond(), scope);
+        }
+    } else {
+        throw RuntimeError("Lists are not self evaliating, use \"quote\"");
+    }
+    std::vector<ObjectPtr> function_arguments = Interp::ListToVector(GetSecond());
     return function->Evaluate(function_arguments, scope);
 }
 
-llvm::Value* Cell::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Cell::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     // TODO: empty list case
     auto& context = Codegen::Context::Get();
 
-    std::shared_ptr<Object> function = GetFirst();
-    std::shared_ptr<Object> maybe_lambda_keyword = function;
-    if (Is<Symbol>(maybe_lambda_keyword) && (As<Symbol>(maybe_lambda_keyword)->GetName() == "lambda")) {
-        // TODO: return??
-        // function = Codegen::BuildLambdaCodegen(GetSecond(), scope);
-        // return nullptr;
-    } else if (Is<Symbol>(maybe_lambda_keyword) && (As<Symbol>(maybe_lambda_keyword)->GetName() == "begin")) {
-        auto lambda_to_eval_immediately = Codegen::BuildLambdaCodegen(GetSecond(), scope, true);
-        return lambda_to_eval_immediately->Codegen({}, scope);
-    } else if (!Is<Quote>(function)) {
-        if (Is<Symbol>(function) || Is<Cell>(function)) {
-            // WARNING: there we need to evaluate, not codegen
-            // but handle one special case, when we need codegen, not evaluate:
-            if (Is<Cell>(function) && Is<Symbol>(As<Cell>(function)->GetFirst()) && As<Symbol>(As<Cell>(function)->GetFirst())->GetName() == "lambda") {
-                auto child_first = As<Cell>(function)->GetFirst();
-                auto child_second = As<Cell>(function)->GetSecond();
+    ObjectPtr first = GetFirst();
+    if (Is<Quote>(first)) {
+        ObjectPtr arguments_start = GetSecond();
 
-                function = Codegen::BuildLambdaCodegen(child_second, scope);
-            } else {
-                function = function->Evaluate({}, scope);  // Get function object from scope variables
-            }
-        } else {
-            throw RuntimeError("Lists are not self evaliating, use \"quote\"");
-        }
+        std::vector<ObjectPtr> quote_arguments = Interp::ListToVector(arguments_start);
+        return first->Codegen(quote_arguments, scope);
     }
 
-    std::shared_ptr<Object> arguments_start = GetSecond();
-
-    std::vector<std::shared_ptr<Object>> function_arguments = Interp::ListToVector(arguments_start);
+    ObjectPtr function = nullptr;
+    if (Is<Symbol>(first)) {
+        if (As<Symbol>(first)->GetName() == "begin") {
+            // auto lambda_to_eval_immediately = Codegen::BuildLambdaCodegen(std::nullopt, GetSecond(), scope, true);
+            // return lambda_to_eval_immediately->Codegen({}, scope);
+            std::vector<ObjectPtr> commands = Interp::ListToVector(GetSecond());
+            llvm::Value* return_value = nullptr;
+            for (auto command : commands) {
+                return_value = command->Codegen({}, scope);
+            }
+            return return_value;
+        }
+        function = As<Symbol>(first)->GetFunctionInterp(scope);
+    } else if (Is<Cell>(first)) {
+        // in this case this is definetely lambda in-place call
+        std::shared_ptr<Cell> lambda_cell = As<Cell>(first);
+        std::shared_ptr<Symbol> maybe_lambda_keyword = As<Symbol>(lambda_cell->GetFirst());
+        if (!maybe_lambda_keyword) {
+            throw RuntimeError("Unknown cell first argument!");
+        }
+        if (maybe_lambda_keyword->GetName() == "lambda") {
+            function = Codegen::BuildLambdaCodegen(std::nullopt, lambda_cell->GetSecond(), scope);
+        }
+    } else {
+        throw RuntimeError("Lists are not self evaliating, use \"quote\"");
+    }
+    std::vector<ObjectPtr> function_arguments = Interp::ListToVector(GetSecond());
     return function->Codegen(function_arguments, scope);
 }
 
-std::shared_ptr<Object> GLInit::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope>) {
+ObjectPtr GLInit::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 0) {
         throw SyntaxError("No arguments required for \"GLInit\" function");
     }
@@ -108,7 +140,7 @@ std::shared_ptr<Object> GLInit::Evaluate(const std::vector<std::shared_ptr<Objec
     return nullptr;
 }
 
-llvm::Value* GLInit::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* GLInit::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 0) {
         throw SyntaxError("No arguments required for \"GLInit\" function");
     }
@@ -119,8 +151,7 @@ llvm::Value* GLInit::Codegen(const std::vector<std::shared_ptr<Object>>& argumen
     return nullptr;
 }
 
-std::shared_ptr<Object> GLClear::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope>) {
+ObjectPtr GLClear::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 0) {
         throw SyntaxError("No arguments required for \"GLClear\" function");
     }
@@ -128,7 +159,7 @@ std::shared_ptr<Object> GLClear::Evaluate(const std::vector<std::shared_ptr<Obje
     return nullptr;
 }
 
-llvm::Value* GLClear::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* GLClear::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 0) {
         throw SyntaxError("No arguments required for \"GLClear\" function");
     }
@@ -139,24 +170,23 @@ llvm::Value* GLClear::Codegen(const std::vector<std::shared_ptr<Object>>& argume
     return nullptr;
 }
 
-std::shared_ptr<Object> GLPutPixel::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr GLPutPixel::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 5) {
         throw SyntaxError("Exactly 5 arguments required for \"GLPutPixel\" function");
     }
 
-    std::shared_ptr<Object> x_object = arguments[0]->Evaluate({}, scope);
-    std::shared_ptr<Object> y_object = arguments[1]->Evaluate({}, scope);
-    std::shared_ptr<Object> r_object = arguments[2]->Evaluate({}, scope);
-    std::shared_ptr<Object> g_object = arguments[3]->Evaluate({}, scope);
-    std::shared_ptr<Object> b_object = arguments[4]->Evaluate({}, scope);
+    ObjectPtr x_object = arguments[0]->Evaluate({}, scope);
+    ObjectPtr y_object = arguments[1]->Evaluate({}, scope);
+    ObjectPtr r_object = arguments[2]->Evaluate({}, scope);
+    ObjectPtr g_object = arguments[3]->Evaluate({}, scope);
+    ObjectPtr b_object = arguments[4]->Evaluate({}, scope);
 
     // TODO: fix
     //__GLPutPixel(x_coord, y_coord, r_component, g_component, b_component);
     return nullptr;
 }
 
-llvm::Value* GLPutPixel::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* GLPutPixel::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 5) {
         throw SyntaxError("Exactly 5 arguments required for \"GLPutPixel\" function");
     }
@@ -173,8 +203,7 @@ llvm::Value* GLPutPixel::Codegen(const std::vector<std::shared_ptr<Object>>& arg
     return nullptr;
 }
 
-std::shared_ptr<Object> GLIsOpen::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope>) {
+ObjectPtr GLIsOpen::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 0) {
         throw SyntaxError("No arguments required for \"GLIsOpen\" function");
     }
@@ -182,7 +211,7 @@ std::shared_ptr<Object> GLIsOpen::Evaluate(const std::vector<std::shared_ptr<Obj
         : std::make_shared<Boolean>(false);
 }
 
-llvm::Value* GLIsOpen::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* GLIsOpen::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 0) {
         throw SyntaxError("No arguments required for \"GLIsOpen\" function");
     }
@@ -196,8 +225,7 @@ llvm::Value* GLIsOpen::Codegen(const std::vector<std::shared_ptr<Object>>& argum
     return is_open_return_value;
 }
 
-std::shared_ptr<Object> GLDraw::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope>) {
+ObjectPtr GLDraw::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 0) {
         throw SyntaxError("No arguments required for \"GLDraw\" function");
     }
@@ -205,7 +233,7 @@ std::shared_ptr<Object> GLDraw::Evaluate(const std::vector<std::shared_ptr<Objec
     return nullptr;
 }
 
-llvm::Value* GLDraw::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* GLDraw::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 0) {
         throw SyntaxError("No arguments required for \"GLDraw\" function");
     }
@@ -216,8 +244,7 @@ llvm::Value* GLDraw::Codegen(const std::vector<std::shared_ptr<Object>>& argumen
     return nullptr;
 }
 
-std::shared_ptr<Object> GLFinish::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope>) {
+ObjectPtr GLFinish::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 0) {
         throw SyntaxError("No arguments required for \"GLFinish\" function");
     }
@@ -225,7 +252,7 @@ std::shared_ptr<Object> GLFinish::Evaluate(const std::vector<std::shared_ptr<Obj
     return nullptr;
 }
 
-llvm::Value* GLFinish::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* GLFinish::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 0) {
         throw SyntaxError("No arguments required for \"GLFinish\" function");
     }
@@ -236,17 +263,16 @@ llvm::Value* GLFinish::Codegen(const std::vector<std::shared_ptr<Object>>& argum
     return nullptr;
 }
 
-std::shared_ptr<Object> Print::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Print::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw SyntaxError("Exactly 1 argument required for \"Print\" function");
     }
-    std::shared_ptr<Object> object = arguments[0]->Evaluate({}, scope);
+    ObjectPtr object = arguments[0]->Evaluate({}, scope);
     std::cout << "Print: " << Interp::ObjectToString(object) << std::endl;
     return object;
 }
 
-llvm::Value* Print::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Print::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw SyntaxError("Exactly 1 argument required for \"Print\" function");
     }
@@ -259,54 +285,50 @@ llvm::Value* Print::Codegen(const std::vector<std::shared_ptr<Object>>& argument
     return object;
 }
 
-std::shared_ptr<Object> IsBoolean::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr IsBoolean::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw SyntaxError("Exactly 1 argument required for \"IsBoolean\" function");
     }
-    std::shared_ptr<Object> value = arguments[0]->Evaluate({}, scope);
+    ObjectPtr value = arguments[0]->Evaluate({}, scope);
     return Is<Boolean>(value) ? std::make_shared<Boolean>(true)
         : std::make_shared<Boolean>(false);
 }
 
-llvm::Value* IsBoolean::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* IsBoolean::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("Ignoring by now, TODO later");
 }
 
-std::shared_ptr<Object> IsNumber::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr IsNumber::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw SyntaxError("Exactly 1 argument required for \"IsNumber\" function");
     }
-    std::shared_ptr<Object> value = arguments[0]->Evaluate({}, scope);
+    ObjectPtr value = arguments[0]->Evaluate({}, scope);
     return Is<Number>(value) ? std::make_shared<Boolean>(true)
         : std::make_shared<Boolean>(false);
 }
 
-llvm::Value* IsNumber::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* IsNumber::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("number? codegen unimplemented");
 }
 
-std::shared_ptr<Object> IsSymbol::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr IsSymbol::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw SyntaxError("Exactly 1 argument required for \"IsSymbol\" function");
     }
-    std::shared_ptr<Object> value = arguments[0]->Evaluate({}, scope);
+    ObjectPtr value = arguments[0]->Evaluate({}, scope);
     return Is<Symbol>(value) ? std::make_shared<Boolean>(true)
         : std::make_shared<Boolean>(false);
 }
 
-llvm::Value* IsSymbol::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* IsSymbol::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("Ignoring by now, TODO later");
 }
 
-std::shared_ptr<Object> IsPair::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr IsPair::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw SyntaxError("Exactly 1 argument required for \"IsPair\" function");
     }
-    std::shared_ptr<Object> value = arguments[0]->Evaluate({}, scope);
+    ObjectPtr value = arguments[0]->Evaluate({}, scope);
 
     std::shared_ptr<Boolean> ans = std::make_shared<Boolean>(true);
     if (!Is<Cell>(value)) {
@@ -329,16 +351,15 @@ std::shared_ptr<Object> IsPair::Evaluate(const std::vector<std::shared_ptr<Objec
     }
 }
 
-llvm::Value* IsPair::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* IsPair::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("Ignoring by now, TODO later");
 }
 
-std::shared_ptr<Object> IsNull::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr IsNull::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw SyntaxError("Exactly 1 argument required for \"IsNull\" function");
     }
-    std::shared_ptr<Object> value = arguments[0]->Evaluate({}, scope);
+    ObjectPtr value = arguments[0]->Evaluate({}, scope);
 
     if (!value) {
         return std::make_shared<Boolean>(true);
@@ -354,16 +375,15 @@ std::shared_ptr<Object> IsNull::Evaluate(const std::vector<std::shared_ptr<Objec
     return std::make_shared<Boolean>(false);
 }
 
-llvm::Value* IsNull::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* IsNull::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("null? codegen unimplemented");
 }
 
-std::shared_ptr<Object> IsList::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr IsList::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw SyntaxError("Exactly 1 argument required for \"IsList\" function");
     }
-    std::shared_ptr<Object> value = arguments[0]->Evaluate({}, scope);
+    ObjectPtr value = arguments[0]->Evaluate({}, scope);
 
     if (!Is<Cell>(value)) {
         return std::make_shared<Boolean>(false);
@@ -377,22 +397,21 @@ std::shared_ptr<Object> IsList::Evaluate(const std::vector<std::shared_ptr<Objec
     return std::make_shared<Boolean>(true);
 }
 
-llvm::Value* IsList::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* IsList::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("list? codegen unimplemented");
 }
 
-std::shared_ptr<Object> Quote::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope>) {
+ObjectPtr Quote::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.empty()) {
         return std::make_shared<Cell>(nullptr, nullptr);
     }
     if (arguments.size() > 1) {
         throw SyntaxError("Exactly 1 argument (list) required for \"Quote\" function");
     }
-    return arguments[0];
+    return arguments[0]->Evaluate({}, scope, true);
 }
 
-llvm::Value* Quote::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Quote::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.empty()) {
         return nullptr;
     }
@@ -402,12 +421,11 @@ llvm::Value* Quote::Codegen(const std::vector<std::shared_ptr<Object>>& argument
     return arguments[0]->Codegen({}, scope, true);
 }
 
-std::shared_ptr<Object> Not::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Not::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw RuntimeError("Exactly 1 argument required for \"Not\" function");
     }
-    std::shared_ptr<Object> value = arguments[0]->Evaluate({}, scope);
+    ObjectPtr value = arguments[0]->Evaluate({}, scope);
 
     if (Is<Boolean>(value)) {
         return As<Boolean>(value)->GetValue() ? std::make_shared<Boolean>(false)
@@ -416,14 +434,13 @@ std::shared_ptr<Object> Not::Evaluate(const std::vector<std::shared_ptr<Object>>
     return std::make_shared<Boolean>(false);
 }
 
-llvm::Value* Not::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Not::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("Ignoring by now, TODO later");
 }
 
-std::shared_ptr<Object> And::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
-    std::shared_ptr<Object> ans = std::make_shared<Boolean>(true);
-    std::shared_ptr<Object> value = nullptr;
+ObjectPtr And::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    ObjectPtr ans = std::make_shared<Boolean>(true);
+    ObjectPtr value = nullptr;
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         value = arguments[argument_idx]->Evaluate({}, scope);
         if (Is<Boolean>(value)) {
@@ -438,14 +455,13 @@ std::shared_ptr<Object> And::Evaluate(const std::vector<std::shared_ptr<Object>>
     return ans;
 }
 
-llvm::Value* And::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* And::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("and codegen unimplemented");
 }
 
-std::shared_ptr<Object> Or::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
-    std::shared_ptr<Object> ans = std::make_shared<Boolean>(false);
-    std::shared_ptr<Object> value = nullptr;
+ObjectPtr Or::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    ObjectPtr ans = std::make_shared<Boolean>(false);
+    ObjectPtr value = nullptr;
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         value = arguments[argument_idx]->Evaluate({}, scope);
         if (Is<Boolean>(value)) {
@@ -460,16 +476,15 @@ std::shared_ptr<Object> Or::Evaluate(const std::vector<std::shared_ptr<Object>>&
     return ans;
 }
 
-llvm::Value* Or::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Or::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("Ignoring by now, TODO later");
 }
 
-std::shared_ptr<Object> Equal::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
-    std::shared_ptr<Object> ans = std::make_shared<Boolean>(true);
+ObjectPtr Equal::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    ObjectPtr ans = std::make_shared<Boolean>(true);
 
-    std::shared_ptr<Object> last_value = nullptr;
-    std::shared_ptr<Object> value = nullptr;
+    ObjectPtr last_value = nullptr;
+    ObjectPtr value = nullptr;
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         last_value = value;
@@ -486,7 +501,7 @@ std::shared_ptr<Object> Equal::Evaluate(const std::vector<std::shared_ptr<Object
     return ans;
 }
 
-llvm::Value* Equal::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Equal::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
     auto& llvm_context = context.llvm_context.value();
 
@@ -548,12 +563,11 @@ llvm::Value* Equal::Codegen(const std::vector<std::shared_ptr<Object>>& argument
     return ans_value;
 }
 
-std::shared_ptr<Object> Greater::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
-    std::shared_ptr<Object> ans = std::make_shared<Boolean>(true);
+ObjectPtr Greater::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    ObjectPtr ans = std::make_shared<Boolean>(true);
 
-    std::shared_ptr<Object> last_value = nullptr;
-    std::shared_ptr<Object> value = nullptr;
+    ObjectPtr last_value = nullptr;
+    ObjectPtr value = nullptr;
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         last_value = value;
@@ -570,7 +584,7 @@ std::shared_ptr<Object> Greater::Evaluate(const std::vector<std::shared_ptr<Obje
     return ans;
 }
 
-llvm::Value* Greater::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Greater::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
     auto& llvm_context = context.builder->getContext();
     llvm::Function* current_function = context.builder->GetInsertBlock()->getParent();
@@ -631,12 +645,11 @@ llvm::Value* Greater::Codegen(const std::vector<std::shared_ptr<Object>>& argume
     return ans_value;
 }
 
-std::shared_ptr<Object> GreaterEqual::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
-    std::shared_ptr<Object> ans = std::make_shared<Boolean>(true);
+ObjectPtr GreaterEqual::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    ObjectPtr ans = std::make_shared<Boolean>(true);
 
-    std::shared_ptr<Object> last_value = nullptr;
-    std::shared_ptr<Object> value = nullptr;
+    ObjectPtr last_value = nullptr;
+    ObjectPtr value = nullptr;
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         last_value = value;
@@ -653,7 +666,7 @@ std::shared_ptr<Object> GreaterEqual::Evaluate(const std::vector<std::shared_ptr
     return ans;
 }
 
-llvm::Value* GreaterEqual::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* GreaterEqual::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
     auto& llvm_context = context.builder->getContext();
     llvm::Function* current_function = context.builder->GetInsertBlock()->getParent();
@@ -714,12 +727,11 @@ llvm::Value* GreaterEqual::Codegen(const std::vector<std::shared_ptr<Object>>& a
     return ans_value;
 }
 
-std::shared_ptr<Object> Less::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
-    std::shared_ptr<Object> ans = std::make_shared<Boolean>(true);
+ObjectPtr Less::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    ObjectPtr ans = std::make_shared<Boolean>(true);
 
-    std::shared_ptr<Object> last_value = nullptr;
-    std::shared_ptr<Object> value = nullptr;
+    ObjectPtr last_value = nullptr;
+    ObjectPtr value = nullptr;
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         last_value = value;
@@ -736,7 +748,7 @@ std::shared_ptr<Object> Less::Evaluate(const std::vector<std::shared_ptr<Object>
     return ans;
 }
 
-llvm::Value* Less::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Less::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
     auto& llvm_context = context.builder->getContext();
     llvm::Function* current_function = context.builder->GetInsertBlock()->getParent();
@@ -797,12 +809,11 @@ llvm::Value* Less::Codegen(const std::vector<std::shared_ptr<Object>>& arguments
     return ans_value;
 }
 
-std::shared_ptr<Object> LessEqual::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
-    std::shared_ptr<Object> ans = std::make_shared<Boolean>(true);
+ObjectPtr LessEqual::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    ObjectPtr ans = std::make_shared<Boolean>(true);
 
-    std::shared_ptr<Object> last_value = nullptr;
-    std::shared_ptr<Object> value = nullptr;
+    ObjectPtr last_value = nullptr;
+    ObjectPtr value = nullptr;
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         last_value = value;
@@ -819,7 +830,7 @@ std::shared_ptr<Object> LessEqual::Evaluate(const std::vector<std::shared_ptr<Ob
     return ans;
 }
 
-llvm::Value* LessEqual::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* LessEqual::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
     auto& llvm_context = context.builder->getContext();
     llvm::Function* current_function = context.builder->GetInsertBlock()->getParent();
@@ -880,10 +891,9 @@ llvm::Value* LessEqual::Codegen(const std::vector<std::shared_ptr<Object>>& argu
     return ans_value;
 }
 
-std::shared_ptr<Object> Add::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
-    std::shared_ptr<Object> ans = std::make_shared<Number>(0 * PRECISION);
-    std::shared_ptr<Object> value = nullptr;
+ObjectPtr Add::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    ObjectPtr ans = std::make_shared<Number>(0 * PRECISION);
+    ObjectPtr value = nullptr;
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         value = arguments[argument_idx]->Evaluate({}, scope);
@@ -900,7 +910,7 @@ std::shared_ptr<Object> Add::Evaluate(const std::vector<std::shared_ptr<Object>>
     return ans;
 }
 
-llvm::Value* Add::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Add::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
 
     llvm::Value* ans = Codegen::CreateStoreNewNumber(0 * PRECISION);
@@ -920,10 +930,9 @@ llvm::Value* Add::Codegen(const std::vector<std::shared_ptr<Object>>& arguments,
     return ans;
 }
 
-std::shared_ptr<Object> Multiply::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
-    std::shared_ptr<Object> ans = std::make_shared<Number>(1 * PRECISION);
-    std::shared_ptr<Object> value = nullptr;
+ObjectPtr Multiply::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    ObjectPtr ans = std::make_shared<Number>(1 * PRECISION);
+    ObjectPtr value = nullptr;
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         value = arguments[argument_idx]->Evaluate({}, scope);
@@ -940,7 +949,7 @@ std::shared_ptr<Object> Multiply::Evaluate(const std::vector<std::shared_ptr<Obj
     return ans;
 }
 
-llvm::Value* Multiply::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Multiply::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
 
     llvm::Value* ans = Codegen::CreateStoreNewNumber(1 * PRECISION);
@@ -962,13 +971,12 @@ llvm::Value* Multiply::Codegen(const std::vector<std::shared_ptr<Object>>& argum
     return ans;
 }
 
-std::shared_ptr<Object> Subtract::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Subtract::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() <= 1) {
         throw RuntimeError("More than 1 argument required for \"Subtract\" function");
     }
-    std::shared_ptr<Object> ans = std::make_shared<Number>(0 * PRECISION);
-    std::shared_ptr<Object> value = nullptr;
+    ObjectPtr ans = std::make_shared<Number>(0 * PRECISION);
+    ObjectPtr value = nullptr;
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         value = arguments[argument_idx]->Evaluate({}, scope);
@@ -990,7 +998,7 @@ std::shared_ptr<Object> Subtract::Evaluate(const std::vector<std::shared_ptr<Obj
     return ans;
 }
 
-llvm::Value* Subtract::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Subtract::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
 
     llvm::Value* ans = Codegen::CreateStoreNewNumber(0 * PRECISION);
@@ -1014,13 +1022,12 @@ llvm::Value* Subtract::Codegen(const std::vector<std::shared_ptr<Object>>& argum
     return ans;
 }
 
-std::shared_ptr<Object> Divide::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Divide::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() <= 1) {
         throw RuntimeError("More than 1 argument required for \"Divide\" function");
     }
-    std::shared_ptr<Object> ans = std::make_shared<Number>(1 * PRECISION);
-    std::shared_ptr<Object> value = nullptr;
+    ObjectPtr ans = std::make_shared<Number>(1 * PRECISION);
+    ObjectPtr value = nullptr;
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         value = arguments[argument_idx]->Evaluate({}, scope);
@@ -1042,7 +1049,7 @@ std::shared_ptr<Object> Divide::Evaluate(const std::vector<std::shared_ptr<Objec
     return ans;
 }
 
-llvm::Value* Divide::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Divide::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
 
     llvm::Value* ans = Codegen::CreateStoreNewNumber(1 * PRECISION);
@@ -1068,8 +1075,7 @@ llvm::Value* Divide::Codegen(const std::vector<std::shared_ptr<Object>>& argumen
     return ans;
 }
 
-std::shared_ptr<Object> Quotient::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Quotient::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw RuntimeError("Exactly 2 arguments required for \"Quotient\" function");
     }
@@ -1092,11 +1098,11 @@ std::shared_ptr<Object> Quotient::Evaluate(const std::vector<std::shared_ptr<Obj
         throw RuntimeError("\"Quotient\" error: not an integer given as rhs");
     }
 
-    std::shared_ptr<Object> ans = std::make_shared<Number>(lhs_value * PRECISION / (rhs_value != 0 ? rhs_value : 1));
+    ObjectPtr ans = std::make_shared<Number>(lhs_value * PRECISION / (rhs_value != 0 ? rhs_value : 1));
     return ans;
 }
 
-llvm::Value* Quotient::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Quotient::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
 
     if (arguments.size() != 2) {
@@ -1124,8 +1130,7 @@ llvm::Value* Quotient::Codegen(const std::vector<std::shared_ptr<Object>>& argum
     return ans;
 }
 
-std::shared_ptr<Object> Mod::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Mod::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw RuntimeError("Exactly 2 arguments required for \"Mod\" function");
     }
@@ -1148,11 +1153,11 @@ std::shared_ptr<Object> Mod::Evaluate(const std::vector<std::shared_ptr<Object>>
         throw RuntimeError("\"Mod\" error: not an integer given as rhs");
     }
 
-    std::shared_ptr<Object> ans = std::make_shared<Number>(lhs_value % (rhs_value != 0 ? rhs_value : 1));
+    ObjectPtr ans = std::make_shared<Number>(lhs_value % (rhs_value != 0 ? rhs_value : 1));
     return ans;
 }
 
-llvm::Value* Mod::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Mod::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
 
     if (arguments.size() != 2) {
@@ -1179,13 +1184,12 @@ llvm::Value* Mod::Codegen(const std::vector<std::shared_ptr<Object>>& arguments,
     return ans;
 }
 
-std::shared_ptr<Object> Expt::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Expt::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw RuntimeError("Exactly 2 arguments required for \"Expt\" function");
     }
-    std::shared_ptr<Object> value = arguments[0]->Evaluate({}, scope);
-    std::shared_ptr<Object> power = arguments[1]->Evaluate({}, scope);
+    ObjectPtr value = arguments[0]->Evaluate({}, scope);
+    ObjectPtr power = arguments[1]->Evaluate({}, scope);
 
     if (!Is<Number>(value)) {
         throw RuntimeError("\"Expt\" error: not a number given for lhs");
@@ -1197,11 +1201,11 @@ std::shared_ptr<Object> Expt::Evaluate(const std::vector<std::shared_ptr<Object>
     }
     double power_number = static_cast<double>(As<Number>(power)->GetValue()) / PRECISION;
 
-    std::shared_ptr<Object> ans = std::make_shared<Number>(std::pow(value_number, power_number) * PRECISION);
+    ObjectPtr ans = std::make_shared<Number>(std::pow(value_number, power_number) * PRECISION);
     return ans;
 }
 
-llvm::Value* Expt::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Expt::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
 
     if (arguments.size() != 2) {
@@ -1220,23 +1224,22 @@ llvm::Value* Expt::Codegen(const std::vector<std::shared_ptr<Object>>& arguments
     return expt_return_value;
 }
 
-std::shared_ptr<Object> Sqrt::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Sqrt::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw RuntimeError("Exactly 1 argument required for \"Sqrt\" function");
     }
-    std::shared_ptr<Object> value = arguments[0]->Evaluate({}, scope);
+    ObjectPtr value = arguments[0]->Evaluate({}, scope);
 
     if (!Is<Number>(value)) {
         throw RuntimeError("\"Sqrt\" error: not a number given");
     }
     double value_number = static_cast<double>(As<Number>(value)->GetValue()) / PRECISION;
 
-    std::shared_ptr<Object> ans = std::make_shared<Number>(std::sqrt(value_number) * PRECISION);
+    ObjectPtr ans = std::make_shared<Number>(std::sqrt(value_number) * PRECISION);
     return ans;
 }
 
-llvm::Value* Sqrt::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Sqrt::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
 
     if (arguments.size() != 1) {
@@ -1253,13 +1256,12 @@ llvm::Value* Sqrt::Codegen(const std::vector<std::shared_ptr<Object>>& arguments
     return sqrt_return_value;
 }
 
-std::shared_ptr<Object> Max::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Max::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.empty()) {
         throw RuntimeError("At least 1 argument required for \"Max\" function");
     }
-    std::shared_ptr<Object> ans = nullptr;
-    std::shared_ptr<Object> value = nullptr;
+    ObjectPtr ans = nullptr;
+    ObjectPtr value = nullptr;
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         value = arguments[argument_idx]->Evaluate({}, scope);
@@ -1283,17 +1285,16 @@ std::shared_ptr<Object> Max::Evaluate(const std::vector<std::shared_ptr<Object>>
     return ans;
 }
 
-llvm::Value* Max::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Max::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("Ignoring by now, TODO later");
 }
 
-std::shared_ptr<Object> Min::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Min::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.empty()) {
         throw RuntimeError("At least 1 argument required for \"Min\" function");
     }
-    std::shared_ptr<Object> ans = nullptr;
-    std::shared_ptr<Object> value = nullptr;
+    ObjectPtr ans = nullptr;
+    ObjectPtr value = nullptr;
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         value = arguments[argument_idx]->Evaluate({}, scope);
@@ -1317,17 +1318,16 @@ std::shared_ptr<Object> Min::Evaluate(const std::vector<std::shared_ptr<Object>>
     return ans;
 }
 
-llvm::Value* Min::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Min::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("min unimplemented codegen");
 }
 
-std::shared_ptr<Object> Abs::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Abs::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw RuntimeError("Exactly 1 argument required for \"Abs\" function");
     }
-    std::shared_ptr<Object> ans = nullptr;
-    std::shared_ptr<Object> value = nullptr;
+    ObjectPtr ans = nullptr;
+    ObjectPtr value = nullptr;
 
     value = arguments[0]->Evaluate({}, scope);
     if (!Is<Number>(value)) {
@@ -1341,12 +1341,11 @@ std::shared_ptr<Object> Abs::Evaluate(const std::vector<std::shared_ptr<Object>>
     return ans;
 }
 
-llvm::Value* Abs::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Abs::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("Ignoring by now, TODO later");
 }
 
-std::shared_ptr<Object> Set::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Set::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw SyntaxError("Exactly 2 arguments required for \"Set\" function");
     }
@@ -1355,14 +1354,14 @@ std::shared_ptr<Object> Set::Evaluate(const std::vector<std::shared_ptr<Object>>
         throw RuntimeError("\"Set\" error: first argument should be a variable name");
     }
     std::string name = As<Symbol>(arguments[0])->GetName();
-    std::shared_ptr<Object> old_value = scope->GetVariableValueRecursive(name);  // to make sure the variable exists
+    ObjectPtr old_value = scope->GetVariableValueRecursive(name);  // to make sure the variable exists
 
-    std::shared_ptr<Object> new_value = arguments[1]->Evaluate({}, scope);
+    ObjectPtr new_value = arguments[1]->Evaluate({}, scope);
     scope->SetVariableValue(name, new_value);
     return nullptr;
 }
 
-llvm::Value* Set::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Set::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw SyntaxError("Exactly 2 arguments required for \"Set\" function");
     }
@@ -1378,13 +1377,12 @@ llvm::Value* Set::Codegen(const std::vector<std::shared_ptr<Object>>& arguments,
     return nullptr;
 }
 
-std::shared_ptr<Object> If::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr If::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if ((arguments.size() < 2) || (arguments.size() > 3)) {
         throw SyntaxError("Exactly 2 or 3 arguments required for \"If\" function");
     }
 
-    std::shared_ptr<Object> condition = arguments[0]->Evaluate({}, scope);
+    ObjectPtr condition = arguments[0]->Evaluate({}, scope);
     if (!Is<Boolean>(condition)) {
         throw RuntimeError("\"If\" error: condition is not Boolean");
     }
@@ -1400,7 +1398,7 @@ std::shared_ptr<Object> If::Evaluate(const std::vector<std::shared_ptr<Object>>&
     return nullptr;
 }
 
-llvm::Value* If::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* If::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
 
     if ((arguments.size() < 2) || (arguments.size() > 3)) {
@@ -1463,18 +1461,17 @@ llvm::Value* If::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, 
     return phi_node;
 }
 
-std::shared_ptr<Object> While::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr While::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw SyntaxError("Exactly 2 arguments required for \"While\" function");
     }
 
-    std::shared_ptr<Object> condition = arguments[0]->Evaluate({}, scope);
+    ObjectPtr condition = arguments[0]->Evaluate({}, scope);
     if (!Is<Boolean>(condition)) {
         throw RuntimeError("\"While\" error: condition is not Boolean");
     }
 
-    std::shared_ptr<Object> result;
+    ObjectPtr result;
     while (As<Boolean>(condition)->GetValue()) {
         result = arguments[1]->Evaluate({}, scope);
         condition = arguments[0]->Evaluate({}, scope);
@@ -1482,7 +1479,7 @@ std::shared_ptr<Object> While::Evaluate(const std::vector<std::shared_ptr<Object
     return result;
 }
 
-llvm::Value* While::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* While::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
 
     if (arguments.size() != 2) {
@@ -1516,102 +1513,96 @@ llvm::Value* While::Codegen(const std::vector<std::shared_ptr<Object>>& argument
     return loop_branch_return_result;
 }
 
-std::shared_ptr<Object> Cons::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Cons::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw SyntaxError("Exactly 2 arguments required for \"Cons\" function");
     }
 
-    std::shared_ptr<Object> ans = std::make_shared<Cell>(nullptr, nullptr);
+    ObjectPtr ans = std::make_shared<Cell>(nullptr, nullptr);
     As<Cell>(ans)->SetFirst(arguments[0]->Evaluate({}, scope));
     As<Cell>(ans)->SetSecond(arguments[1]->Evaluate({}, scope));
     return ans;
 }
 
-llvm::Value* Cons::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Cons::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("cons unimplemented codegen");
 }
 
-std::shared_ptr<Object> Car::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Car::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw SyntaxError("Exactly 1 argument required for \"Car\" function");
     }
 
-    std::shared_ptr<Object> value = arguments[0]->Evaluate({}, scope);
-    std::shared_ptr<Object> ans = value;
+    ObjectPtr value = arguments[0]->Evaluate({}, scope);
+    ObjectPtr ans = value;
     if (Is<Cell>(value)) {
         ans = As<Cell>(value)->GetFirst();
     }
     return ans;
 }
 
-llvm::Value* Car::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Car::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("car unimplemented codegen");
 }
 
-std::shared_ptr<Object> Cdr::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Cdr::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 1) {
         throw SyntaxError("Exactly 1 argument required for \"Cdr\" function");
     }
 
-    std::shared_ptr<Object> value = arguments[0]->Evaluate({}, scope);
-    std::shared_ptr<Object> ans = nullptr;
+    ObjectPtr value = arguments[0]->Evaluate({}, scope);
+    ObjectPtr ans = nullptr;
     if (Is<Cell>(value)) {
         ans = As<Cell>(value)->GetSecond();
     }
     return ans;
 }
 
-llvm::Value* Cdr::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Cdr::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("cdr unimplemented codegen");
 }
 
-std::shared_ptr<Object> SetCar::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr SetCar::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw SyntaxError("Exactly 2 arguments required for \"SetCar\" function");
     }
 
-    std::shared_ptr<Object> source = arguments[0]->Evaluate({}, scope);
+    ObjectPtr source = arguments[0]->Evaluate({}, scope);
     if (!Is<Cell>(source)) {
         throw RuntimeError("\"SetCar\" error: not a pair or list given");
     }
-    std::shared_ptr<Object> value = arguments[1]->Evaluate({}, scope);
+    ObjectPtr value = arguments[1]->Evaluate({}, scope);
     As<Cell>(source)->SetFirst(value);
     return nullptr;
 }
 
-llvm::Value* SetCar::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* SetCar::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("Ignoring by now, TODO later");
 }
 
-std::shared_ptr<Object> SetCdr::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr SetCdr::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw SyntaxError("Exactly 2 arguments required for \"SetCdr\" function");
     }
 
-    std::shared_ptr<Object> source = arguments[0]->Evaluate({}, scope);
+    ObjectPtr source = arguments[0]->Evaluate({}, scope);
     if (!Is<Cell>(source)) {
         throw RuntimeError("\"SetCdr\" error: not a pair or list given");
     }
-    std::shared_ptr<Object> value = arguments[1]->Evaluate({}, scope);
+    ObjectPtr value = arguments[1]->Evaluate({}, scope);
     As<Cell>(source)->SetSecond(value);
     return nullptr;
 }
 
-llvm::Value* SetCdr::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* SetCdr::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("Ignoring by now, TODO later");
 }
 
-std::shared_ptr<Object> List::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
-    std::shared_ptr<Object> previous = nullptr;
-    std::shared_ptr<Object> current = std::make_shared<Cell>(nullptr, nullptr);
-    std::shared_ptr<Object> ans = current;
-    std::shared_ptr<Object> next = nullptr;
+ObjectPtr List::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    ObjectPtr previous = nullptr;
+    ObjectPtr current = std::make_shared<Cell>(nullptr, nullptr);
+    ObjectPtr ans = current;
+    ObjectPtr next = nullptr;
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         As<Cell>(current)->SetFirst(arguments[argument_idx]->Evaluate({}, scope));
@@ -1629,7 +1620,7 @@ std::shared_ptr<Object> List::Evaluate(const std::vector<std::shared_ptr<Object>
     return ans;
 }
 
-llvm::Value* List::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* List::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
 
     llvm::Value* previous = nullptr;
@@ -1655,14 +1646,13 @@ llvm::Value* List::Codegen(const std::vector<std::shared_ptr<Object>>& arguments
     return ans;
 }
 
-std::shared_ptr<Object> ListRef::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr ListRef::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw SyntaxError("Exactly 2 arguments required for \"ListRef\" function");
     }
 
-    std::shared_ptr<Object> init = arguments[0]->Evaluate({}, scope);
-    std::shared_ptr<Object> idx = arguments[1]->Evaluate({}, scope);
+    ObjectPtr init = arguments[0]->Evaluate({}, scope);
+    ObjectPtr idx = arguments[1]->Evaluate({}, scope);
     if (!Is<Number>(idx)) {
         throw RuntimeError("\"ListRef\" error: idx is not a number");
     }
@@ -1678,17 +1668,16 @@ std::shared_ptr<Object> ListRef::Evaluate(const std::vector<std::shared_ptr<Obje
     throw RuntimeError("\"ListRef\" error: idx out of bounds");
 }
 
-llvm::Value* ListRef::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* ListRef::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("Ignoring by now, TODO later");
 }
 
-std::shared_ptr<Object> ListTail::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr ListTail::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw SyntaxError("Exactly 2 arguments required for \"ListTail\" function");
     }
-    std::shared_ptr<Object> init = arguments[0]->Evaluate({}, scope);
-    std::shared_ptr<Object> idx = arguments[1]->Evaluate({}, scope);
+    ObjectPtr init = arguments[0]->Evaluate({}, scope);
+    ObjectPtr idx = arguments[1]->Evaluate({}, scope);
     if (!Is<Number>(idx)) {
         throw RuntimeError("\"ListTail\" error: idx is not a number");
     }
@@ -1707,13 +1696,12 @@ std::shared_ptr<Object> ListTail::Evaluate(const std::vector<std::shared_ptr<Obj
     throw RuntimeError("\"ListTail\" error: idx out of bounds");
 }
 
-llvm::Value* ListTail::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* ListTail::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     throw std::runtime_error("Ignoring by now, TODO later");
 }
 
-std::shared_ptr<Object> Lambda::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
-    std::shared_ptr<Scope> lambda_call_scope = std::make_shared<Scope>();
+ObjectPtr LambdaInterp::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    ScopePtr lambda_call_scope = std::make_shared<Scope>();
     lambda_call_scope->SetPreviousScope(scope);
 
     if (arguments_idx_to_name_.size() != arguments.size()) {
@@ -1722,106 +1710,79 @@ std::shared_ptr<Object> Lambda::Evaluate(const std::vector<std::shared_ptr<Objec
 
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         std::string name = arguments_idx_to_name_[argument_idx];
-        std::shared_ptr<Object> value = arguments[argument_idx]->Evaluate({}, scope);
+        ObjectPtr value = arguments[argument_idx]->Evaluate({}, scope);
         lambda_call_scope->SetVariableValue(name, value);
     }
 
     // Set variables before entering the function
-    auto self_scope_variables = self_scope_->GetVariablesMap();
-    for (auto& [name, value] : self_scope_variables) {
-        if (!lambda_call_scope->GetVariableValueLocal(name).has_value()) {
-            lambda_call_scope->SetVariableValue(name, value);
-        }
-    }
+    // auto lambda_self_scope_variables = lambda_self_scope_->GetVariableValueMap();
+    // for (auto& [name, value] : lambda_self_scope_variables) {
+    //     if (!lambda_call_scope->GetVariableValueLocal(name).has_value()) {
+    //         lambda_call_scope->SetVariableValue(name, value);
+    //     }
+    // }
 
-    std::shared_ptr<Object> ans = nullptr;
+    ObjectPtr ans = nullptr;
     for (size_t command_idx = 0; command_idx < commands_.size(); ++command_idx) {
         ans = commands_[command_idx]->Evaluate({}, lambda_call_scope);
     }
 
     // Update variables after finishing the function
-    auto lambda_call_scope_variables = lambda_call_scope->GetVariablesMap();
-    for (auto& [name, value] : lambda_call_scope_variables) {
-        self_scope_->SetVariableValue(name, value);
-    }
+    // auto lambda_call_scope_variables = lambda_call_scope->GetVariableValueMap();
+    // for (auto& [name, value] : lambda_call_scope_variables) {
+    //     lambda_self_scope_->SetVariableValue(name, value);
+    // }
     return ans;
 }
 
-llvm::Value* Lambda::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* LambdaCodegen::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
-
-    // std::shared_ptr<Scope> lambda_call_scope = std::make_shared<Scope>();
-    // lambda_call_scope->SetPreviousScope(scope);
-
-    // if (arguments_idx_to_name_.size() != arguments.size()) {
-    //     throw RuntimeError("\"Lambda\" call error: wrong number of arguments passed");
-    // }
 
     std::vector<llvm::Value*> function_call_arguments{};
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
-        //std::string name = arguments_idx_to_name_[argument_idx];
         llvm::Value* value = arguments[argument_idx]->Codegen({}, scope);
-        // TODO: take this away: in lambda's scope there will be %smth not from function
-        // lambda_call_scope->SetVariableValueCodegen(name, value);
         function_call_arguments.push_back(value);
     }
 
-    // Set variables before entering the function
-    // auto self_scope_variables = self_scope_->GetVariablesMapCodegen();
-    // for (auto& [name, value] : self_scope_variables) {
-    //     if (!lambda_call_scope->GetVariableValueLocalCodegen(name).has_value()) {
-    //         lambda_call_scope->SetVariableValueCodegen(name, value);
-    //     }
-    // }
-
-    // FUNCTION CALL
     llvm::AllocaInst* function_returned_object = context.builder->CreateAlloca(context.object_type, nullptr, "function_returned");
     context.builder->CreateStore(context.builder->CreateCall(function_, function_call_arguments), function_returned_object);
     return function_returned_object;
-    // FUNCTION CALL
-
-    // TODO: implement that!!!
-    // Update variables after finishing the function
-    // auto lambda_call_scope_variables = lambda_call_scope->GetVariablesMap();
-    // for (auto& [name, value] : lambda_call_scope_variables) {
-    //     self_scope_->SetVariableValue(name, value);
-    // }
 }
 
-std::shared_ptr<Object> Define::Evaluate(const std::vector<std::shared_ptr<Object>>& arguments,
-    std::shared_ptr<Scope> scope) {
+ObjectPtr Define::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw SyntaxError("Exactly 2 arguments required for \"Define\" function");
     }
 
     if (Is<Cell>(arguments[0])) {
         auto name_and_value = Interp::BuildLambdaSugar(arguments, scope);
-        scope->SetVariableValue(name_and_value.first, name_and_value.second);
+        scope->SetVariableFunction(name_and_value.first, name_and_value.second);
         return nullptr;
     }
     if (!Is<Symbol>(arguments[0])) {
-        throw RuntimeError(
-            "\"Define\" error: first argument should be a variable name or sugar like \"(f x "
-            "y) (x + y)\"");
+        throw RuntimeError("\"Define\" error: first argument should be a variable name or sugar like \"(f x y) (x + y)\"");
     }
     std::string name = As<Symbol>(arguments[0])->GetName();
-    std::shared_ptr<Object> value = nullptr;
 
+    ObjectPtr value = nullptr;
     if (Is<Cell>(arguments[1])) {
-        std::shared_ptr<Object> maybe_lambda_keyword = As<Cell>(arguments[1])->GetFirst();
+        ObjectPtr maybe_lambda_keyword = As<Cell>(arguments[1])->GetFirst();
         if (Is<Symbol>(maybe_lambda_keyword) && As<Symbol>(maybe_lambda_keyword)->GetName() == "lambda") {
-            value = Interp::BuildLambda(As<Cell>(arguments[1])->GetSecond(), scope);
+            ObjectPtr function = Interp::BuildLambda(name, As<Cell>(arguments[1])->GetSecond(), scope);
+            scope->SetVariableFunction(name, function);
+            return nullptr;
         } else {
             value = arguments[1]->Evaluate({}, scope);
         }
     } else {
         value = arguments[1]->Evaluate({}, scope);
     }
+
     scope->SetVariableValue(name, value);
     return nullptr;
 }
 
-llvm::Value* Define::Codegen(const std::vector<std::shared_ptr<Object>>& arguments, std::shared_ptr<Scope> scope, bool is_quote) {
+llvm::Value* Define::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     auto& context = Codegen::Context::Get();
 
     if (arguments.size() != 2) {
@@ -1837,52 +1798,21 @@ llvm::Value* Define::Codegen(const std::vector<std::shared_ptr<Object>>& argumen
         throw RuntimeError("\"Define\" error: first argument should be a variable name or sugar like \"(f x y) (x + y)\"");
     }
     std::string name = As<Symbol>(arguments[0])->GetName();
-    llvm::Value* object = nullptr;
 
+    llvm::Value* value = nullptr;
     if (Is<Cell>(arguments[1])) {
-        std::shared_ptr<Object> maybe_lambda_keyword = As<Cell>(arguments[1])->GetFirst();
+        ObjectPtr maybe_lambda_keyword = As<Cell>(arguments[1])->GetFirst();
         if (Is<Symbol>(maybe_lambda_keyword) && As<Symbol>(maybe_lambda_keyword)->GetName() == "lambda") {
-            // WARNING: predefined_function === function, because we
-            // predefine lambda before its body is filled, so we can use recursion
-
-
-
-
-
-            // TODO: this is argument counter to create llvm::Function* to fill std::shared_ptr<Lambda>
-            //// SO BAD CODE
-
-            bool eval_immediately = false;
-            std::vector<std::shared_ptr<Object>> bad_code_arguments = Interp::ListToVector(As<Cell>(arguments[1])->GetSecond());
-            int temp_argument_counter = 0;
-            std::shared_ptr<Cell> lambda_arg_init = As<Cell>(bad_code_arguments[0]);
-            for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell; cell = As<Cell>(cell->GetSecond())) {
-                ++temp_argument_counter;
-            }
-            int arguments_count = eval_immediately ? 0 : temp_argument_counter;
-            std::vector<llvm::Type*> new_function_arguments(arguments_count, context.builder->getInt8PtrTy());
-            llvm::FunctionType* new_function_type = llvm::FunctionType::get(context.object_type, new_function_arguments, false);
-            llvm::Function* new_function = llvm::Function::Create(new_function_type, llvm::Function::ExternalLinkage, "LambdaFunction", context.llvm_module.value());
-
-            //// SO BAD CODE
-
-
-
-
-
-
-            std::shared_ptr<Object> predefined_function = std::make_shared<Lambda>(new_function, nullptr);
-            scope->SetVariableValue(name, predefined_function);
-            auto function = Codegen::BuildLambdaCodegen(As<Cell>(arguments[1])->GetSecond(), scope, false, predefined_function);
-            // scope->SetVariableValue(name, function);
+            ObjectPtr function = Codegen::BuildLambdaCodegen(name, As<Cell>(arguments[1])->GetSecond(), scope, false);
+            scope->SetVariableFunction(name, function);
             return nullptr;
         } else {
-            object = arguments[1]->Codegen({}, scope);
+            value = arguments[1]->Codegen({}, scope);
         }
     } else {
-        object = arguments[1]->Codegen({}, scope);
+        value = arguments[1]->Codegen({}, scope);
     }
 
-    scope->SetVariableValueCodegen(name, object);
+    scope->SetVariableValueCodegen(name, value);
     return nullptr;
 }

@@ -49,11 +49,6 @@
 ; (print (/ 4 2 0))
 ; (print (/ 0 2))
 
-; (print 'PHRASE)
-; (define x 5)
-; (set! x (- x 1 1))
-; (print (+ x 5))
-
 ; (print (quotient 5 3))
 ; (print (quotient 5 0))
 ; (print (quotient 6 3))
@@ -68,11 +63,17 @@
 ; (print (>= 4 4 3 3))
 ; (print (<= 2 2 5 6 6))
 
-; (gl-init)
-; (while (gl-is-open)
-;     (print 'OPENED)
+; (define x 5)
+; (set! x (- x 1))
+; (print x)
+
+; (define y 7)
+; (begin
+;     (print y)
+;     (set! y (- y 1))
+;     (print y)
 ; )
-; (print 'FINISHED)
+; (print y)
 
 ; (define x 0)
 ; (while (< x 5)
@@ -92,11 +93,6 @@
 ; (define new-print (lambda (x) (print (+ x 1))))
 ; (new-print 7)
 
-;;;; NOT WORKING
-
-; (define pair-op (lambda (op f s) (op f s)))
-; (print (pair-op + 1 2))
-
 ; (define slow-add 
 ;     (lambda (x y)
 ;         (if (= x 0) 
@@ -109,10 +105,15 @@
 ; (print a)
 ; (print (+ a 1))
 
-;; should be error: x not found
-(while (>= x 0)
-    (if (= x 0)
-        (print 'DONE)
-        (set! x (- x 1))
-    )
-)
+; (define x 5)
+; (print x)
+; (set! x 1)
+; (print x)
+
+; (define x 5)
+; (while (>= x 0)
+;     (begin
+;         (print x)
+;         (set! x (- x 1))
+;     )
+; )

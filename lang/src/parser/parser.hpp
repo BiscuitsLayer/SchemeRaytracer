@@ -7,12 +7,12 @@ namespace Parser {
 
 class Parser {
 public:
-    std::shared_ptr<Object> Read(Tokenizer::Tokenizer* tokenizer);
-    std::shared_ptr<Object> ReadList(Tokenizer::Tokenizer* tokenizer);
+    ObjectPtr Read(Tokenizer::Tokenizer* tokenizer);
+    ObjectPtr ReadList(Tokenizer::Tokenizer* tokenizer);
 
 private:
-    std::shared_ptr<Object> GetSymbolQuoteConstant(Tokenizer::Tokenizer* tokenizer, Tokenizer::Token& token);
-    std::string ObjectToString(std::shared_ptr<Object> value);
+    ObjectPtr GetSymbolQuoteConstant(Tokenizer::Tokenizer* tokenizer, Tokenizer::Token& token);
+    std::string ObjectToString(ObjectPtr value);
 };
 
 } // namespace Parser

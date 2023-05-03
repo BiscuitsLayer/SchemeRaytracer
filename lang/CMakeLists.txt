@@ -18,26 +18,25 @@ set(OOGL_BINARY_DIR "${CMAKE_BINARY_DIR}/lib/OOGL")
 add_subdirectory(${OOGL_DIR} ${OOGL_BINARY_DIR})
 include_directories(${OOGL_INCLUDE_DIR})
 
-# Library scheme
+### Scheme ###
 file(GLOB SRC "src/*/*.cpp")
 add_library(libscheme ${SRC})
 target_include_directories(libscheme PUBLIC src)
 target_link_libraries(libscheme PUBLIC ${OPENGL_LIBRARIES} OOGL)
 
-# Main
-include_directories("src")
-file(GLOB SRC_REPL "src/main.cpp")
-add_executable(SchemeMain ${SRC_REPL})
-target_link_libraries(SchemeMain libscheme)
-
-# Link LLVM libraries to main target
+# LLVM libraries
 include_directories(${LLVM_INCLUDE_DIRS})
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 llvm_map_components_to_libnames(llvm_libs support core irreader executionengine interpreter)
+
+# Main
+include_directories("src")
+file(GLOB SRC_REPL "src/main.cpp")
+add_executable(SchemeMain ${SRC_REPL})
 target_link_libraries(SchemeMain libscheme ${llvm_libs})
 
-# Tests
+# Test
 file(GLOB SRC_TEST "test/*.cpp")
 add_executable(SchemeTest ${SRC_TEST} ${SRC_CATCH})
-target_link_libraries(SchemeTest libscheme contrib_catch_main)
+target_link_libraries(SchemeTest libscheme ${llvm_libs} contrib_catch_main)

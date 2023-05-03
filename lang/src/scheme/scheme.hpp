@@ -16,7 +16,7 @@ public:
 
 private:
     void SetSystemFunctions();
-    std::shared_ptr<Scope> global_scope_ = nullptr;
+    ScopePtr global_scope_ = nullptr;
 };
 
 } // namespace Scheme
