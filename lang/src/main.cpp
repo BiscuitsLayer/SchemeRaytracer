@@ -78,32 +78,39 @@ int main(int argc, char** argv) try {
             while (!file_loader_stack.empty()) {
                 int expression_start = 0;
                 int bracket_counter = 0;
+                std::string_view current_buffer{file_loader_stack.top().first};
                 int buffer_idx = file_loader_stack.top().second;
 
-                for (; buffer_idx < file_loader_stack.top().first.size(); ++buffer_idx) {
-                    if (file_loader_stack.top().first[buffer_idx] == ';') {
-                        while ((file_loader_stack.top().first[buffer_idx] != '\n') && (buffer_idx < file_loader_stack.top().first.size())) {
+                for (; buffer_idx < current_buffer.size(); ++buffer_idx) {
+                    if (current_buffer[buffer_idx] == ';') {
+                        while ((current_buffer[buffer_idx] != '\n') && (buffer_idx + 1 < current_buffer.size())) {
+                            // cannot assign to string_view there, so using initial buffer reference
                             file_loader_stack.top().first[buffer_idx] = ' ';
                             ++buffer_idx;
                         }
                     }
-                    if (file_loader_stack.top().first[buffer_idx] == '(' ||
-                        (
-                            file_loader_stack.top().first[buffer_idx] == '\'' 
-                            &&
-                            (buffer_idx + 1 < file_loader_stack.top().first.size())
-                            &&
-                            file_loader_stack.top().first[buffer_idx + 1] == '('
-                        )
+                    if (current_buffer[buffer_idx] == '(') {
+                        if (bracket_counter == 0) {
+                            expression_start = buffer_idx;
+                        }
+                        ++bracket_counter;
+                    } else if (
+                        current_buffer[buffer_idx] == '\'' 
+                        &&
+                        (buffer_idx + 1 < current_buffer.size())
+                        &&
+                        current_buffer[buffer_idx + 1] == '('
                     ) {
                         if (bracket_counter == 0) {
                             expression_start = buffer_idx;
                         }
                         ++bracket_counter;
-                    } else if (file_loader_stack.top().first[buffer_idx] == ')') {
+                        // because we have just analyzed two chars instead of one
+                        ++buffer_idx;
+                    } else if (current_buffer[buffer_idx] == ')') {
                         --bracket_counter;
                         if (bracket_counter == 0) {
-                            last_expression = file_loader_stack.top().first.substr(expression_start, buffer_idx - expression_start + 1);
+                            last_expression = current_buffer.substr(expression_start, buffer_idx - expression_start + 1);
                             std::cout << "got: " << last_expression << std::endl;
 
                             // Handle "load" case
@@ -146,7 +153,7 @@ int main(int argc, char** argv) try {
                     }
                 }
 
-                if (buffer_idx >= file_loader_stack.top().first.size()) {
+                if (buffer_idx >= current_buffer.size()) {
                     file_loader_stack.pop();
                 }
             }

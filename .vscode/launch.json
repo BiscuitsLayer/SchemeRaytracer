@@ -9,7 +9,7 @@
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/lang/build/Debug/SchemeMain.exe",
-            "args": ["2", "${workspaceFolder}/lang/test/codegen.scm"],
+            "args": ["1", "${workspaceFolder}/lang/test/raytracer/main.scm"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/lang/build",
             "environment": [],

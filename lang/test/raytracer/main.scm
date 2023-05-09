@@ -96,6 +96,7 @@
 
         ; (print sampled)
         (define sampled (color-adj sampled))
+        (set! sampled (vec-mul sampled 255))
 
         ;; draw in OpenGL
         (gl-put-pixel x y (vec-x sampled) (vec-y sampled) (vec-z sampled))

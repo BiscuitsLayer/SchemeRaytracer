@@ -177,8 +177,33 @@ ObjectPtr GLPutPixel::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr
     ObjectPtr g_object = arguments[3]->Evaluate({}, scope);
     ObjectPtr b_object = arguments[4]->Evaluate({}, scope);
 
-    // TODO: fix
-    //__GLPutPixel(x_coord, y_coord, r_component, g_component, b_component);
+    SchemeObject* x_scheme_object = new SchemeObject;
+    x_scheme_object->type = ObjectType::TYPE_NUMBER;
+    x_scheme_object->number = As<Number>(x_object)->GetValue();
+
+    SchemeObject* y_scheme_object = new SchemeObject;
+    y_scheme_object->type = ObjectType::TYPE_NUMBER;
+    y_scheme_object->number = As<Number>(y_object)->GetValue();
+
+    SchemeObject* r_scheme_object = new SchemeObject;
+    r_scheme_object->type = ObjectType::TYPE_NUMBER;
+    r_scheme_object->number = As<Number>(r_object)->GetValue();
+
+    SchemeObject* g_scheme_object = new SchemeObject;
+    g_scheme_object->type = ObjectType::TYPE_NUMBER;
+    g_scheme_object->number = As<Number>(g_object)->GetValue();
+
+    SchemeObject* b_scheme_object = new SchemeObject;
+    b_scheme_object->type = ObjectType::TYPE_NUMBER;
+    b_scheme_object->number = As<Number>(b_object)->GetValue();
+
+    __GLPutPixel(
+        x_scheme_object, 
+        y_scheme_object,
+        r_scheme_object,
+        g_scheme_object,
+        b_scheme_object
+    );
     return nullptr;
 }
 
