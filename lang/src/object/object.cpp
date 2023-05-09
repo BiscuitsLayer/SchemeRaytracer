@@ -1,10 +1,10 @@
 #include "object.hpp"
 
+#include <helpers/helpers.hpp>
 #include <scope/scope.hpp>
 #include <lambda/lambda.hpp>
 
 ObjectPtr Number::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
-
     return shared_from_this();
 }
 
@@ -50,21 +50,24 @@ llvm::Value* Boolean::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr 
 }
 
 ObjectPtr Cell::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    if (is_quote) {
+        return shared_from_this();
+    }
+    
     if (!GetFirst()) {  // Empty list case
         return shared_from_this();
     }
 
     ObjectPtr first = GetFirst();
-    if (Is<Quote>(first)) {
-        std::vector<ObjectPtr> quote_arguments = Interp::ListToVector(GetSecond());
-        return first->Evaluate(quote_arguments, scope);
-    }
-
     ObjectPtr function = nullptr;
-    if (Is<Symbol>(first)) {
+
+    if (Is<Quote>(first)) {
+        // special case for '(smth) form of quote
+        ObjectPtr function = first;
+        std::vector<ObjectPtr> quote_arguments = Interp::ListToVector(GetSecond());
+        return function->Evaluate(quote_arguments, scope);
+    } else if (Is<Symbol>(first)) {
         if (As<Symbol>(first)->GetName() == "begin") {
-            // auto lambda_to_eval_immediately = Interp::BuildLambda(std::nullopt, GetSecond(), scope, true);
-            // return lambda_to_eval_immediately->Evaluate({}, scope);
             std::vector<ObjectPtr> commands = Interp::ListToVector(GetSecond());
             ObjectPtr return_value = nullptr;
             for (auto command : commands) {
@@ -73,16 +76,9 @@ ObjectPtr Cell::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope
             return return_value;
         }
         function = As<Symbol>(first)->GetFunctionInterp(scope);
-    } else if (Is<Cell>(first)) {
-        // in this case this is definetely lambda in-place call
+    } else if (Interp::CheckIfCellIsLambda(first)) {
         std::shared_ptr<Cell> lambda_cell = As<Cell>(first);
-        std::shared_ptr<Symbol> maybe_lambda_keyword = As<Symbol>(lambda_cell->GetFirst());
-        if (!maybe_lambda_keyword) {
-            throw RuntimeError("Unknown cell first argument!");
-        }
-        if (maybe_lambda_keyword->GetName() == "lambda") {
-            function = Interp::BuildLambda(std::nullopt, lambda_cell->GetSecond(), scope);
-        }
+        function = Interp::BuildLambda(std::nullopt, lambda_cell->GetSecond(), scope);
     } else {
         throw RuntimeError("Lists are not self evaliating, use \"quote\"");
     }
@@ -91,22 +87,24 @@ ObjectPtr Cell::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope
 }
 
 llvm::Value* Cell::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
+    // TODO: quote case
+    if (is_quote) {
+        return nullptr;
+    }
+    
     // TODO: empty list case
     auto& context = Codegen::Context::Get();
 
     ObjectPtr first = GetFirst();
-    if (Is<Quote>(first)) {
-        ObjectPtr arguments_start = GetSecond();
-
-        std::vector<ObjectPtr> quote_arguments = Interp::ListToVector(arguments_start);
-        return first->Codegen(quote_arguments, scope);
-    }
-
     ObjectPtr function = nullptr;
-    if (Is<Symbol>(first)) {
+
+    if (Is<Quote>(first)) {
+        // special case for '(smth) form of quote
+        ObjectPtr function = first;
+        std::vector<ObjectPtr> quote_arguments = Interp::ListToVector(GetSecond());
+        return function->Codegen(quote_arguments, scope);
+    } else if (Is<Symbol>(first)) {
         if (As<Symbol>(first)->GetName() == "begin") {
-            // auto lambda_to_eval_immediately = Codegen::BuildLambdaCodegen(std::nullopt, GetSecond(), scope, true);
-            // return lambda_to_eval_immediately->Codegen({}, scope);
             std::vector<ObjectPtr> commands = Interp::ListToVector(GetSecond());
             llvm::Value* return_value = nullptr;
             for (auto command : commands) {
@@ -147,8 +145,7 @@ llvm::Value* GLInit::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr s
 
     auto& context = Codegen::Context::Get();
     llvm::Function* function = context.llvm_module->getFunction("__GLInit");
-    context.builder->CreateCall(function, {});
-    return nullptr;
+    return context.builder->CreateCall(function, {});
 }
 
 ObjectPtr GLClear::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -166,8 +163,7 @@ llvm::Value* GLClear::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr 
 
     auto& context = Codegen::Context::Get();
     llvm::Function* function = context.llvm_module->getFunction("__GLClear");
-    context.builder->CreateCall(function, {});
-    return nullptr;
+    return context.builder->CreateCall(function, {});
 }
 
 ObjectPtr GLPutPixel::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -199,8 +195,7 @@ llvm::Value* GLPutPixel::Codegen(const std::vector<ObjectPtr>& arguments, ScopeP
 
     auto& context = Codegen::Context::Get();
     llvm::Function* function = context.llvm_module->getFunction("__GLPutPixel");
-    context.builder->CreateCall(function, {x_object, y_object, r_object, g_object, b_object});
-    return nullptr;
+    return context.builder->CreateCall(function, {x_object, y_object, r_object, g_object, b_object});
 }
 
 ObjectPtr GLIsOpen::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -240,8 +235,7 @@ llvm::Value* GLDraw::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr s
 
     auto& context = Codegen::Context::Get();
     llvm::Function* function = context.llvm_module->getFunction("__GLDraw");
-    context.builder->CreateCall(function, {});
-    return nullptr;
+    return context.builder->CreateCall(function, {});
 }
 
 ObjectPtr GLFinish::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -259,8 +253,7 @@ llvm::Value* GLFinish::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr
 
     auto& context = Codegen::Context::Get();
     llvm::Function* function = context.llvm_module->getFunction("__GLFinish");
-    context.builder->CreateCall(function, {});
-    return nullptr;
+    return context.builder->CreateCall(function, {});
 }
 
 ObjectPtr Print::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -413,6 +406,7 @@ ObjectPtr Quote::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scop
 
 llvm::Value* Quote::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.empty()) {
+        // TODO: return empty cell
         return nullptr;
     }
     if (arguments.size() > 1) {
@@ -1357,8 +1351,8 @@ ObjectPtr Set::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope,
     ObjectPtr old_value = scope->GetVariableValueRecursive(name);  // to make sure the variable exists
 
     ObjectPtr new_value = arguments[1]->Evaluate({}, scope);
-    scope->SetVariableValue(name, new_value);
-    return nullptr;
+    scope->SetVariableValue(name, new_value, false);
+    return new_value;
 }
 
 llvm::Value* Set::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -1373,8 +1367,8 @@ llvm::Value* Set::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scop
     llvm::Value* old_object = scope->GetVariableValueRecursiveCodegen(name);  // to make sure the variable exists
 
     llvm::Value* new_object = arguments[1]->Codegen({}, scope);
-    scope->SetVariableValueCodegen(name, new_object);
-    return nullptr;
+    scope->SetVariableValueCodegen(name, new_object, false);
+    return new_object;
 }
 
 ObjectPtr If::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -1389,11 +1383,10 @@ ObjectPtr If::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, 
 
     if (As<Boolean>(condition)->GetValue()) {
         return arguments[1]->Evaluate({}, scope);
-    } else {
-        if (arguments.size() == 3) {
-            return arguments[2]->Evaluate({}, scope);
-        }
-        return nullptr;
+    } 
+
+    if (arguments.size() == 3) {
+        return arguments[2]->Evaluate({}, scope);
     }
     return nullptr;
 }
@@ -1711,7 +1704,7 @@ ObjectPtr LambdaInterp::Evaluate(const std::vector<ObjectPtr>& arguments, ScopeP
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         std::string name = arguments_idx_to_name_[argument_idx];
         ObjectPtr value = arguments[argument_idx]->Evaluate({}, scope);
-        lambda_call_scope->SetVariableValue(name, value);
+        lambda_call_scope->SetVariableValue(name, value, true);
     }
 
     // Set variables before entering the function
@@ -1722,9 +1715,18 @@ ObjectPtr LambdaInterp::Evaluate(const std::vector<ObjectPtr>& arguments, ScopeP
     //     }
     // }
 
-    ObjectPtr ans = nullptr;
+    ObjectPtr return_value = nullptr;
     for (size_t command_idx = 0; command_idx < commands_.size(); ++command_idx) {
-        ans = commands_[command_idx]->Evaluate({}, lambda_call_scope);
+        // if the very last cell in lambda is also a lambda
+        // then we should build generator function and proxy call
+        if (command_idx + 1 == commands_.size() && Interp::CheckIfCellIsLambda(commands_[command_idx])) {
+            std::cout << "last command lambda found" << std::endl;
+            std::shared_ptr<Cell> lambda_cell = As<Cell>(commands_[command_idx]);
+            ObjectPtr function = Interp::BuildLambda(std::nullopt, lambda_cell->GetSecond(), scope);
+            return_value = function;
+        } else {
+            return_value = commands_[command_idx]->Evaluate({}, lambda_call_scope);
+        }
     }
 
     // Update variables after finishing the function
@@ -1732,7 +1734,7 @@ ObjectPtr LambdaInterp::Evaluate(const std::vector<ObjectPtr>& arguments, ScopeP
     // for (auto& [name, value] : lambda_call_scope_variables) {
     //     lambda_self_scope_->SetVariableValue(name, value);
     // }
-    return ans;
+    return return_value;
 }
 
 llvm::Value* LambdaCodegen::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -1764,21 +1766,22 @@ ObjectPtr Define::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr sco
     }
     std::string name = As<Symbol>(arguments[0])->GetName();
 
-    ObjectPtr value = nullptr;
     if (Is<Cell>(arguments[1])) {
         ObjectPtr maybe_lambda_keyword = As<Cell>(arguments[1])->GetFirst();
         if (Is<Symbol>(maybe_lambda_keyword) && As<Symbol>(maybe_lambda_keyword)->GetName() == "lambda") {
             ObjectPtr function = Interp::BuildLambda(name, As<Cell>(arguments[1])->GetSecond(), scope);
             scope->SetVariableFunction(name, function);
             return nullptr;
-        } else {
-            value = arguments[1]->Evaluate({}, scope);
         }
+        // if it is not lambda, then is function (maybe even lambda) call
+        // scope->SetVariableFunctionCall(name, arguments[1], true);
+        ObjectPtr value = arguments[1]->Evaluate({}, scope);
+        scope->SetVariableValue(name, value, true);
     } else {
-        value = arguments[1]->Evaluate({}, scope);
+        ObjectPtr value = arguments[1]->Evaluate({}, scope);
+        scope->SetVariableValue(name, value, true);
     }
 
-    scope->SetVariableValue(name, value);
     return nullptr;
 }
 
@@ -1799,20 +1802,21 @@ llvm::Value* Define::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr s
     }
     std::string name = As<Symbol>(arguments[0])->GetName();
 
-    llvm::Value* value = nullptr;
     if (Is<Cell>(arguments[1])) {
         ObjectPtr maybe_lambda_keyword = As<Cell>(arguments[1])->GetFirst();
         if (Is<Symbol>(maybe_lambda_keyword) && As<Symbol>(maybe_lambda_keyword)->GetName() == "lambda") {
-            ObjectPtr function = Codegen::BuildLambdaCodegen(name, As<Cell>(arguments[1])->GetSecond(), scope, false);
+            ObjectPtr function = Codegen::BuildLambdaCodegen(name, As<Cell>(arguments[1])->GetSecond(), scope);
             scope->SetVariableFunction(name, function);
             return nullptr;
-        } else {
-            value = arguments[1]->Codegen({}, scope);
         }
+        // if it is not lambda, then is function (maybe even lambda) call
+        // scope->SetVariableFunctionCall(name, arguments[1], true);
+        llvm::Value* value = arguments[1]->Codegen({}, scope);
+        scope->SetVariableValueCodegen(name, value, true);
     } else {
-        value = arguments[1]->Codegen({}, scope);
+        llvm::Value* value = arguments[1]->Codegen({}, scope);
+        scope->SetVariableValueCodegen(name, value, true);
     }
 
-    scope->SetVariableValueCodegen(name, value);
     return nullptr;
 }

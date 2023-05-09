@@ -2,7 +2,7 @@
 
 namespace Interp {
 
-ObjectPtr BuildLambda(std::optional<std::string> name, ObjectPtr init, ScopePtr scope, bool eval_immediately) {
+ObjectPtr BuildLambda(std::optional<std::string> name, ObjectPtr init, ScopePtr scope) {
     std::vector<ObjectPtr> arguments = Interp::ListToVector(init);
 
     std::vector<ObjectPtr> commands{};
@@ -14,25 +14,23 @@ ObjectPtr BuildLambda(std::optional<std::string> name, ObjectPtr init, ScopePtr 
 
     int64_t argument_idx = 0;
 
-    if (!eval_immediately) {
-        // Handle lambda arguments
-        if (arguments[argument_idx] && !Is<Cell>(arguments[argument_idx]) && !eval_immediately) {
-            throw RuntimeError("\"BuildLambda\" error: first argument (lambda arguments) is not a list");
-        }
-
-        std::shared_ptr<Cell> lambda_arg_init = As<Cell>(arguments[argument_idx]);
-        for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell;
-            cell = As<Cell>(cell->GetSecond())) {
-            if (!Is<Symbol>(cell->GetFirst())) {
-                throw RuntimeError("\"BuildLambda\" error: first argument (lambda arguments): not a symbol met");
-            }
-            std::string argument_name = As<Symbol>(cell->GetFirst())->GetName();
-            arguments_idx_to_name.push_back(argument_name);
-        }
-
-        // Prepare for lambda body
-        ++argument_idx;
+    // Handle lambda arguments
+    if (arguments[argument_idx] && !Is<Cell>(arguments[argument_idx])) {
+        throw RuntimeError("\"BuildLambda\" error: first argument (lambda arguments) is not a list");
     }
+
+    std::shared_ptr<Cell> lambda_arg_init = As<Cell>(arguments[argument_idx]);
+    for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell;
+        cell = As<Cell>(cell->GetSecond())) {
+        if (!Is<Symbol>(cell->GetFirst())) {
+            throw RuntimeError("\"BuildLambda\" error: first argument (lambda arguments): not a symbol met");
+        }
+        std::string argument_name = As<Symbol>(cell->GetFirst())->GetName();
+        arguments_idx_to_name.push_back(argument_name);
+    }
+
+    // Prepare for lambda body
+    ++argument_idx;
 
     // Handle lambda body
     if (!Is<Cell>(arguments[argument_idx])) {
@@ -41,11 +39,6 @@ ObjectPtr BuildLambda(std::optional<std::string> name, ObjectPtr init, ScopePtr 
 
     for (; argument_idx < arguments.size(); ++argument_idx) {
         commands.push_back(arguments[argument_idx]);
-    }
-
-    if (eval_immediately) {
-        // If we evaluate immediately, this means we are using "begin" keyword and don't need a new scope
-        return std::make_shared<LambdaInterp>(commands, arguments_idx_to_name, scope);
     }
     
     // // If we do not evaluate immediately, we create a new scope and fill with variables
@@ -91,7 +84,7 @@ std::pair<std::string, ObjectPtr> BuildLambdaSugar(std::vector<ObjectPtr> parts,
 
 namespace Codegen {
 
-ObjectPtr BuildLambdaCodegen(std::optional<std::string> name, ObjectPtr init, ScopePtr scope, bool eval_immediately) {
+ObjectPtr BuildLambdaCodegen(std::optional<std::string> name, ObjectPtr init, ScopePtr scope) {
     auto& context = Codegen::Context::Get();
 
     std::vector<ObjectPtr> arguments = Interp::ListToVector(init);
@@ -104,7 +97,7 @@ ObjectPtr BuildLambdaCodegen(std::optional<std::string> name, ObjectPtr init, Sc
     for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell; cell = As<Cell>(cell->GetSecond())) {
         ++temp_argument_counter;
     }
-    int arguments_count = eval_immediately ? 0 : temp_argument_counter;
+    int arguments_count = temp_argument_counter;
     std::vector<llvm::Type*> new_function_arguments(arguments_count, context.builder->getInt8PtrTy());
     llvm::FunctionType* new_function_type = llvm::FunctionType::get(context.object_type, new_function_arguments, false);
     llvm::Function* new_function = llvm::Function::Create(new_function_type, llvm::Function::ExternalLinkage, "LambdaFunction", context.llvm_module.value());
@@ -127,28 +120,27 @@ ObjectPtr BuildLambdaCodegen(std::optional<std::string> name, ObjectPtr init, Sc
     }
     int64_t argument_idx = 0;
 
-    if (!eval_immediately) {
-        // Handle lambda arguments
-        if (arguments[argument_idx] && !Is<Cell>(arguments[argument_idx]) && !eval_immediately) {
-            throw RuntimeError("\"BuildLambda\" error: first argument (lambda arguments) is not a list");
-        }
-        std::shared_ptr<Cell> lambda_arg_init = As<Cell>(arguments[argument_idx]);
-        for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell; cell = As<Cell>(cell->GetSecond())) {
-            if (!Is<Symbol>(cell->GetFirst())) {
-                throw RuntimeError("\"BuildLambda\" error: first argument (lambda arguments): not a symbol met");
-            }
-            std::string argument_name = As<Symbol>(cell->GetFirst())->GetName();
-            arguments_idx_to_name.push_back(argument_name);
-        }
-
-        for (int idx = 0; idx < arguments_idx_to_name.size(); ++idx) {
-            llvm::Value* argument_value = new_function->getArg(idx);
-            lambda_call_and_self_scope->SetVariableValueCodegen(arguments_idx_to_name[idx], argument_value);
-        }
-
-        // Prepare for lambda body
-        ++argument_idx;
+    // Handle lambda arguments
+    if (arguments[argument_idx] && !Is<Cell>(arguments[argument_idx])) {
+        throw RuntimeError("\"BuildLambda\" error: first argument (lambda arguments) is not a list");
     }
+
+    // std::shared_ptr<Cell> lambda_arg_init = As<Cell>(arguments[argument_idx]);
+    for (std::shared_ptr<Cell> cell = As<Cell>(lambda_arg_init); cell; cell = As<Cell>(cell->GetSecond())) {
+        if (!Is<Symbol>(cell->GetFirst())) {
+            throw RuntimeError("\"BuildLambda\" error: first argument (lambda arguments): not a symbol met");
+        }
+        std::string argument_name = As<Symbol>(cell->GetFirst())->GetName();
+        arguments_idx_to_name.push_back(argument_name);
+    }
+
+    for (int idx = 0; idx < arguments_idx_to_name.size(); ++idx) {
+        llvm::Value* argument_value = new_function->getArg(idx);
+        lambda_call_and_self_scope->SetVariableValueCodegen(arguments_idx_to_name[idx], argument_value, true);
+    }
+
+    // Prepare for lambda body
+    ++argument_idx;
 
     // Handle lambda body
     if (!Is<Cell>(arguments[argument_idx])) {
@@ -156,41 +148,29 @@ ObjectPtr BuildLambdaCodegen(std::optional<std::string> name, ObjectPtr init, Sc
     }
     
     std::shared_ptr<LambdaCodegen> ans = nullptr;
-    if (eval_immediately) {
-        llvm::Value* return_value = nullptr;
-        for (; argument_idx < arguments.size(); ++argument_idx) {
+
+    llvm::Value* return_value = nullptr;
+    for (; argument_idx < arguments.size(); ++argument_idx) {
+        if (argument_idx + 1 == arguments.size() && Interp::CheckIfCellIsLambda(arguments[argument_idx])) {
+            std::cout << "last command lambda found" << std::endl;
+            std::shared_ptr<Cell> lambda_cell = As<Cell>(arguments[argument_idx]);
+            ObjectPtr function = Codegen::BuildLambdaCodegen(std::nullopt, lambda_cell->GetSecond(), lambda_call_and_self_scope);
+            return_value = function->Codegen({}, lambda_call_and_self_scope);
+        } else {
             return_value = arguments[argument_idx]->Codegen({}, lambda_call_and_self_scope);
         }
-        context.builder->CreateRet(return_value);
-
-        // If we evaluate immediately, this means we are using "begin" keyword and don't need a new scope
-        ans = std::make_shared<LambdaCodegen>(new_function);
-    } 
-    else {
-        // // If we do not evaluate immediately, we create a new scope and fill with variables
-        // auto scope_variables = scope->GetVariableValueMapCodegen();
-        // for (auto& [name, value] : scope_variables) {
-        //     lambda_call_and_self_scope->SetVariableValueCodegen(name, value);
-        // }
-
-        llvm::Value* return_value = nullptr;
-        for (; argument_idx < arguments.size(); ++argument_idx) {
-            return_value = arguments[argument_idx]->Codegen({}, lambda_call_and_self_scope);
-        }
-
-        std::vector<llvm::Value*> return_value_scheme_object_indices {
-            context.builder->getInt32(0), // because there is no array, so just the object itself
-        };
-        llvm::Value* return_value_scheme_object_field = context.builder->CreateGEP(context.object_type, return_value, return_value_scheme_object_indices);
-        llvm::Value* return_value_scheme_object = context.builder->CreateLoad(context.object_type, return_value_scheme_object_field);
-        context.builder->CreateRet(return_value_scheme_object);
-
-        ans = std::make_shared<LambdaCodegen>(new_function);
     }
+
+    std::vector<llvm::Value*> return_value_scheme_object_indices {
+        context.builder->getInt32(0), // because there is no array, so just the object itself
+    };
+    llvm::Value* return_value_scheme_object_field = context.builder->CreateGEP(context.object_type, return_value, return_value_scheme_object_indices);
+    llvm::Value* return_value_scheme_object = context.builder->CreateLoad(context.object_type, return_value_scheme_object_field);
+    context.builder->CreateRet(return_value_scheme_object);
 
     llvm::verifyFunction(*new_function);
     context.builder->SetInsertPoint(old_insert_point);
-    return ans;
+    return std::make_shared<LambdaCodegen>(new_function);
 }
 
 } // namespace Codegen

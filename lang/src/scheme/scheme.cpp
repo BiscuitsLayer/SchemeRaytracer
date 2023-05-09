@@ -45,7 +45,7 @@ llvm::Value* Scheme::Codegen(const std::string& expression) {
 
 void Scheme::SetSystemFunctions() {
     // Also set PRECISION variable in global scope
-    global_scope_->SetVariableValue("PRECISION", std::make_shared<Number>(PRECISION));
+    global_scope_->SetVariableValue("PRECISION", std::make_shared<Number>(PRECISION), true);
 
     // Graphics
     global_scope_->SetVariableFunction("gl-init", std::make_shared<GLInit>());

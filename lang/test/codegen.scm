@@ -82,7 +82,7 @@
 
 ; (print ((lambda (x) (+ 1 x)) 5))
 
-;;;; LAMBDA CLOSURE 
+; ;;; LAMBDA CLOSURE 
 ; (define x 2)
 
 ; ((lambda (x) (print x)) 10)
@@ -92,18 +92,6 @@
 
 ; (define new-print (lambda (x) (print (+ x 1))))
 ; (new-print 7)
-
-; (define slow-add 
-;     (lambda (x y)
-;         (if (= x 0) 
-;             y 
-;             (slow-add (- x 1) (+ y 1))
-;         )
-;     )
-; )
-; (define a (slow-add 3 3))
-; (print a)
-; (print (+ a 1))
 
 ; (define x 5)
 ; (print x)
@@ -117,3 +105,45 @@
 ;         (set! x (- x 1))
 ;     )
 ; )
+
+(print 'SLOW_ADD)
+
+(define slow-add 
+    (lambda (x y)
+        (if (= x 0) 
+            y 
+            (slow-add (- x 1) (+ y 1))
+        )
+    )
+)
+(define a (slow-add 3 3))
+(print a)
+(print (+ a 1))
+
+;; NOT WORKING
+; (gl-init)
+; (while (gl-is-open)
+;     (begin
+;         (gl-clear)
+
+;         (define i 0)
+;         (while (< i 100)
+;             (begin
+;                 (define j 0)
+;                 (while (< j 100)
+;                     (begin
+;                         (if (= (mod j 5) 0)
+;                             (gl-draw)
+;                         )
+
+;                         (draw-pixel i j 255 255 255)
+;                         (set! j (+ j 1))
+;                     )
+;                 )
+;                 (set! i (+ i 1))
+;             )
+;         )
+;         (gl-draw)
+;     )
+; )
+; (gl-finish)

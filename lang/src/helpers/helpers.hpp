@@ -9,6 +9,8 @@
 
 namespace Interp {
 
+bool CheckIfCellIsLambda(ObjectPtr maybe_lambda_cell);
+
 std::string ObjectToString(ObjectPtr value);
 std::vector<ObjectPtr> ListToVector(ObjectPtr init);
 std::string ListToString(ObjectPtr init);

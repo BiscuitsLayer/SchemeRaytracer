@@ -20,16 +20,17 @@ public:
         previous_scope_ = previous_scope;
     }
 
-    std::optional<ObjectPtr> GetVariableValueLocal(std::string name);
-    std::optional<llvm::Value*> GetVariableValueLocalCodegen(std::string name);
+    // std::optional<ObjectPtr> GetVariableValueLocal(std::string name);
+    // std::optional<llvm::Value*> GetVariableValueLocalCodegen(std::string name);
 
     ObjectPtr GetVariableValueRecursive(std::string name);
     llvm::Value* GetVariableValueRecursiveCodegen(std::string name);
     ObjectPtr GetVariableFunctionRecursive(std::string name);
 
-    void SetVariableValue(std::string name, ObjectPtr value);
-    void SetVariableValueCodegen(std::string name, llvm::Value* value);
+    void SetVariableValue(std::string name, ObjectPtr value, bool is_new);
+    void SetVariableValueCodegen(std::string name, llvm::Value* value, bool is_new);
     void SetVariableFunction(std::string name, ObjectPtr value);
+    void SetVariableFunctionCall(std::string name, ObjectPtr function, bool is_new);
 
     std::unordered_map<std::string, ObjectPtr> GetVariableValueMap();
     std::unordered_map<std::string, llvm::Value*> GetVariableValueMapCodegen();

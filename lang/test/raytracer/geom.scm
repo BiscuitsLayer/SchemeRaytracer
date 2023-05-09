@@ -4,7 +4,9 @@
 
 (define prod-list (lambda (lst) (if (null? lst) 1 (* (car lst) (prod-list (cdr lst))))))
 
-(define reduce-list (lambda (lst base op) (if (null? lst) base (op (car lst) (reduce-list (cdr lst) base op)))))
+; not working by now, because cannot pass "op" as function
+; maybe fix later, but no idea how to implement in LLVM IR :(
+; (define reduce-list (lambda (lst base op) (if (null? lst) base (op (car lst) (reduce-list (cdr lst) base op)))))
 
 ;; vec3
 (define (vec3 x y z) (list x y z))
@@ -15,37 +17,87 @@
 (define (vec-z v) (car (cdr (cdr v))))
 
 ;; common vector operation
-(define (vec-oper v1 v2 op)
+; not working by now, because cannot pass "op" as function
+; maybe fix later, but no idea how to implement in LLVM IR :(
+; (define (vec-oper v1 v2 op)
+;  (if
+;     ;; v2 is a vector
+;     (list? v2) (vec3 
+;                   (op (vec-x v1) (vec-x v2)) 
+;                   (op (vec-y v1) (vec-y v2)) 
+;                   (op (vec-z v1) (vec-z v2))
+;                 )
+;     ;; v2 is a number, not a vector
+;     (vec3 (op (vec-x v1) v2) (op (vec-y v1) v2) (op (vec-z v1) v2))
+;   )
+; )
+
+;; vec-add first operand must be a vector
+; (define (vec-add v1 v2)
+;   (vec-oper v1 v2 +)
+; )
+(define (vec-add v1 v2)
  (if
     ;; v2 is a vector
     (list? v2) (vec3 
-                  (op (vec-x v1) (vec-x v2)) 
-                  (op (vec-y v1) (vec-y v2)) 
-                  (op (vec-z v1) (vec-z v2))
+                  (+ (vec-x v1) (vec-x v2)) 
+                  (+ (vec-y v1) (vec-y v2)) 
+                  (+ (vec-z v1) (vec-z v2))
                 )
     ;; v2 is a number, not a vector
-    (vec3 (op (vec-x v1) v2) (op (vec-y v1) v2) (op (vec-z v1) v2))
+    (vec3 (+ (vec-x v1) v2) (+ (vec-y v1) v2) (+ (vec-z v1) v2))
   )
 )
 
-;; vec-add first operand must be a vector
-(define (vec-add v1 v2)
-  (vec-oper v1 v2 +)
-)
-
 ;; vec-sub first operand must be a vector
+; (define (vec-sub v1 v2)
+;   (vec-oper v1 v2 -)
+; )
 (define (vec-sub v1 v2)
-  (vec-oper v1 v2 -)
+ (if
+    ;; v2 is a vector
+    (list? v2) (vec3 
+                  (- (vec-x v1) (vec-x v2)) 
+                  (- (vec-y v1) (vec-y v2)) 
+                  (- (vec-z v1) (vec-z v2))
+                )
+    ;; v2 is a number, not a vector
+    (vec3 (- (vec-x v1) v2) (- (vec-y v1) v2) (- (vec-z v1) v2))
+  )
 )
 
 ;; vec-mul first operand must be a vector
+; (define (vec-mul v1 v2)
+;   (vec-oper v1 v2 *)
+; )
 (define (vec-mul v1 v2)
-  (vec-oper v1 v2 *)
+ (if
+    ;; v2 is a vector
+    (list? v2) (vec3 
+                  (* (vec-x v1) (vec-x v2)) 
+                  (* (vec-y v1) (vec-y v2)) 
+                  (* (vec-z v1) (vec-z v2))
+                )
+    ;; v2 is a number, not a vector
+    (vec3 (* (vec-x v1) v2) (* (vec-y v1) v2) (* (vec-z v1) v2))
+  )
 )
 
 ;; vec-mul first operand must be a vector
+; (define (vec-div v1 v2)
+;   (vec-oper v1 v2 /)
+; )
 (define (vec-div v1 v2)
-  (vec-oper v1 v2 /)
+ (if
+    ;; v2 is a vector
+    (list? v2) (vec3 
+                  (/ (vec-x v1) (vec-x v2)) 
+                  (/ (vec-y v1) (vec-y v2)) 
+                  (/ (vec-z v1) (vec-z v2))
+                )
+    ;; v2 is a number, not a vector
+    (vec3 (/ (vec-x v1) v2) (/ (vec-y v1) v2) (/ (vec-z v1) v2))
+  )
 )
 
 ;; dot product

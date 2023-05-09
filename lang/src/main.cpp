@@ -87,7 +87,15 @@ int main(int argc, char** argv) try {
                             ++buffer_idx;
                         }
                     }
-                    if (file_loader_stack.top().first[buffer_idx] == '(') {
+                    if (file_loader_stack.top().first[buffer_idx] == '(' ||
+                        (
+                            file_loader_stack.top().first[buffer_idx] == '\'' 
+                            &&
+                            (buffer_idx + 1 < file_loader_stack.top().first.size())
+                            &&
+                            file_loader_stack.top().first[buffer_idx + 1] == '('
+                        )
+                    ) {
                         if (bracket_counter == 0) {
                             expression_start = buffer_idx;
                         }

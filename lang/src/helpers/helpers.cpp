@@ -4,6 +4,20 @@
 
 namespace Interp {
 
+bool CheckIfCellIsLambda(ObjectPtr maybe_lambda_cell) {
+    if (Is<Cell>(maybe_lambda_cell)) {
+        std::shared_ptr<Cell> lambda_cell = As<Cell>(maybe_lambda_cell);
+        std::shared_ptr<Symbol> maybe_lambda_keyword = As<Symbol>(lambda_cell->GetFirst());
+        if (!maybe_lambda_keyword) {
+            throw RuntimeError("Unknown cell first argument!");
+        }
+        if (maybe_lambda_keyword->GetName() == "lambda") {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string ObjectToString(ObjectPtr value) {
     std::string ans{};
 
