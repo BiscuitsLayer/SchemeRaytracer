@@ -71,6 +71,6 @@ llvm::Value* CreateLoadBoolean(llvm::Value* object_value);
 // CHECKS
 void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type);
 void CreateIsIntegerCheck(llvm::Value* number_value);
-llvm::Value* CreateIsZeroThanOneCheck(llvm::Value* number_value);
+llvm::Value* CreateIsZeroThenOneCheck(llvm::Value* number_value);
 
 } // namespace Codegen

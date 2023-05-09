@@ -145,7 +145,8 @@ llvm::Value* GLInit::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr s
 
     auto& context = Codegen::Context::Get();
     llvm::Function* function = context.llvm_module->getFunction("__GLInit");
-    return context.builder->CreateCall(function, {});
+    context.builder->CreateCall(function, {});
+    return Codegen::CreateStoreNewCell();
 }
 
 ObjectPtr GLClear::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -163,7 +164,8 @@ llvm::Value* GLClear::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr 
 
     auto& context = Codegen::Context::Get();
     llvm::Function* function = context.llvm_module->getFunction("__GLClear");
-    return context.builder->CreateCall(function, {});
+    context.builder->CreateCall(function, {});
+    return Codegen::CreateStoreNewCell();
 }
 
 ObjectPtr GLPutPixel::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -220,7 +222,8 @@ llvm::Value* GLPutPixel::Codegen(const std::vector<ObjectPtr>& arguments, ScopeP
 
     auto& context = Codegen::Context::Get();
     llvm::Function* function = context.llvm_module->getFunction("__GLPutPixel");
-    return context.builder->CreateCall(function, {x_object, y_object, r_object, g_object, b_object});
+    context.builder->CreateCall(function, {x_object, y_object, r_object, g_object, b_object});
+    return Codegen::CreateStoreNewCell();
 }
 
 ObjectPtr GLIsOpen::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -260,7 +263,8 @@ llvm::Value* GLDraw::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr s
 
     auto& context = Codegen::Context::Get();
     llvm::Function* function = context.llvm_module->getFunction("__GLDraw");
-    return context.builder->CreateCall(function, {});
+    context.builder->CreateCall(function, {});
+    return Codegen::CreateStoreNewCell();
 }
 
 ObjectPtr GLFinish::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -278,7 +282,8 @@ llvm::Value* GLFinish::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr
 
     auto& context = Codegen::Context::Get();
     llvm::Function* function = context.llvm_module->getFunction("__GLFinish");
-    return context.builder->CreateCall(function, {});
+    context.builder->CreateCall(function, {});
+    return Codegen::CreateStoreNewCell();
 }
 
 ObjectPtr Print::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -541,6 +546,7 @@ llvm::Value* Equal::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr sc
         last_object = object;
         object = arguments[argument_idx]->Codegen({}, scope);
         Codegen::CreateObjectTypeCheck(object, ObjectType::TYPE_NUMBER);
+        comparison_branch = context.builder->GetInsertBlock();
 
         if (argument_idx != 0) {
             llvm::BasicBlock* next_comparison_branch = nullptr;
@@ -623,6 +629,7 @@ llvm::Value* Greater::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr 
         last_object = object;
         object = arguments[argument_idx]->Codegen({}, scope);
         Codegen::CreateObjectTypeCheck(object, ObjectType::TYPE_NUMBER);
+        comparison_branch = context.builder->GetInsertBlock();
 
         if (argument_idx != 0) {
             llvm::BasicBlock* next_comparison_branch = nullptr;
@@ -705,6 +712,7 @@ llvm::Value* GreaterEqual::Codegen(const std::vector<ObjectPtr>& arguments, Scop
         last_object = object;
         object = arguments[argument_idx]->Codegen({}, scope);
         Codegen::CreateObjectTypeCheck(object, ObjectType::TYPE_NUMBER);
+        comparison_branch = context.builder->GetInsertBlock();
 
         if (argument_idx != 0) {
             llvm::BasicBlock* next_comparison_branch = nullptr;
@@ -787,6 +795,7 @@ llvm::Value* Less::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr sco
         last_object = object;
         object = arguments[argument_idx]->Codegen({}, scope);
         Codegen::CreateObjectTypeCheck(object, ObjectType::TYPE_NUMBER);
+        comparison_branch = context.builder->GetInsertBlock();
 
         if (argument_idx != 0) {
             llvm::BasicBlock* next_comparison_branch = nullptr;
@@ -869,6 +878,7 @@ llvm::Value* LessEqual::Codegen(const std::vector<ObjectPtr>& arguments, ScopePt
         last_object = object;
         object = arguments[argument_idx]->Codegen({}, scope);
         Codegen::CreateObjectTypeCheck(object, ObjectType::TYPE_NUMBER);
+        comparison_branch = context.builder->GetInsertBlock();
 
         if (argument_idx != 0) {
             llvm::BasicBlock* next_comparison_branch = nullptr;
@@ -1080,7 +1090,7 @@ llvm::Value* Divide::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr s
 
         llvm::Value* ans_value_number = Codegen::CreateLoadNumber(ans);
         llvm::Value* object_value_number_not_checked = Codegen::CreateLoadNumber(value);
-        llvm::Value* object_value_number_checked = Codegen::CreateIsZeroThanOneCheck(object_value_number_not_checked);
+        llvm::Value* object_value_number_checked = Codegen::CreateIsZeroThenOneCheck(object_value_number_not_checked);
 
         llvm::Value* ans_value_number_precised = context.builder->CreateMul(ans_value_number, context.builder->getInt64(PRECISION));
         llvm::Value* new_ans_number = context.builder->CreateSDiv(ans_value_number_precised, object_value_number_checked);
@@ -1140,7 +1150,7 @@ llvm::Value* Quotient::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr
     llvm::Value* rhs_value_number_not_checked = Codegen::CreateLoadNumber(rhs_value);
     Codegen::CreateIsIntegerCheck(rhs_value_number_not_checked);
 
-    llvm::Value* rhs_value_number_checked = Codegen::CreateIsZeroThanOneCheck(rhs_value_number_not_checked);
+    llvm::Value* rhs_value_number_checked = Codegen::CreateIsZeroThenOneCheck(rhs_value_number_not_checked);
 
     llvm::Value* lhs_value_number_precised = context.builder->CreateMul(lhs_value_number, context.builder->getInt64(PRECISION));
     llvm::Value* ans_value_number = context.builder->CreateSDiv(lhs_value_number_precised, rhs_value_number_checked);
@@ -1195,7 +1205,7 @@ llvm::Value* Mod::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scop
     llvm::Value* rhs_value_number_not_checked = Codegen::CreateLoadNumber(rhs_value);
     Codegen::CreateIsIntegerCheck(rhs_value_number_not_checked);
 
-    llvm::Value* rhs_value_number_checked = Codegen::CreateIsZeroThanOneCheck(rhs_value_number_not_checked);
+    llvm::Value* rhs_value_number_checked = Codegen::CreateIsZeroThenOneCheck(rhs_value_number_not_checked);
 
     llvm::Value* ans_value_number = context.builder->CreateSRem(lhs_value_number, rhs_value_number_checked);
 

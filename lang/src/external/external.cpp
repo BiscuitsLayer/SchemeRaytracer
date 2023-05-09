@@ -19,6 +19,7 @@ std::optional<GL::VertexBuffer> vbo;
 std::optional<GL::Program> program;
 std::optional<GL::VertexArray> vao;
 std::optional<GL::Image> image;
+std::optional<GL::Texture> texture;
 
 void __GLInit() {
     pixels = std::make_shared<unsigned char[]>(WIDTH * HEIGHT * CHANNELS, 0u);
@@ -66,6 +67,9 @@ void __GLInit() {
     vao->BindAttribute(program->GetAttribute("position"), vbo.value(), GL::Type::Float, 2, 4 * sizeof(float), 0 * sizeof(float));
     vao->BindAttribute(program->GetAttribute("texCoord"), vbo.value(), GL::Type::Float, 2, 4 * sizeof(float), 2 * sizeof(float));
     vao->BindElements(ebo.value());
+
+    image.emplace(WIDTH, HEIGHT, pixels.get());
+    texture.emplace(image.value(), GL::InternalFormat::RGBA);
 }
 
 void __GLClear() {
@@ -91,12 +95,8 @@ void __GLPutPixel(SchemeObject* x_object, SchemeObject* y_object, SchemeObject* 
     assert(b_object->type == ObjectType::TYPE_NUMBER);
     int b = b_object->number / PRECISION;
 
-    if (0 <= x && x < WIDTH && 0 <= y && y < HEIGHT) {
-        int position = (x + y * WIDTH) * CHANNELS;
-        pixels[position] = r;
-        pixels[position + 1] = g;
-        pixels[position + 2] = b;
-        pixels[position + 3] = 255;
+    if (image.has_value()) {
+        image->SetPixel(x, y, GL::Color{static_cast<GL::uchar>(r), static_cast<GL::uchar>(g), static_cast<GL::uchar>(b)});
     }
 }
 
@@ -117,11 +117,10 @@ void __GLDraw() {
 
     GL::Context& gl = window->GetContext();
 
-    image.emplace(WIDTH, HEIGHT, pixels.get());
-    GL::Texture texture{image.value(), GL::InternalFormat::RGBA};
+    texture.emplace(image.value(), GL::InternalFormat::RGBA);
 
     program->SetUniform(program->GetUniform("textureImage"), GL_TEXTURE1);
-    gl.BindTexture(texture, static_cast<GL::uchar>(GL_TEXTURE1));
+    gl.BindTexture(texture.value(), static_cast<GL::uchar>(GL_TEXTURE1));
 
     gl.DrawElements(vao.value(), GL::Primitive::Triangles, 0, 6, GL::Type::UnsignedInt);
 

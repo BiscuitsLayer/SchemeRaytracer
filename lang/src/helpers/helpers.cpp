@@ -424,7 +424,7 @@ void CreateIsIntegerCheck(llvm::Value* number_value) {
     context.builder->CreateCall(assert_function, assert_function_call_arguments);
 }
 
-llvm::Value* CreateIsZeroThanOneCheck(llvm::Value* number_value) {
+llvm::Value* CreateIsZeroThenOneCheck(llvm::Value* number_value) {
     auto& context = Codegen::Context::Get();
     auto old_branch = context.builder->GetInsertBlock();
 
@@ -433,7 +433,7 @@ llvm::Value* CreateIsZeroThanOneCheck(llvm::Value* number_value) {
     llvm::BasicBlock* modify_branch = llvm::BasicBlock::Create(llvm_context, "modify_branch", current_function);
     llvm::BasicBlock* continue_branch = llvm::BasicBlock::Create(llvm_context, "continue_branch", current_function);
 
-    llvm::Value* is_not_zero = context.builder->CreateICmpNE(number_value, context.builder->getInt64(0));
+    llvm::Value* is_not_zero = context.builder->CreateICmpNE(number_value, context.builder->getInt64(0), "is_zero_then_one_check");
     context.builder->CreateCondBr(is_not_zero, continue_branch, modify_branch);
 
     context.builder->SetInsertPoint(modify_branch);

@@ -4,6 +4,7 @@ mkdir oogl_lib
 cd oogl_lib
 
 clang++ -c `
+    -g `
     -I ../../../include/OOGL/include/ `
     -I ../../../include/OOGL/src/ `
     ../../../include/OOGL/src/GL/GL/*.cpp `
@@ -12,6 +13,7 @@ clang++ -c `
     ../../../include/OOGL/src/GL/Window/*.cpp `
 
 clang -c `
+    -g `
     ../../../include/OOGL/src/GL/Util/libjpeg/*.c `
     ../../../include/OOGL/src/GL/Util/libpng/*.c `
     ../../../include/OOGL/src/GL/Util/zlib/*.c `
