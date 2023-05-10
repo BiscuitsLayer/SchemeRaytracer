@@ -3,9 +3,7 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**",
-                "D:/smartcar/LLVM0task/llvm-project/build/",
-                "D:/smartcar/LLVM0task/llvm-project/llvm/include/"
+                "${workspaceFolder}/**"
             ],
             "defines": [
                 "_DEBUG",
