@@ -465,22 +465,55 @@ llvm::Value* Not::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scop
 ObjectPtr And::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     ObjectPtr ans = std::make_shared<Boolean>(true);
     ObjectPtr value = nullptr;
+
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         value = arguments[argument_idx]->Evaluate({}, scope);
-        if (Is<Boolean>(value)) {
-            if (!As<Boolean>(value)->GetValue()) {
-                ans = std::make_shared<Boolean>(false);
-                return ans;
-            }
-        } else {
-            ans = value;
+        ans = value;
+        if (Is<Boolean>(value) && (As<Boolean>(value)->GetValue() == false)) {
+            break;
         }
     }
+
     return ans;
 }
 
 llvm::Value* And::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
-    throw std::runtime_error("and codegen unimplemented");
+    auto& context = Codegen::Context::Get();
+    auto old_branch = context.builder->GetInsertBlock();
+
+    auto& llvm_context = context.llvm_context.value();
+    llvm::Function* current_function = context.builder->GetInsertBlock()->getParent();
+    llvm::BasicBlock* end_branch = llvm::BasicBlock::Create(llvm_context, "end_branch", current_function);
+
+    llvm::Value* value = nullptr;
+    llvm::BasicBlock* continue_branch = old_branch;
+
+    std::vector<Codegen::PairValueBB> incoming_values_for_phi_node;
+
+    for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
+        value = arguments[argument_idx]->Codegen({}, scope);
+
+        continue_branch = llvm::BasicBlock::Create(llvm_context, "continue_branch", current_function);
+        std::vector<Codegen::PairValueBB> new_incoming_values_for_phi_node = Codegen::CreateIsBooleanSmthThenBranch<false>(value, continue_branch, end_branch);
+        incoming_values_for_phi_node.push_back(new_incoming_values_for_phi_node[0]);
+        if (argument_idx + 1 == arguments.size()) {
+            // Adding value only from the very last "continue_branch" to the final phi node
+            incoming_values_for_phi_node.push_back(new_incoming_values_for_phi_node[1]);
+        }
+    }
+
+    context.builder->CreateBr(end_branch);
+    context.builder->SetInsertPoint(end_branch);
+
+    if (incoming_values_for_phi_node.empty()) {
+        return Codegen::CreateStoreNewBoolean(true);
+    }
+
+    llvm::PHINode* phi_node = context.builder->CreatePHI(context.builder->getInt8PtrTy(), incoming_values_for_phi_node.size());
+    for (auto incoming_value_for_phi_node : incoming_values_for_phi_node) {
+        phi_node->addIncoming(incoming_value_for_phi_node.first, incoming_value_for_phi_node.second);
+    }
+    return phi_node;
 }
 
 ObjectPtr Or::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -488,20 +521,51 @@ ObjectPtr Or::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, 
     ObjectPtr value = nullptr;
     for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
         value = arguments[argument_idx]->Evaluate({}, scope);
-        if (Is<Boolean>(value)) {
-            if (As<Boolean>(value)->GetValue()) {
-                ans = std::make_shared<Boolean>(true);
-                return ans;
-            }
-        } else {
-            ans = value;
+        ans = value;
+        if (Is<Boolean>(value) && (As<Boolean>(value)->GetValue() == true)) {
+            break;
         }
     }
     return ans;
 }
 
 llvm::Value* Or::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
-    throw std::runtime_error("Ignoring by now, TODO later");
+    auto& context = Codegen::Context::Get();
+    auto old_branch = context.builder->GetInsertBlock();
+
+    auto& llvm_context = context.llvm_context.value();
+    llvm::Function* current_function = context.builder->GetInsertBlock()->getParent();
+    llvm::BasicBlock* end_branch = llvm::BasicBlock::Create(llvm_context, "end_branch", current_function);
+
+    llvm::Value* value = nullptr;
+    llvm::BasicBlock* continue_branch = old_branch;
+
+    std::vector<Codegen::PairValueBB> incoming_values_for_phi_node;
+
+    for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
+        value = arguments[argument_idx]->Codegen({}, scope);
+
+        continue_branch = llvm::BasicBlock::Create(llvm_context, "continue_branch", current_function);
+        std::vector<Codegen::PairValueBB> new_incoming_values_for_phi_node = Codegen::CreateIsBooleanSmthThenBranch<true>(value, continue_branch, end_branch);
+        incoming_values_for_phi_node.push_back(new_incoming_values_for_phi_node[0]);
+        if (argument_idx + 1 == arguments.size()) {
+            // Adding value only from the very last "continue_branch" to the final phi node
+            incoming_values_for_phi_node.push_back(new_incoming_values_for_phi_node[1]);
+        }
+    }
+
+    context.builder->CreateBr(end_branch);
+    context.builder->SetInsertPoint(end_branch);
+
+    if (incoming_values_for_phi_node.empty()) {
+        return Codegen::CreateStoreNewBoolean(false);
+    }
+
+    llvm::PHINode* phi_node = context.builder->CreatePHI(context.builder->getInt8PtrTy(), incoming_values_for_phi_node.size());
+    for (auto incoming_value_for_phi_node : incoming_values_for_phi_node) {
+        phi_node->addIncoming(incoming_value_for_phi_node.first, incoming_value_for_phi_node.second);
+    }
+    return phi_node;
 }
 
 ObjectPtr Equal::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -1532,7 +1596,11 @@ llvm::Value* While::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr sc
 
     // LOOP BRANCH
     context.builder->SetInsertPoint(loop_branch);
+    
+    Codegen::CreateStackSave();
     llvm::Value* loop_branch_return_result = arguments[1]->Codegen({}, scope);
+    Codegen::CreateStackRestore();
+
     context.builder->CreateBr(condition_branch);
     loop_branch = context.builder->GetInsertBlock();
 
@@ -1782,7 +1850,10 @@ llvm::Value* LambdaCodegen::Codegen(const std::vector<ObjectPtr>& arguments, Sco
     }
 
     llvm::AllocaInst* function_returned_object = context.builder->CreateAlloca(context.object_type, nullptr, "function_returned");
+    Codegen::CreateStackSave();
     context.builder->CreateStore(context.builder->CreateCall(function_, function_call_arguments), function_returned_object);
+    Codegen::CreateStackRestore();
+
     return function_returned_object;
 }
 

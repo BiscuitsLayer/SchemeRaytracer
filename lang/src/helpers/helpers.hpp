@@ -36,12 +36,22 @@ public:
     std::optional<llvm::IRBuilder<>> builder;
     llvm::StructType* object_type;
 
+    std::stack<llvm::Value*> last_stack_saves;
+
 private:
     Context();
 
     void SetExternalFunctions();
     void SetExternalFunction(std::string name, llvm::Type* return_value_type, const std::vector<llvm::Type*>& argument_types);
 };
+
+// COPYING
+llvm::Value* CreateValueCopy(llvm::Value* object_value, llvm::BasicBlock* object_value_branch);
+llvm::Value* CreateValueCopy(const std::vector<std::pair<llvm::Value*, llvm::BasicBlock*>>& object_value_and_branch_vector);
+
+// STACK
+void CreateStackSave();
+void CreateStackRestore();
 
 // CELL
 llvm::Value* CreateStoreNewCell();
@@ -72,5 +82,50 @@ llvm::Value* CreateLoadBoolean(llvm::Value* object_value);
 void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type);
 void CreateIsIntegerCheck(llvm::Value* number_value);
 llvm::Value* CreateIsZeroThenOneCheck(llvm::Value* number_value);
+
+// CHECK FOR SPECIFIC VALUE
+using PairValueBB = std::pair<llvm::Value*, llvm::BasicBlock*>;
+
+template <bool boolean_smth>
+std::vector<PairValueBB> CreateIsBooleanSmthThenBranch(llvm::Value* object_value, llvm::BasicBlock* continue_branch, llvm::BasicBlock* end_branch) {
+    auto& context = Context::Get();
+    auto old_branch = context.builder->GetInsertBlock();
+
+    auto& llvm_context = context.llvm_context.value();
+    llvm::Function* current_function = context.builder->GetInsertBlock()->getParent();
+    llvm::BasicBlock* is_boolean_branch = llvm::BasicBlock::Create(llvm_context, "is_boolean_branch", current_function);
+    llvm::BasicBlock* is_boolean_smth_branch = llvm::BasicBlock::Create(llvm_context, "is_boolean_smth_branch", current_function);
+
+    std::vector<llvm::Value*> object_value_type_field_indices {
+        context.builder->getInt32(0), // because there is no array, so just the object itself
+        context.builder->getInt32(FieldType::FIELD_TYPE)
+    };
+    llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
+    llvm::Value* object_value_type = context.builder->CreateLoad(context.builder->getInt64Ty(), object_value_type_field);
+    llvm::Value* is_type_boolean = context.builder->CreateICmpEQ(object_value_type, context.builder->getInt64(ObjectType::TYPE_BOOLEAN), "is_boolean_check");
+    context.builder->CreateCondBr(is_type_boolean, is_boolean_branch, continue_branch);
+    
+    context.builder->SetInsertPoint(is_boolean_branch);
+    llvm::Value* boolean_value = CreateLoadBoolean(object_value);
+    llvm::Value* is_boolean_smth = context.builder->CreateICmpEQ(boolean_value, context.builder->getInt1(boolean_smth), "is_boolean_smth_check");
+    llvm::Value* object_value_copy_in_is_boolean_branch = CreateValueCopy(object_value, old_branch);
+    context.builder->CreateCondBr(is_boolean_smth, is_boolean_smth_branch, continue_branch);
+
+    context.builder->SetInsertPoint(is_boolean_smth_branch);
+    llvm::Value* object_value_copy_in_is_boolean_smth_branch = CreateValueCopy(object_value_copy_in_is_boolean_branch, is_boolean_branch);
+    context.builder->CreateBr(end_branch);
+
+    context.builder->SetInsertPoint(continue_branch);
+    llvm::Value* object_value_copy_in_continue_branch = CreateValueCopy({
+        {object_value, old_branch},
+        {object_value_copy_in_is_boolean_branch, is_boolean_branch}
+    });
+
+    std::vector<PairValueBB> ans {
+        {object_value_copy_in_is_boolean_smth_branch, is_boolean_smth_branch},
+        {object_value_copy_in_continue_branch, continue_branch}
+    };
+    return ans;
+}
 
 } // namespace Codegen

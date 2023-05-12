@@ -31,11 +31,9 @@
 
 (define random
   (lambda ()
-    (begin
-      (set! seed (mod (+ (* 16807 seed) 0) 2147483647))
-      (define ans (quotient seed 2147483647))
-      (set! seed (mod seed 2147483647))
-      ans
-    )
+    (set! seed (mod (+ (* 16807 seed) 0) 2147483647))
+    (define ans (quotient seed 2147483647))
+    (set! seed (mod seed 2147483647))
+    ans
   )
 )
