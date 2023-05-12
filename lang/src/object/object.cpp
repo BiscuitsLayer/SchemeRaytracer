@@ -318,7 +318,40 @@ ObjectPtr IsBoolean::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr 
 }
 
 llvm::Value* IsBoolean::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
-    throw std::runtime_error("Ignoring by now, TODO later");
+    if (arguments.size() != 1) {
+        throw SyntaxError("Exactly 1 argument required for \"IsBoolean\" function");
+    }
+
+    auto& context = Codegen::Context::Get();
+    auto& llvm_context = context.llvm_context.value();
+
+    llvm::Function* current_function = context.builder->GetInsertBlock()->getParent();
+    llvm::BasicBlock* true_branch = llvm::BasicBlock::Create(llvm_context, "true_branch", current_function);
+    llvm::BasicBlock* false_branch = llvm::BasicBlock::Create(llvm_context, "false_branch", current_function);
+    llvm::BasicBlock* merge_branch = llvm::BasicBlock::Create(llvm_context, "merge_branch", current_function);
+
+    llvm::Value* object = arguments[0]->Codegen({}, scope);
+    Codegen::CreateObjectTypeCheck(object, ObjectType::TYPE_BOOLEAN, true_branch, false_branch);
+
+    // TRUE BRANCH
+    context.builder->SetInsertPoint(true_branch);
+    llvm::Value* true_ans = Codegen::CreateStoreNewBoolean(true);
+    context.builder->CreateBr(merge_branch);
+    true_branch = context.builder->GetInsertBlock();
+
+    // FALSE BRANCH
+    context.builder->SetInsertPoint(false_branch);
+    llvm::Value* false_ans = Codegen::CreateStoreNewBoolean(false);
+    context.builder->CreateBr(merge_branch);
+    false_branch = context.builder->GetInsertBlock();
+
+    // PHI NODE
+    context.builder->SetInsertPoint(merge_branch);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    ans_value->addIncoming(true_ans, true_branch);
+    ans_value->addIncoming(false_ans, false_branch);
+
+    return ans_value;
 }
 
 ObjectPtr IsNumber::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -331,7 +364,40 @@ ObjectPtr IsNumber::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr s
 }
 
 llvm::Value* IsNumber::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
-    throw std::runtime_error("number? codegen unimplemented");
+    if (arguments.size() != 1) {
+        throw SyntaxError("Exactly 1 argument required for \"IsBoolean\" function");
+    }
+
+    auto& context = Codegen::Context::Get();
+    auto& llvm_context = context.llvm_context.value();
+
+    llvm::Function* current_function = context.builder->GetInsertBlock()->getParent();
+    llvm::BasicBlock* true_branch = llvm::BasicBlock::Create(llvm_context, "true_branch", current_function);
+    llvm::BasicBlock* false_branch = llvm::BasicBlock::Create(llvm_context, "false_branch", current_function);
+    llvm::BasicBlock* merge_branch = llvm::BasicBlock::Create(llvm_context, "merge_branch", current_function);
+
+    llvm::Value* object = arguments[0]->Codegen({}, scope);
+    Codegen::CreateObjectTypeCheck(object, ObjectType::TYPE_NUMBER, true_branch, false_branch);
+
+    // TRUE BRANCH
+    context.builder->SetInsertPoint(true_branch);
+    llvm::Value* true_ans = Codegen::CreateStoreNewBoolean(true);
+    context.builder->CreateBr(merge_branch);
+    true_branch = context.builder->GetInsertBlock();
+
+    // FALSE BRANCH
+    context.builder->SetInsertPoint(false_branch);
+    llvm::Value* false_ans = Codegen::CreateStoreNewBoolean(false);
+    context.builder->CreateBr(merge_branch);
+    false_branch = context.builder->GetInsertBlock();
+
+    // PHI NODE
+    context.builder->SetInsertPoint(merge_branch);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    ans_value->addIncoming(true_ans, true_branch);
+    ans_value->addIncoming(false_ans, false_branch);
+
+    return ans_value;
 }
 
 ObjectPtr IsSymbol::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -344,7 +410,40 @@ ObjectPtr IsSymbol::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr s
 }
 
 llvm::Value* IsSymbol::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
-    throw std::runtime_error("Ignoring by now, TODO later");
+    if (arguments.size() != 1) {
+        throw SyntaxError("Exactly 1 argument required for \"IsBoolean\" function");
+    }
+
+    auto& context = Codegen::Context::Get();
+    auto& llvm_context = context.llvm_context.value();
+
+    llvm::Function* current_function = context.builder->GetInsertBlock()->getParent();
+    llvm::BasicBlock* true_branch = llvm::BasicBlock::Create(llvm_context, "true_branch", current_function);
+    llvm::BasicBlock* false_branch = llvm::BasicBlock::Create(llvm_context, "false_branch", current_function);
+    llvm::BasicBlock* merge_branch = llvm::BasicBlock::Create(llvm_context, "merge_branch", current_function);
+
+    llvm::Value* object = arguments[0]->Codegen({}, scope);
+    Codegen::CreateObjectTypeCheck(object, ObjectType::TYPE_SYMBOL, true_branch, false_branch);
+
+    // TRUE BRANCH
+    context.builder->SetInsertPoint(true_branch);
+    llvm::Value* true_ans = Codegen::CreateStoreNewBoolean(true);
+    context.builder->CreateBr(merge_branch);
+    true_branch = context.builder->GetInsertBlock();
+
+    // FALSE BRANCH
+    context.builder->SetInsertPoint(false_branch);
+    llvm::Value* false_ans = Codegen::CreateStoreNewBoolean(false);
+    context.builder->CreateBr(merge_branch);
+    false_branch = context.builder->GetInsertBlock();
+
+    // PHI NODE
+    context.builder->SetInsertPoint(merge_branch);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    ans_value->addIncoming(true_ans, true_branch);
+    ans_value->addIncoming(false_ans, false_branch);
+
+    return ans_value;
 }
 
 ObjectPtr IsPair::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {

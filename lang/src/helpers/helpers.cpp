@@ -451,6 +451,20 @@ void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type) {
     context.builder->CreateCall(assert_function, assert_function_call_arguments);
 }
 
+void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type, llvm::BasicBlock* true_branch, llvm::BasicBlock* false_branch) {
+    auto& context = Codegen::Context::Get();
+
+    std::vector<llvm::Value*> object_value_type_field_indices {
+        context.builder->getInt32(0), // because there is no array, so just the object itself
+        context.builder->getInt32(FieldType::FIELD_TYPE)
+    };
+    llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
+    llvm::Value* object_value_type = context.builder->CreateLoad(context.builder->getInt64Ty(), object_value_type_field);
+
+    llvm::Value* is_type_check = context.builder->CreateICmpEQ(object_value_type, context.builder->getInt64(type), "is_type_check");
+    context.builder->CreateCondBr(is_type_check, true_branch, false_branch);
+}
+
 void CreateIsIntegerCheck(llvm::Value* number_value) {
     auto& context = Codegen::Context::Get();
     llvm::Value* number_value_reminder = context.builder->CreateSRem(number_value, context.builder->getInt64(PRECISION));

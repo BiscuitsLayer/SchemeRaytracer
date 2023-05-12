@@ -80,6 +80,7 @@ llvm::Value* CreateLoadBoolean(llvm::Value* object_value);
 
 // CHECKS
 void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type);
+void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type, llvm::BasicBlock* true_branch, llvm::BasicBlock* false_branch);
 void CreateIsIntegerCheck(llvm::Value* number_value);
 llvm::Value* CreateIsZeroThenOneCheck(llvm::Value* number_value);
 
@@ -96,14 +97,15 @@ std::vector<PairValueBB> CreateIsBooleanSmthThenBranch(llvm::Value* object_value
     llvm::BasicBlock* is_boolean_branch = llvm::BasicBlock::Create(llvm_context, "is_boolean_branch", current_function);
     llvm::BasicBlock* is_boolean_smth_branch = llvm::BasicBlock::Create(llvm_context, "is_boolean_smth_branch", current_function);
 
-    std::vector<llvm::Value*> object_value_type_field_indices {
-        context.builder->getInt32(0), // because there is no array, so just the object itself
-        context.builder->getInt32(FieldType::FIELD_TYPE)
-    };
-    llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
-    llvm::Value* object_value_type = context.builder->CreateLoad(context.builder->getInt64Ty(), object_value_type_field);
-    llvm::Value* is_type_boolean = context.builder->CreateICmpEQ(object_value_type, context.builder->getInt64(ObjectType::TYPE_BOOLEAN), "is_boolean_check");
-    context.builder->CreateCondBr(is_type_boolean, is_boolean_branch, continue_branch);
+    // std::vector<llvm::Value*> object_value_type_field_indices {
+    //     context.builder->getInt32(0), // because there is no array, so just the object itself
+    //     context.builder->getInt32(FieldType::FIELD_TYPE)
+    // };
+    // llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
+    // llvm::Value* object_value_type = context.builder->CreateLoad(context.builder->getInt64Ty(), object_value_type_field);
+    // llvm::Value* is_type_boolean = context.builder->CreateICmpEQ(object_value_type, context.builder->getInt64(ObjectType::TYPE_BOOLEAN), "is_boolean_check");
+    // context.builder->CreateCondBr(is_type_boolean, is_boolean_branch, continue_branch);
+    CreateObjectTypeCheck(object_value, ObjectType::TYPE_BOOLEAN, is_boolean_branch, continue_branch);
     
     context.builder->SetInsertPoint(is_boolean_branch);
     llvm::Value* boolean_value = CreateLoadBoolean(object_value);
