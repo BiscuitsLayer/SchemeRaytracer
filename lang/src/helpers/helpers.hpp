@@ -37,6 +37,7 @@ public:
     llvm::StructType* object_type;
 
     std::stack<llvm::Value*> last_stack_saves;
+    llvm::Value* nullptr_value = nullptr;
 
 private:
     Context();

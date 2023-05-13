@@ -116,6 +116,8 @@ Context::Context() {
     };
     object_type->setBody(object_type_subtypes);
 
+    nullptr_value = llvm::Constant::getNullValue(builder->getInt8PtrTy());
+
     SetExternalFunctions();
 }
 
@@ -216,6 +218,20 @@ llvm::Value* CreateStoreNewCell() {
     };
     llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
     context.builder->CreateStore(context.builder->getInt64(ObjectType::TYPE_CELL), object_value_type_field);
+
+    std::vector<llvm::Value*> object_value_first_field_indices {
+        context.builder->getInt32(0), // because there is no array, so just the object itself
+        context.builder->getInt32(FieldType::FIELD_FIRST)
+    };
+    llvm::Value* object_value_first_field = context.builder->CreateGEP(context.object_type, object_value, object_value_first_field_indices);
+    context.builder->CreateStore(context.nullptr_value, object_value_first_field);
+
+    std::vector<llvm::Value*> object_value_second_field_indices {
+        context.builder->getInt32(0), // because there is no array, so just the object itself
+        context.builder->getInt32(FieldType::FIELD_SECOND)
+    };
+    llvm::Value* object_value_second_field = context.builder->CreateGEP(context.object_type, object_value, object_value_second_field_indices);
+    context.builder->CreateStore(context.nullptr_value, object_value_second_field);
 
     return object_value;
 }
