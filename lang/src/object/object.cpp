@@ -1737,7 +1737,43 @@ ObjectPtr Car::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope,
 }
 
 llvm::Value* Car::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
-    throw std::runtime_error("car unimplemented codegen");
+    if (arguments.size() != 1) {
+        throw SyntaxError("Exactly 1 argument required for \"Car\" function");
+    }
+
+    auto& context = Codegen::Context::Get();
+    auto& llvm_context = context.llvm_context.value();
+
+    llvm::Function* current_function = context.builder->GetInsertBlock()->getParent();
+    llvm::BasicBlock* true_branch = llvm::BasicBlock::Create(llvm_context, "true_branch", current_function);
+    llvm::BasicBlock* false_branch = llvm::BasicBlock::Create(llvm_context, "false_branch", current_function);
+    llvm::BasicBlock* merge_branch = llvm::BasicBlock::Create(llvm_context, "merge_branch", current_function);
+
+    llvm::Value* object = arguments[0]->Codegen({}, scope);
+    // get the right branch to get the value from
+    auto old_branch = context.builder->GetInsertBlock();
+
+    Codegen::CreateObjectTypeCheck(object, ObjectType::TYPE_CELL, true_branch, false_branch);
+
+    // TRUE BRANCH
+    context.builder->SetInsertPoint(true_branch);
+    llvm::Value* true_ans = Codegen::CreateLoadCellFirst(object);
+    context.builder->CreateBr(merge_branch);
+    true_branch = context.builder->GetInsertBlock();
+
+    // FALSE BRANCH
+    context.builder->SetInsertPoint(false_branch);
+    llvm::Value* false_ans = Codegen::CreateValueCopy(object, old_branch);
+    context.builder->CreateBr(merge_branch);
+    false_branch = context.builder->GetInsertBlock();
+
+    // PHI NODE
+    context.builder->SetInsertPoint(merge_branch);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    ans_value->addIncoming(true_ans, true_branch);
+    ans_value->addIncoming(false_ans, false_branch);
+
+    return ans_value;
 }
 
 ObjectPtr Cdr::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -1754,7 +1790,43 @@ ObjectPtr Cdr::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope,
 }
 
 llvm::Value* Cdr::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
-    throw std::runtime_error("cdr unimplemented codegen");
+    if (arguments.size() != 1) {
+        throw SyntaxError("Exactly 1 argument required for \"Cdr\" function");
+    }
+
+    auto& context = Codegen::Context::Get();
+    auto& llvm_context = context.llvm_context.value();
+
+    llvm::Function* current_function = context.builder->GetInsertBlock()->getParent();
+    llvm::BasicBlock* true_branch = llvm::BasicBlock::Create(llvm_context, "true_branch", current_function);
+    llvm::BasicBlock* false_branch = llvm::BasicBlock::Create(llvm_context, "false_branch", current_function);
+    llvm::BasicBlock* merge_branch = llvm::BasicBlock::Create(llvm_context, "merge_branch", current_function);
+
+    llvm::Value* object = arguments[0]->Codegen({}, scope);
+    // get the right branch to get the value from
+    auto old_branch = context.builder->GetInsertBlock();
+
+    Codegen::CreateObjectTypeCheck(object, ObjectType::TYPE_CELL, true_branch, false_branch);
+
+    // TRUE BRANCH
+    context.builder->SetInsertPoint(true_branch);
+    llvm::Value* true_ans = Codegen::CreateLoadCellSecond(object);
+    context.builder->CreateBr(merge_branch);
+    true_branch = context.builder->GetInsertBlock();
+
+    // FALSE BRANCH
+    context.builder->SetInsertPoint(false_branch);
+    llvm::Value* false_ans = Codegen::CreateStoreNewCell();
+    context.builder->CreateBr(merge_branch);
+    false_branch = context.builder->GetInsertBlock();
+
+    // PHI NODE
+    context.builder->SetInsertPoint(merge_branch);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    ans_value->addIncoming(true_ans, true_branch);
+    ans_value->addIncoming(false_ans, false_branch);
+
+    return ans_value;
 }
 
 ObjectPtr SetCar::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -1878,8 +1950,7 @@ ObjectPtr ListTail::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr s
     }
     int64_t idx_number = As<Number>(idx)->GetValue() / PRECISION;
 
-    for (std::shared_ptr<Cell> cell = As<Cell>(init); cell;
-        cell = As<Cell>(cell->GetSecond())) {
+    for (std::shared_ptr<Cell> cell = As<Cell>(init); cell; cell = As<Cell>(cell->GetSecond())) {
         if (idx_number == 0) {
             return cell;
         }

@@ -57,6 +57,8 @@ void CreateStackRestore();
 llvm::Value* CreateStoreNewCell();
 void CreateStoreCellFirst(llvm::Value* object_value, llvm::Value* first_value);
 void CreateStoreCellSecond(llvm::Value* object_value, llvm::Value* second_value);
+llvm::Value* CreateLoadCellFirst(llvm::Value* object_value);
+llvm::Value* CreateLoadCellSecond(llvm::Value* object_value);
 
 // BUILD NEW FROM CPP TYPE
 llvm::Value* CreateStoreNewNumber(int64_t number);
@@ -97,14 +99,6 @@ std::vector<PairValueBB> CreateIsBooleanSmthThenBranch(llvm::Value* object_value
     llvm::BasicBlock* is_boolean_branch = llvm::BasicBlock::Create(llvm_context, "is_boolean_branch", current_function);
     llvm::BasicBlock* is_boolean_smth_branch = llvm::BasicBlock::Create(llvm_context, "is_boolean_smth_branch", current_function);
 
-    // std::vector<llvm::Value*> object_value_type_field_indices {
-    //     context.builder->getInt32(0), // because there is no array, so just the object itself
-    //     context.builder->getInt32(FieldType::FIELD_TYPE)
-    // };
-    // llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
-    // llvm::Value* object_value_type = context.builder->CreateLoad(context.builder->getInt64Ty(), object_value_type_field);
-    // llvm::Value* is_type_boolean = context.builder->CreateICmpEQ(object_value_type, context.builder->getInt64(ObjectType::TYPE_BOOLEAN), "is_boolean_check");
-    // context.builder->CreateCondBr(is_type_boolean, is_boolean_branch, continue_branch);
     CreateObjectTypeCheck(object_value, ObjectType::TYPE_BOOLEAN, is_boolean_branch, continue_branch);
     
     context.builder->SetInsertPoint(is_boolean_branch);

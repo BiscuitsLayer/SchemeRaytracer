@@ -240,6 +240,32 @@ void CreateStoreCellSecond(llvm::Value* object_value, llvm::Value* second_value)
     context.builder->CreateStore(second_value, object_value_second_field);
 }
 
+llvm::Value* CreateLoadCellFirst(llvm::Value* object_value) {
+    auto& context = Codegen::Context::Get();
+
+    std::vector<llvm::Value*> object_value_first_field_indices {
+        context.builder->getInt32(0), // because there is no array, so just the object itself
+        context.builder->getInt32(FieldType::FIELD_FIRST)
+    };
+    llvm::Value* object_value_first_field = context.builder->CreateGEP(context.object_type, object_value, object_value_first_field_indices);
+    llvm::Value* object_value_first = context.builder->CreateLoad(context.builder->getInt8PtrTy(), object_value_first_field);
+
+    return object_value_first;
+}
+
+llvm::Value* CreateLoadCellSecond(llvm::Value* object_value) {
+    auto& context = Codegen::Context::Get();
+
+    std::vector<llvm::Value*> object_value_second_field_indices {
+        context.builder->getInt32(0), // because there is no array, so just the object itself
+        context.builder->getInt32(FieldType::FIELD_SECOND)
+    };
+    llvm::Value* object_value_second_field = context.builder->CreateGEP(context.object_type, object_value, object_value_second_field_indices);
+    llvm::Value* object_value_second = context.builder->CreateLoad(context.builder->getInt8PtrTy(), object_value_second_field);
+
+    return object_value_second;
+}
+
 llvm::Value* CreateStoreNewNumber(int64_t number) {
     auto& context = Codegen::Context::Get();
     llvm::AllocaInst* object_value = context.builder->CreateAlloca(context.object_type, nullptr, "number");
