@@ -17,5 +17,6 @@ std::pair<std::string, ObjectPtr> BuildLambdaSugar(std::vector<ObjectPtr> parts,
 namespace Codegen {
 
 ObjectPtr BuildLambdaCodegen(std::optional<std::string> name, ObjectPtr init, ScopePtr scope);
+std::pair<std::string, ObjectPtr> BuildLambdaSugarCodegen(std::vector<ObjectPtr> parts, ScopePtr scope);
 
 } // namespace Codegen

@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/lang/build/Debug/SchemeMain.exe",
             // "program": "${workspaceFolder}/lang/codegen/codegen.exe",
-            "args": ["2", "${workspaceFolder}/lang/test/codegen.scm"],
+            "args": ["2", "${workspaceFolder}/lang/test/raytracer/main.scm"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/lang/build",
             "environment": [],

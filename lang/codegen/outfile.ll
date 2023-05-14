@@ -3,2051 +3,9 @@ source_filename = "outfile.ll"
 
 %SchemeObject = type { i64, i64, i1, ptr, ptr, ptr }
 
-@symbol_global = private unnamed_addr constant [4 x i8] c"AND\00", align 1
-@symbol_global.1 = private unnamed_addr constant [3 x i8] c"OR\00", align 1
-@symbol_global.2 = private unnamed_addr constant [9 x i8] c"BOOLEAN?\00", align 1
-@symbol_global.3 = private unnamed_addr constant [8 x i8] c"SYMBOL?\00", align 1
-@symbol_global.4 = private unnamed_addr constant [2 x i8] c"x\00", align 1
-@symbol_global.5 = private unnamed_addr constant [8 x i8] c"NUMBER?\00", align 1
-@symbol_global.6 = private unnamed_addr constant [5 x i8] c"CONS\00", align 1
-@symbol_global.7 = private unnamed_addr constant [5 x i8] c"NULL\00", align 1
-
 define i32 @main() {
 entry:
-  call void @__GLInit()
-  %0 = alloca %SchemeObject, align 8
-  %1 = getelementptr %SchemeObject, ptr %0, i32 0, i32 0
-  store i64 3, ptr %1, align 4
-  %2 = getelementptr %SchemeObject, ptr %0, i32 0, i32 4
-  store ptr null, ptr %2, align 8
-  %3 = getelementptr %SchemeObject, ptr %0, i32 0, i32 5
-  store ptr null, ptr %3, align 8
-  br label %condition_branch
-
-condition_branch:                                 ; preds = %merge_branch3, %entry
-  %is-open = alloca %SchemeObject, align 8
-  %4 = call %SchemeObject @__GLIsOpen()
-  store %SchemeObject %4, ptr %is-open, align 8
-  %5 = getelementptr %SchemeObject, ptr %is-open, i32 0, i32 0
-  %6 = load i64, ptr %5, align 4
-  %7 = icmp eq i64 %6, 1
-  call void @__GLAssert(i1 %7)
-  %8 = getelementptr %SchemeObject, ptr %is-open, i32 0, i32 2
-  %9 = load i1, ptr %8, align 1
-  br i1 %9, label %loop_branch, label %merge_branch
-
-loop_branch:                                      ; preds = %condition_branch
-  %10 = call ptr @llvm.stacksave()
-  call void @__GLClear()
-  %11 = alloca %SchemeObject, align 8
-  %12 = getelementptr %SchemeObject, ptr %11, i32 0, i32 0
-  store i64 3, ptr %12, align 4
-  %13 = getelementptr %SchemeObject, ptr %11, i32 0, i32 4
-  store ptr null, ptr %13, align 8
-  %14 = getelementptr %SchemeObject, ptr %11, i32 0, i32 5
-  store ptr null, ptr %14, align 8
-  %number = alloca %SchemeObject, align 8
-  %15 = getelementptr %SchemeObject, ptr %number, i32 0, i32 0
-  store i64 0, ptr %15, align 4
-  %16 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
-  store i64 0, ptr %16, align 4
-  %variable = alloca %SchemeObject, align 8
-  %17 = getelementptr %SchemeObject, ptr %number, i32 0
-  %18 = load %SchemeObject, ptr %17, align 8
-  store %SchemeObject %18, ptr %variable, align 8
-  br label %condition_branch1
-
-merge_branch:                                     ; preds = %condition_branch
-  call void @__GLFinish()
-  %19 = alloca %SchemeObject, align 8
-  %20 = getelementptr %SchemeObject, ptr %19, i32 0, i32 0
-  store i64 3, ptr %20, align 4
-  %21 = getelementptr %SchemeObject, ptr %19, i32 0, i32 4
-  store ptr null, ptr %21, align 8
-  %22 = getelementptr %SchemeObject, ptr %19, i32 0, i32 5
-  store ptr null, ptr %22, align 8
-  %symbol = alloca %SchemeObject, align 8
-  %23 = getelementptr %SchemeObject, ptr %symbol, i32 0, i32 0
-  store i64 2, ptr %23, align 4
-  %24 = getelementptr %SchemeObject, ptr %symbol, i32 0, i32 3
-  store ptr @symbol_global, ptr %24, align 8
-  call void @__GLPrint(ptr %symbol)
-  br label %end_branch56
-
-condition_branch1:                                ; preds = %merge_branch17, %loop_branch
-  br label %comparison_branch
-
-loop_branch2:                                     ; preds = %end_branch
-  %25 = call ptr @llvm.stacksave()
-  %number13 = alloca %SchemeObject, align 8
-  %26 = getelementptr %SchemeObject, ptr %number13, i32 0, i32 0
-  store i64 0, ptr %26, align 4
-  %27 = getelementptr %SchemeObject, ptr %number13, i32 0, i32 1
-  store i64 0, ptr %27, align 4
-  %variable14 = alloca %SchemeObject, align 8
-  %28 = getelementptr %SchemeObject, ptr %number13, i32 0
-  %29 = load %SchemeObject, ptr %28, align 8
-  store %SchemeObject %29, ptr %variable14, align 8
-  br label %condition_branch15
-
-merge_branch3:                                    ; preds = %end_branch
-  call void @__GLDraw()
-  %30 = alloca %SchemeObject, align 8
-  %31 = getelementptr %SchemeObject, ptr %30, i32 0, i32 0
-  store i64 3, ptr %31, align 4
-  %32 = getelementptr %SchemeObject, ptr %30, i32 0, i32 4
-  store ptr null, ptr %32, align 8
-  %33 = getelementptr %SchemeObject, ptr %30, i32 0, i32 5
-  store ptr null, ptr %33, align 8
-  call void @llvm.stackrestore(ptr %10)
-  br label %condition_branch
-
-end_branch:                                       ; preds = %continue_branch8, %is_boolean_smth_branch10, %is_boolean_smth_branch
-  %34 = phi ptr [ %67, %is_boolean_smth_branch ], [ %72, %is_boolean_smth_branch10 ], [ %68, %continue_branch8 ]
-  %35 = getelementptr %SchemeObject, ptr %34, i32 0, i32 0
-  %36 = load i64, ptr %35, align 4
-  %37 = icmp eq i64 %36, 1
-  call void @__GLAssert(i1 %37)
-  %38 = getelementptr %SchemeObject, ptr %34, i32 0, i32 2
-  %39 = load i1, ptr %38, align 1
-  br i1 %39, label %loop_branch2, label %merge_branch3
-
-comparison_branch:                                ; preds = %condition_branch1
-  %40 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
-  %41 = load i64, ptr %40, align 4
-  %42 = icmp eq i64 %41, 0
-  call void @__GLAssert(i1 %42)
-  %number5 = alloca %SchemeObject, align 8
-  %43 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 0
-  store i64 0, ptr %43, align 4
-  %44 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 1
-  store i64 10000, ptr %44, align 4
-  %45 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 0
-  %46 = load i64, ptr %45, align 4
-  %47 = icmp eq i64 %46, 0
-  call void @__GLAssert(i1 %47)
-  %48 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 1
-  %49 = load i64, ptr %48, align 4
-  %50 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 1
-  %51 = load i64, ptr %50, align 4
-  %52 = icmp sge i64 %49, %51
-  br i1 %52, label %false_branch, label %true_branch
-
-true_branch:                                      ; preds = %comparison_branch
-  %boolean = alloca %SchemeObject, align 8
-  %53 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 0
-  store i64 1, ptr %53, align 4
-  %54 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 2
-  store i1 true, ptr %54, align 1
-  br label %merge_branch4
-
-false_branch:                                     ; preds = %comparison_branch
-  %boolean6 = alloca %SchemeObject, align 8
-  %55 = getelementptr %SchemeObject, ptr %boolean6, i32 0, i32 0
-  store i64 1, ptr %55, align 4
-  %56 = getelementptr %SchemeObject, ptr %boolean6, i32 0, i32 2
-  store i1 false, ptr %56, align 1
-  br label %merge_branch4
-
-merge_branch4:                                    ; preds = %false_branch, %true_branch
-  %57 = phi ptr [ %boolean, %true_branch ], [ %boolean6, %false_branch ]
-  %58 = getelementptr %SchemeObject, ptr %57, i32 0, i32 0
-  %59 = load i64, ptr %58, align 4
-  %is_type_check = icmp eq i64 %59, 1
-  br i1 %is_type_check, label %is_boolean_branch, label %continue_branch
-
-continue_branch:                                  ; preds = %is_boolean_branch, %merge_branch4
-  %60 = phi ptr [ %57, %merge_branch4 ], [ %66, %is_boolean_branch ]
-  %is-open7 = alloca %SchemeObject, align 8
-  %61 = call %SchemeObject @__GLIsOpen()
-  store %SchemeObject %61, ptr %is-open7, align 8
-  %62 = getelementptr %SchemeObject, ptr %is-open7, i32 0, i32 0
-  %63 = load i64, ptr %62, align 4
-  %is_type_check11 = icmp eq i64 %63, 1
-  br i1 %is_type_check11, label %is_boolean_branch9, label %continue_branch8
-
-is_boolean_branch:                                ; preds = %merge_branch4
-  %64 = getelementptr %SchemeObject, ptr %57, i32 0, i32 2
-  %65 = load i1, ptr %64, align 1
-  %is_boolean_smth_check = icmp eq i1 %65, false
-  %66 = phi ptr [ %57, %merge_branch4 ]
-  br i1 %is_boolean_smth_check, label %is_boolean_smth_branch, label %continue_branch
-
-is_boolean_smth_branch:                           ; preds = %is_boolean_branch
-  %67 = phi ptr [ %66, %is_boolean_branch ]
-  br label %end_branch
-
-continue_branch8:                                 ; preds = %is_boolean_branch9, %continue_branch
-  %68 = phi ptr [ %is-open7, %continue_branch ], [ %71, %is_boolean_branch9 ]
-  br label %end_branch
-
-is_boolean_branch9:                               ; preds = %continue_branch
-  %69 = getelementptr %SchemeObject, ptr %is-open7, i32 0, i32 2
-  %70 = load i1, ptr %69, align 1
-  %is_boolean_smth_check12 = icmp eq i1 %70, false
-  %71 = phi ptr [ %is-open7, %continue_branch ]
-  br i1 %is_boolean_smth_check12, label %is_boolean_smth_branch10, label %continue_branch8
-
-is_boolean_smth_branch10:                         ; preds = %is_boolean_branch9
-  %72 = phi ptr [ %71, %is_boolean_branch9 ]
-  br label %end_branch
-
-condition_branch15:                               ; preds = %merge_branch38, %loop_branch2
-  br label %comparison_branch19
-
-loop_branch16:                                    ; preds = %end_branch18
-  %73 = call ptr @llvm.stacksave()
-  br label %comparison_branch39
-
-merge_branch17:                                   ; preds = %end_branch18
-  %number54 = alloca %SchemeObject, align 8
-  %74 = getelementptr %SchemeObject, ptr %number54, i32 0, i32 0
-  store i64 0, ptr %74, align 4
-  %75 = getelementptr %SchemeObject, ptr %number54, i32 0, i32 1
-  store i64 0, ptr %75, align 4
-  %76 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
-  %77 = load i64, ptr %76, align 4
-  %78 = icmp eq i64 %77, 0
-  call void @__GLAssert(i1 %78)
-  %79 = getelementptr %SchemeObject, ptr %number54, i32 0, i32 1
-  %80 = load i64, ptr %79, align 4
-  %81 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 1
-  %82 = load i64, ptr %81, align 4
-  %83 = add i64 %80, %82
-  %84 = getelementptr %SchemeObject, ptr %number54, i32 0, i32 1
-  store i64 %83, ptr %84, align 4
-  %number55 = alloca %SchemeObject, align 8
-  %85 = getelementptr %SchemeObject, ptr %number55, i32 0, i32 0
-  store i64 0, ptr %85, align 4
-  %86 = getelementptr %SchemeObject, ptr %number55, i32 0, i32 1
-  store i64 100, ptr %86, align 4
-  %87 = getelementptr %SchemeObject, ptr %number55, i32 0, i32 0
-  %88 = load i64, ptr %87, align 4
-  %89 = icmp eq i64 %88, 0
-  call void @__GLAssert(i1 %89)
-  %90 = getelementptr %SchemeObject, ptr %number54, i32 0, i32 1
-  %91 = load i64, ptr %90, align 4
-  %92 = getelementptr %SchemeObject, ptr %number55, i32 0, i32 1
-  %93 = load i64, ptr %92, align 4
-  %94 = add i64 %91, %93
-  %95 = getelementptr %SchemeObject, ptr %number54, i32 0, i32 1
-  store i64 %94, ptr %95, align 4
-  %96 = getelementptr %SchemeObject, ptr %number54, i32 0
-  %97 = load %SchemeObject, ptr %96, align 8
-  store %SchemeObject %97, ptr %variable, align 8
-  call void @llvm.stackrestore(ptr %25)
-  br label %condition_branch1
-
-end_branch18:                                     ; preds = %continue_branch32, %is_boolean_smth_branch34, %is_boolean_smth_branch28
-  %98 = phi ptr [ %131, %is_boolean_smth_branch28 ], [ %136, %is_boolean_smth_branch34 ], [ %132, %continue_branch32 ]
-  %99 = getelementptr %SchemeObject, ptr %98, i32 0, i32 0
-  %100 = load i64, ptr %99, align 4
-  %101 = icmp eq i64 %100, 1
-  call void @__GLAssert(i1 %101)
-  %102 = getelementptr %SchemeObject, ptr %98, i32 0, i32 2
-  %103 = load i1, ptr %102, align 1
-  br i1 %103, label %loop_branch16, label %merge_branch17
-
-comparison_branch19:                              ; preds = %condition_branch15
-  %104 = getelementptr %SchemeObject, ptr %variable14, i32 0, i32 0
-  %105 = load i64, ptr %104, align 4
-  %106 = icmp eq i64 %105, 0
-  call void @__GLAssert(i1 %106)
-  %number23 = alloca %SchemeObject, align 8
-  %107 = getelementptr %SchemeObject, ptr %number23, i32 0, i32 0
-  store i64 0, ptr %107, align 4
-  %108 = getelementptr %SchemeObject, ptr %number23, i32 0, i32 1
-  store i64 10000, ptr %108, align 4
-  %109 = getelementptr %SchemeObject, ptr %number23, i32 0, i32 0
-  %110 = load i64, ptr %109, align 4
-  %111 = icmp eq i64 %110, 0
-  call void @__GLAssert(i1 %111)
-  %112 = getelementptr %SchemeObject, ptr %variable14, i32 0, i32 1
-  %113 = load i64, ptr %112, align 4
-  %114 = getelementptr %SchemeObject, ptr %number23, i32 0, i32 1
-  %115 = load i64, ptr %114, align 4
-  %116 = icmp sge i64 %113, %115
-  br i1 %116, label %false_branch21, label %true_branch20
-
-true_branch20:                                    ; preds = %comparison_branch19
-  %boolean24 = alloca %SchemeObject, align 8
-  %117 = getelementptr %SchemeObject, ptr %boolean24, i32 0, i32 0
-  store i64 1, ptr %117, align 4
-  %118 = getelementptr %SchemeObject, ptr %boolean24, i32 0, i32 2
-  store i1 true, ptr %118, align 1
-  br label %merge_branch22
-
-false_branch21:                                   ; preds = %comparison_branch19
-  %boolean25 = alloca %SchemeObject, align 8
-  %119 = getelementptr %SchemeObject, ptr %boolean25, i32 0, i32 0
-  store i64 1, ptr %119, align 4
-  %120 = getelementptr %SchemeObject, ptr %boolean25, i32 0, i32 2
-  store i1 false, ptr %120, align 1
-  br label %merge_branch22
-
-merge_branch22:                                   ; preds = %false_branch21, %true_branch20
-  %121 = phi ptr [ %boolean24, %true_branch20 ], [ %boolean25, %false_branch21 ]
-  %122 = getelementptr %SchemeObject, ptr %121, i32 0, i32 0
-  %123 = load i64, ptr %122, align 4
-  %is_type_check29 = icmp eq i64 %123, 1
-  br i1 %is_type_check29, label %is_boolean_branch27, label %continue_branch26
-
-continue_branch26:                                ; preds = %is_boolean_branch27, %merge_branch22
-  %124 = phi ptr [ %121, %merge_branch22 ], [ %130, %is_boolean_branch27 ]
-  %is-open31 = alloca %SchemeObject, align 8
-  %125 = call %SchemeObject @__GLIsOpen()
-  store %SchemeObject %125, ptr %is-open31, align 8
-  %126 = getelementptr %SchemeObject, ptr %is-open31, i32 0, i32 0
-  %127 = load i64, ptr %126, align 4
-  %is_type_check35 = icmp eq i64 %127, 1
-  br i1 %is_type_check35, label %is_boolean_branch33, label %continue_branch32
-
-is_boolean_branch27:                              ; preds = %merge_branch22
-  %128 = getelementptr %SchemeObject, ptr %121, i32 0, i32 2
-  %129 = load i1, ptr %128, align 1
-  %is_boolean_smth_check30 = icmp eq i1 %129, false
-  %130 = phi ptr [ %121, %merge_branch22 ]
-  br i1 %is_boolean_smth_check30, label %is_boolean_smth_branch28, label %continue_branch26
-
-is_boolean_smth_branch28:                         ; preds = %is_boolean_branch27
-  %131 = phi ptr [ %130, %is_boolean_branch27 ]
-  br label %end_branch18
-
-continue_branch32:                                ; preds = %is_boolean_branch33, %continue_branch26
-  %132 = phi ptr [ %is-open31, %continue_branch26 ], [ %135, %is_boolean_branch33 ]
-  br label %end_branch18
-
-is_boolean_branch33:                              ; preds = %continue_branch26
-  %133 = getelementptr %SchemeObject, ptr %is-open31, i32 0, i32 2
-  %134 = load i1, ptr %133, align 1
-  %is_boolean_smth_check36 = icmp eq i1 %134, false
-  %135 = phi ptr [ %is-open31, %continue_branch26 ]
-  br i1 %is_boolean_smth_check36, label %is_boolean_smth_branch34, label %continue_branch32
-
-is_boolean_smth_branch34:                         ; preds = %is_boolean_branch33
-  %136 = phi ptr [ %135, %is_boolean_branch33 ]
-  br label %end_branch18
-
-true_branch37:                                    ; preds = %merge_branch42
-  call void @__GLDraw()
-  %137 = alloca %SchemeObject, align 8
-  %138 = getelementptr %SchemeObject, ptr %137, i32 0, i32 0
-  store i64 3, ptr %138, align 4
-  %139 = getelementptr %SchemeObject, ptr %137, i32 0, i32 4
-  store ptr null, ptr %139, align 8
-  %140 = getelementptr %SchemeObject, ptr %137, i32 0, i32 5
-  store ptr null, ptr %140, align 8
-  br label %merge_branch38
-
-merge_branch38:                                   ; preds = %true_branch37, %merge_branch42
-  %141 = phi ptr [ %137, %true_branch37 ]
-  %number49 = alloca %SchemeObject, align 8
-  %142 = getelementptr %SchemeObject, ptr %number49, i32 0, i32 0
-  store i64 0, ptr %142, align 4
-  %143 = getelementptr %SchemeObject, ptr %number49, i32 0, i32 1
-  store i64 25500, ptr %143, align 4
-  %number50 = alloca %SchemeObject, align 8
-  %144 = getelementptr %SchemeObject, ptr %number50, i32 0, i32 0
-  store i64 0, ptr %144, align 4
-  %145 = getelementptr %SchemeObject, ptr %number50, i32 0, i32 1
-  store i64 25500, ptr %145, align 4
-  %number51 = alloca %SchemeObject, align 8
-  %146 = getelementptr %SchemeObject, ptr %number51, i32 0, i32 0
-  store i64 0, ptr %146, align 4
-  %147 = getelementptr %SchemeObject, ptr %number51, i32 0, i32 1
-  store i64 25500, ptr %147, align 4
-  call void @__GLPutPixel(ptr %variable, ptr %variable14, ptr %number49, ptr %number50, ptr %number51)
-  %148 = alloca %SchemeObject, align 8
-  %149 = getelementptr %SchemeObject, ptr %148, i32 0, i32 0
-  store i64 3, ptr %149, align 4
-  %150 = getelementptr %SchemeObject, ptr %148, i32 0, i32 4
-  store ptr null, ptr %150, align 8
-  %151 = getelementptr %SchemeObject, ptr %148, i32 0, i32 5
-  store ptr null, ptr %151, align 8
-  %number52 = alloca %SchemeObject, align 8
-  %152 = getelementptr %SchemeObject, ptr %number52, i32 0, i32 0
-  store i64 0, ptr %152, align 4
-  %153 = getelementptr %SchemeObject, ptr %number52, i32 0, i32 1
-  store i64 0, ptr %153, align 4
-  %154 = getelementptr %SchemeObject, ptr %variable14, i32 0, i32 0
-  %155 = load i64, ptr %154, align 4
-  %156 = icmp eq i64 %155, 0
-  call void @__GLAssert(i1 %156)
-  %157 = getelementptr %SchemeObject, ptr %number52, i32 0, i32 1
-  %158 = load i64, ptr %157, align 4
-  %159 = getelementptr %SchemeObject, ptr %variable14, i32 0, i32 1
-  %160 = load i64, ptr %159, align 4
-  %161 = add i64 %158, %160
-  %162 = getelementptr %SchemeObject, ptr %number52, i32 0, i32 1
-  store i64 %161, ptr %162, align 4
-  %number53 = alloca %SchemeObject, align 8
-  %163 = getelementptr %SchemeObject, ptr %number53, i32 0, i32 0
-  store i64 0, ptr %163, align 4
-  %164 = getelementptr %SchemeObject, ptr %number53, i32 0, i32 1
-  store i64 100, ptr %164, align 4
-  %165 = getelementptr %SchemeObject, ptr %number53, i32 0, i32 0
-  %166 = load i64, ptr %165, align 4
-  %167 = icmp eq i64 %166, 0
-  call void @__GLAssert(i1 %167)
-  %168 = getelementptr %SchemeObject, ptr %number52, i32 0, i32 1
-  %169 = load i64, ptr %168, align 4
-  %170 = getelementptr %SchemeObject, ptr %number53, i32 0, i32 1
-  %171 = load i64, ptr %170, align 4
-  %172 = add i64 %169, %171
-  %173 = getelementptr %SchemeObject, ptr %number52, i32 0, i32 1
-  store i64 %172, ptr %173, align 4
-  %174 = getelementptr %SchemeObject, ptr %number52, i32 0
-  %175 = load %SchemeObject, ptr %174, align 8
-  store %SchemeObject %175, ptr %variable14, align 8
-  call void @llvm.stackrestore(ptr %73)
-  br label %condition_branch15
-
-comparison_branch39:                              ; preds = %loop_branch16
-  %176 = getelementptr %SchemeObject, ptr %variable14, i32 0, i32 0
-  %177 = load i64, ptr %176, align 4
-  %178 = icmp eq i64 %177, 0
-  call void @__GLAssert(i1 %178)
-  %179 = getelementptr %SchemeObject, ptr %variable14, i32 0, i32 1
-  %180 = load i64, ptr %179, align 4
-  %181 = srem i64 %180, 100
-  %182 = icmp eq i64 %181, 0
-  call void @__GLAssert(i1 %182)
-  %number43 = alloca %SchemeObject, align 8
-  %183 = getelementptr %SchemeObject, ptr %number43, i32 0, i32 0
-  store i64 0, ptr %183, align 4
-  %184 = getelementptr %SchemeObject, ptr %number43, i32 0, i32 1
-  store i64 100, ptr %184, align 4
-  %185 = getelementptr %SchemeObject, ptr %number43, i32 0, i32 0
-  %186 = load i64, ptr %185, align 4
-  %187 = icmp eq i64 %186, 0
-  call void @__GLAssert(i1 %187)
-  %188 = getelementptr %SchemeObject, ptr %number43, i32 0, i32 1
-  %189 = load i64, ptr %188, align 4
-  %190 = srem i64 %189, 100
-  %191 = icmp eq i64 %190, 0
-  call void @__GLAssert(i1 %191)
-  %is_zero_then_one_check = icmp ne i64 %189, 0
-  br i1 %is_zero_then_one_check, label %continue_branch44, label %modify_branch
-
-true_branch40:                                    ; preds = %continue_branch44
-  %boolean47 = alloca %SchemeObject, align 8
-  %192 = getelementptr %SchemeObject, ptr %boolean47, i32 0, i32 0
-  store i64 1, ptr %192, align 4
-  %193 = getelementptr %SchemeObject, ptr %boolean47, i32 0, i32 2
-  store i1 true, ptr %193, align 1
-  br label %merge_branch42
-
-false_branch41:                                   ; preds = %continue_branch44
-  %boolean48 = alloca %SchemeObject, align 8
-  %194 = getelementptr %SchemeObject, ptr %boolean48, i32 0, i32 0
-  store i64 1, ptr %194, align 4
-  %195 = getelementptr %SchemeObject, ptr %boolean48, i32 0, i32 2
-  store i1 false, ptr %195, align 1
-  br label %merge_branch42
-
-merge_branch42:                                   ; preds = %false_branch41, %true_branch40
-  %196 = phi ptr [ %boolean47, %true_branch40 ], [ %boolean48, %false_branch41 ]
-  %197 = getelementptr %SchemeObject, ptr %196, i32 0, i32 0
-  %198 = load i64, ptr %197, align 4
-  %199 = icmp eq i64 %198, 1
-  call void @__GLAssert(i1 %199)
-  %200 = getelementptr %SchemeObject, ptr %196, i32 0, i32 2
-  %201 = load i1, ptr %200, align 1
-  br i1 %201, label %true_branch37, label %merge_branch38
-
-modify_branch:                                    ; preds = %comparison_branch39
-  br label %continue_branch44
-
-continue_branch44:                                ; preds = %modify_branch, %comparison_branch39
-  %202 = phi i64 [ 1, %modify_branch ], [ %189, %comparison_branch39 ]
-  %203 = srem i64 %180, %202
-  %number45 = alloca %SchemeObject, align 8
-  %204 = getelementptr %SchemeObject, ptr %number45, i32 0, i32 0
-  store i64 0, ptr %204, align 4
-  %205 = getelementptr %SchemeObject, ptr %number45, i32 0, i32 1
-  store i64 %203, ptr %205, align 4
-  %206 = getelementptr %SchemeObject, ptr %number45, i32 0, i32 0
-  %207 = load i64, ptr %206, align 4
-  %208 = icmp eq i64 %207, 0
-  call void @__GLAssert(i1 %208)
-  %number46 = alloca %SchemeObject, align 8
-  %209 = getelementptr %SchemeObject, ptr %number46, i32 0, i32 0
-  store i64 0, ptr %209, align 4
-  %210 = getelementptr %SchemeObject, ptr %number46, i32 0, i32 1
-  store i64 0, ptr %210, align 4
-  %211 = getelementptr %SchemeObject, ptr %number46, i32 0, i32 0
-  %212 = load i64, ptr %211, align 4
-  %213 = icmp eq i64 %212, 0
-  call void @__GLAssert(i1 %213)
-  %214 = getelementptr %SchemeObject, ptr %number45, i32 0, i32 1
-  %215 = load i64, ptr %214, align 4
-  %216 = getelementptr %SchemeObject, ptr %number46, i32 0, i32 1
-  %217 = load i64, ptr %216, align 4
-  %218 = icmp ne i64 %215, %217
-  br i1 %218, label %false_branch41, label %true_branch40
-
-end_branch56:                                     ; preds = %merge_branch
-  %boolean57 = alloca %SchemeObject, align 8
-  %219 = getelementptr %SchemeObject, ptr %boolean57, i32 0, i32 0
-  store i64 1, ptr %219, align 4
-  %220 = getelementptr %SchemeObject, ptr %boolean57, i32 0, i32 2
-  store i1 true, ptr %220, align 1
-  call void @__GLPrint(ptr %boolean57)
-  br label %comparison_branch59
-
-end_branch58:                                     ; preds = %continue_branch80, %is_boolean_smth_branch82, %is_boolean_smth_branch69
-  %221 = phi ptr [ %252, %is_boolean_smth_branch69 ], [ %279, %is_boolean_smth_branch82 ], [ %275, %continue_branch80 ]
-  call void @__GLPrint(ptr %221)
-  %boolean86 = alloca %SchemeObject, align 8
-  %222 = getelementptr %SchemeObject, ptr %boolean86, i32 0, i32 0
-  store i64 1, ptr %222, align 4
-  %223 = getelementptr %SchemeObject, ptr %boolean86, i32 0, i32 2
-  store i1 true, ptr %223, align 1
-  %224 = getelementptr %SchemeObject, ptr %boolean86, i32 0, i32 0
-  %225 = load i64, ptr %224, align 4
-  %is_type_check90 = icmp eq i64 %225, 1
-  br i1 %is_type_check90, label %is_boolean_branch88, label %continue_branch87
-
-comparison_branch59:                              ; preds = %end_branch56
-  %number63 = alloca %SchemeObject, align 8
-  %226 = getelementptr %SchemeObject, ptr %number63, i32 0, i32 0
-  store i64 0, ptr %226, align 4
-  %227 = getelementptr %SchemeObject, ptr %number63, i32 0, i32 1
-  store i64 200, ptr %227, align 4
-  %228 = getelementptr %SchemeObject, ptr %number63, i32 0, i32 0
-  %229 = load i64, ptr %228, align 4
-  %230 = icmp eq i64 %229, 0
-  call void @__GLAssert(i1 %230)
-  %number64 = alloca %SchemeObject, align 8
-  %231 = getelementptr %SchemeObject, ptr %number64, i32 0, i32 0
-  store i64 0, ptr %231, align 4
-  %232 = getelementptr %SchemeObject, ptr %number64, i32 0, i32 1
-  store i64 200, ptr %232, align 4
-  %233 = getelementptr %SchemeObject, ptr %number64, i32 0, i32 0
-  %234 = load i64, ptr %233, align 4
-  %235 = icmp eq i64 %234, 0
-  call void @__GLAssert(i1 %235)
-  %236 = getelementptr %SchemeObject, ptr %number63, i32 0, i32 1
-  %237 = load i64, ptr %236, align 4
-  %238 = getelementptr %SchemeObject, ptr %number64, i32 0, i32 1
-  %239 = load i64, ptr %238, align 4
-  %240 = icmp ne i64 %237, %239
-  br i1 %240, label %false_branch61, label %true_branch60
-
-true_branch60:                                    ; preds = %comparison_branch59
-  %boolean65 = alloca %SchemeObject, align 8
-  %241 = getelementptr %SchemeObject, ptr %boolean65, i32 0, i32 0
-  store i64 1, ptr %241, align 4
-  %242 = getelementptr %SchemeObject, ptr %boolean65, i32 0, i32 2
-  store i1 true, ptr %242, align 1
-  br label %merge_branch62
-
-false_branch61:                                   ; preds = %comparison_branch59
-  %boolean66 = alloca %SchemeObject, align 8
-  %243 = getelementptr %SchemeObject, ptr %boolean66, i32 0, i32 0
-  store i64 1, ptr %243, align 4
-  %244 = getelementptr %SchemeObject, ptr %boolean66, i32 0, i32 2
-  store i1 false, ptr %244, align 1
-  br label %merge_branch62
-
-merge_branch62:                                   ; preds = %false_branch61, %true_branch60
-  %245 = phi ptr [ %boolean65, %true_branch60 ], [ %boolean66, %false_branch61 ]
-  %246 = getelementptr %SchemeObject, ptr %245, i32 0, i32 0
-  %247 = load i64, ptr %246, align 4
-  %is_type_check70 = icmp eq i64 %247, 1
-  br i1 %is_type_check70, label %is_boolean_branch68, label %continue_branch67
-
-continue_branch67:                                ; preds = %is_boolean_branch68, %merge_branch62
-  %248 = phi ptr [ %245, %merge_branch62 ], [ %251, %is_boolean_branch68 ]
-  br label %comparison_branch72
-
-is_boolean_branch68:                              ; preds = %merge_branch62
-  %249 = getelementptr %SchemeObject, ptr %245, i32 0, i32 2
-  %250 = load i1, ptr %249, align 1
-  %is_boolean_smth_check71 = icmp eq i1 %250, false
-  %251 = phi ptr [ %245, %merge_branch62 ]
-  br i1 %is_boolean_smth_check71, label %is_boolean_smth_branch69, label %continue_branch67
-
-is_boolean_smth_branch69:                         ; preds = %is_boolean_branch68
-  %252 = phi ptr [ %251, %is_boolean_branch68 ]
-  br label %end_branch58
-
-comparison_branch72:                              ; preds = %continue_branch67
-  %number76 = alloca %SchemeObject, align 8
-  %253 = getelementptr %SchemeObject, ptr %number76, i32 0, i32 0
-  store i64 0, ptr %253, align 4
-  %254 = getelementptr %SchemeObject, ptr %number76, i32 0, i32 1
-  store i64 200, ptr %254, align 4
-  %255 = getelementptr %SchemeObject, ptr %number76, i32 0, i32 0
-  %256 = load i64, ptr %255, align 4
-  %257 = icmp eq i64 %256, 0
-  call void @__GLAssert(i1 %257)
-  %number77 = alloca %SchemeObject, align 8
-  %258 = getelementptr %SchemeObject, ptr %number77, i32 0, i32 0
-  store i64 0, ptr %258, align 4
-  %259 = getelementptr %SchemeObject, ptr %number77, i32 0, i32 1
-  store i64 100, ptr %259, align 4
-  %260 = getelementptr %SchemeObject, ptr %number77, i32 0, i32 0
-  %261 = load i64, ptr %260, align 4
-  %262 = icmp eq i64 %261, 0
-  call void @__GLAssert(i1 %262)
-  %263 = getelementptr %SchemeObject, ptr %number76, i32 0, i32 1
-  %264 = load i64, ptr %263, align 4
-  %265 = getelementptr %SchemeObject, ptr %number77, i32 0, i32 1
-  %266 = load i64, ptr %265, align 4
-  %267 = icmp sle i64 %264, %266
-  br i1 %267, label %false_branch74, label %true_branch73
-
-true_branch73:                                    ; preds = %comparison_branch72
-  %boolean78 = alloca %SchemeObject, align 8
-  %268 = getelementptr %SchemeObject, ptr %boolean78, i32 0, i32 0
-  store i64 1, ptr %268, align 4
-  %269 = getelementptr %SchemeObject, ptr %boolean78, i32 0, i32 2
-  store i1 true, ptr %269, align 1
-  br label %merge_branch75
-
-false_branch74:                                   ; preds = %comparison_branch72
-  %boolean79 = alloca %SchemeObject, align 8
-  %270 = getelementptr %SchemeObject, ptr %boolean79, i32 0, i32 0
-  store i64 1, ptr %270, align 4
-  %271 = getelementptr %SchemeObject, ptr %boolean79, i32 0, i32 2
-  store i1 false, ptr %271, align 1
-  br label %merge_branch75
-
-merge_branch75:                                   ; preds = %false_branch74, %true_branch73
-  %272 = phi ptr [ %boolean78, %true_branch73 ], [ %boolean79, %false_branch74 ]
-  %273 = getelementptr %SchemeObject, ptr %272, i32 0, i32 0
-  %274 = load i64, ptr %273, align 4
-  %is_type_check83 = icmp eq i64 %274, 1
-  br i1 %is_type_check83, label %is_boolean_branch81, label %continue_branch80
-
-continue_branch80:                                ; preds = %is_boolean_branch81, %merge_branch75
-  %275 = phi ptr [ %272, %merge_branch75 ], [ %278, %is_boolean_branch81 ]
-  br label %end_branch58
-
-is_boolean_branch81:                              ; preds = %merge_branch75
-  %276 = getelementptr %SchemeObject, ptr %272, i32 0, i32 2
-  %277 = load i1, ptr %276, align 1
-  %is_boolean_smth_check84 = icmp eq i1 %277, false
-  %278 = phi ptr [ %272, %merge_branch75 ]
-  br i1 %is_boolean_smth_check84, label %is_boolean_smth_branch82, label %continue_branch80
-
-is_boolean_smth_branch82:                         ; preds = %is_boolean_branch81
-  %279 = phi ptr [ %278, %is_boolean_branch81 ]
-  br label %end_branch58
-
-end_branch85:                                     ; preds = %continue_branch93, %is_boolean_smth_branch95, %is_boolean_smth_branch89
-  %280 = phi ptr [ %289, %is_boolean_smth_branch89 ], [ %294, %is_boolean_smth_branch95 ], [ %290, %continue_branch93 ]
-  call void @__GLPrint(ptr %280)
-  br label %comparison_branch99
-
-continue_branch87:                                ; preds = %is_boolean_branch88, %end_branch58
-  %281 = phi ptr [ %boolean86, %end_branch58 ], [ %288, %is_boolean_branch88 ]
-  %boolean92 = alloca %SchemeObject, align 8
-  %282 = getelementptr %SchemeObject, ptr %boolean92, i32 0, i32 0
-  store i64 1, ptr %282, align 4
-  %283 = getelementptr %SchemeObject, ptr %boolean92, i32 0, i32 2
-  store i1 false, ptr %283, align 1
-  %284 = getelementptr %SchemeObject, ptr %boolean92, i32 0, i32 0
-  %285 = load i64, ptr %284, align 4
-  %is_type_check96 = icmp eq i64 %285, 1
-  br i1 %is_type_check96, label %is_boolean_branch94, label %continue_branch93
-
-is_boolean_branch88:                              ; preds = %end_branch58
-  %286 = getelementptr %SchemeObject, ptr %boolean86, i32 0, i32 2
-  %287 = load i1, ptr %286, align 1
-  %is_boolean_smth_check91 = icmp eq i1 %287, false
-  %288 = phi ptr [ %boolean86, %end_branch58 ]
-  br i1 %is_boolean_smth_check91, label %is_boolean_smth_branch89, label %continue_branch87
-
-is_boolean_smth_branch89:                         ; preds = %is_boolean_branch88
-  %289 = phi ptr [ %288, %is_boolean_branch88 ]
-  br label %end_branch85
-
-continue_branch93:                                ; preds = %is_boolean_branch94, %continue_branch87
-  %290 = phi ptr [ %boolean92, %continue_branch87 ], [ %293, %is_boolean_branch94 ]
-  br label %end_branch85
-
-is_boolean_branch94:                              ; preds = %continue_branch87
-  %291 = getelementptr %SchemeObject, ptr %boolean92, i32 0, i32 2
-  %292 = load i1, ptr %291, align 1
-  %is_boolean_smth_check97 = icmp eq i1 %292, false
-  %293 = phi ptr [ %boolean92, %continue_branch87 ]
-  br i1 %is_boolean_smth_check97, label %is_boolean_smth_branch95, label %continue_branch93
-
-is_boolean_smth_branch95:                         ; preds = %is_boolean_branch94
-  %294 = phi ptr [ %293, %is_boolean_branch94 ]
-  br label %end_branch85
-
-end_branch98:                                     ; preds = %continue_branch120, %is_boolean_smth_branch122, %is_boolean_smth_branch109
-  %295 = phi ptr [ %326, %is_boolean_smth_branch109 ], [ %353, %is_boolean_smth_branch122 ], [ %349, %continue_branch120 ]
-  call void @__GLPrint(ptr %295)
-  %number126 = alloca %SchemeObject, align 8
-  %296 = getelementptr %SchemeObject, ptr %number126, i32 0, i32 0
-  store i64 0, ptr %296, align 4
-  %297 = getelementptr %SchemeObject, ptr %number126, i32 0, i32 1
-  store i64 300, ptr %297, align 4
-  %298 = getelementptr %SchemeObject, ptr %number126, i32 0, i32 0
-  %299 = load i64, ptr %298, align 4
-  %is_type_check130 = icmp eq i64 %299, 1
-  br i1 %is_type_check130, label %is_boolean_branch128, label %continue_branch127
-
-comparison_branch99:                              ; preds = %end_branch85
-  %number103 = alloca %SchemeObject, align 8
-  %300 = getelementptr %SchemeObject, ptr %number103, i32 0, i32 0
-  store i64 0, ptr %300, align 4
-  %301 = getelementptr %SchemeObject, ptr %number103, i32 0, i32 1
-  store i64 200, ptr %301, align 4
-  %302 = getelementptr %SchemeObject, ptr %number103, i32 0, i32 0
-  %303 = load i64, ptr %302, align 4
-  %304 = icmp eq i64 %303, 0
-  call void @__GLAssert(i1 %304)
-  %number104 = alloca %SchemeObject, align 8
-  %305 = getelementptr %SchemeObject, ptr %number104, i32 0, i32 0
-  store i64 0, ptr %305, align 4
-  %306 = getelementptr %SchemeObject, ptr %number104, i32 0, i32 1
-  store i64 200, ptr %306, align 4
-  %307 = getelementptr %SchemeObject, ptr %number104, i32 0, i32 0
-  %308 = load i64, ptr %307, align 4
-  %309 = icmp eq i64 %308, 0
-  call void @__GLAssert(i1 %309)
-  %310 = getelementptr %SchemeObject, ptr %number103, i32 0, i32 1
-  %311 = load i64, ptr %310, align 4
-  %312 = getelementptr %SchemeObject, ptr %number104, i32 0, i32 1
-  %313 = load i64, ptr %312, align 4
-  %314 = icmp ne i64 %311, %313
-  br i1 %314, label %false_branch101, label %true_branch100
-
-true_branch100:                                   ; preds = %comparison_branch99
-  %boolean105 = alloca %SchemeObject, align 8
-  %315 = getelementptr %SchemeObject, ptr %boolean105, i32 0, i32 0
-  store i64 1, ptr %315, align 4
-  %316 = getelementptr %SchemeObject, ptr %boolean105, i32 0, i32 2
-  store i1 true, ptr %316, align 1
-  br label %merge_branch102
-
-false_branch101:                                  ; preds = %comparison_branch99
-  %boolean106 = alloca %SchemeObject, align 8
-  %317 = getelementptr %SchemeObject, ptr %boolean106, i32 0, i32 0
-  store i64 1, ptr %317, align 4
-  %318 = getelementptr %SchemeObject, ptr %boolean106, i32 0, i32 2
-  store i1 false, ptr %318, align 1
-  br label %merge_branch102
-
-merge_branch102:                                  ; preds = %false_branch101, %true_branch100
-  %319 = phi ptr [ %boolean105, %true_branch100 ], [ %boolean106, %false_branch101 ]
-  %320 = getelementptr %SchemeObject, ptr %319, i32 0, i32 0
-  %321 = load i64, ptr %320, align 4
-  %is_type_check110 = icmp eq i64 %321, 1
-  br i1 %is_type_check110, label %is_boolean_branch108, label %continue_branch107
-
-continue_branch107:                               ; preds = %is_boolean_branch108, %merge_branch102
-  %322 = phi ptr [ %319, %merge_branch102 ], [ %325, %is_boolean_branch108 ]
-  br label %comparison_branch112
-
-is_boolean_branch108:                             ; preds = %merge_branch102
-  %323 = getelementptr %SchemeObject, ptr %319, i32 0, i32 2
-  %324 = load i1, ptr %323, align 1
-  %is_boolean_smth_check111 = icmp eq i1 %324, false
-  %325 = phi ptr [ %319, %merge_branch102 ]
-  br i1 %is_boolean_smth_check111, label %is_boolean_smth_branch109, label %continue_branch107
-
-is_boolean_smth_branch109:                        ; preds = %is_boolean_branch108
-  %326 = phi ptr [ %325, %is_boolean_branch108 ]
-  br label %end_branch98
-
-comparison_branch112:                             ; preds = %continue_branch107
-  %number116 = alloca %SchemeObject, align 8
-  %327 = getelementptr %SchemeObject, ptr %number116, i32 0, i32 0
-  store i64 0, ptr %327, align 4
-  %328 = getelementptr %SchemeObject, ptr %number116, i32 0, i32 1
-  store i64 200, ptr %328, align 4
-  %329 = getelementptr %SchemeObject, ptr %number116, i32 0, i32 0
-  %330 = load i64, ptr %329, align 4
-  %331 = icmp eq i64 %330, 0
-  call void @__GLAssert(i1 %331)
-  %number117 = alloca %SchemeObject, align 8
-  %332 = getelementptr %SchemeObject, ptr %number117, i32 0, i32 0
-  store i64 0, ptr %332, align 4
-  %333 = getelementptr %SchemeObject, ptr %number117, i32 0, i32 1
-  store i64 100, ptr %333, align 4
-  %334 = getelementptr %SchemeObject, ptr %number117, i32 0, i32 0
-  %335 = load i64, ptr %334, align 4
-  %336 = icmp eq i64 %335, 0
-  call void @__GLAssert(i1 %336)
-  %337 = getelementptr %SchemeObject, ptr %number116, i32 0, i32 1
-  %338 = load i64, ptr %337, align 4
-  %339 = getelementptr %SchemeObject, ptr %number117, i32 0, i32 1
-  %340 = load i64, ptr %339, align 4
-  %341 = icmp sge i64 %338, %340
-  br i1 %341, label %false_branch114, label %true_branch113
-
-true_branch113:                                   ; preds = %comparison_branch112
-  %boolean118 = alloca %SchemeObject, align 8
-  %342 = getelementptr %SchemeObject, ptr %boolean118, i32 0, i32 0
-  store i64 1, ptr %342, align 4
-  %343 = getelementptr %SchemeObject, ptr %boolean118, i32 0, i32 2
-  store i1 true, ptr %343, align 1
-  br label %merge_branch115
-
-false_branch114:                                  ; preds = %comparison_branch112
-  %boolean119 = alloca %SchemeObject, align 8
-  %344 = getelementptr %SchemeObject, ptr %boolean119, i32 0, i32 0
-  store i64 1, ptr %344, align 4
-  %345 = getelementptr %SchemeObject, ptr %boolean119, i32 0, i32 2
-  store i1 false, ptr %345, align 1
-  br label %merge_branch115
-
-merge_branch115:                                  ; preds = %false_branch114, %true_branch113
-  %346 = phi ptr [ %boolean118, %true_branch113 ], [ %boolean119, %false_branch114 ]
-  %347 = getelementptr %SchemeObject, ptr %346, i32 0, i32 0
-  %348 = load i64, ptr %347, align 4
-  %is_type_check123 = icmp eq i64 %348, 1
-  br i1 %is_type_check123, label %is_boolean_branch121, label %continue_branch120
-
-continue_branch120:                               ; preds = %is_boolean_branch121, %merge_branch115
-  %349 = phi ptr [ %346, %merge_branch115 ], [ %352, %is_boolean_branch121 ]
-  br label %end_branch98
-
-is_boolean_branch121:                             ; preds = %merge_branch115
-  %350 = getelementptr %SchemeObject, ptr %346, i32 0, i32 2
-  %351 = load i1, ptr %350, align 1
-  %is_boolean_smth_check124 = icmp eq i1 %351, false
-  %352 = phi ptr [ %346, %merge_branch115 ]
-  br i1 %is_boolean_smth_check124, label %is_boolean_smth_branch122, label %continue_branch120
-
-is_boolean_smth_branch122:                        ; preds = %is_boolean_branch121
-  %353 = phi ptr [ %352, %is_boolean_branch121 ]
-  br label %end_branch98
-
-end_branch125:                                    ; preds = %continue_branch146, %is_boolean_smth_branch148, %is_boolean_smth_branch142, %is_boolean_smth_branch129
-  %354 = phi ptr [ %361, %is_boolean_smth_branch129 ], [ %392, %is_boolean_smth_branch142 ], [ %397, %is_boolean_smth_branch148 ], [ %393, %continue_branch146 ]
-  call void @__GLPrint(ptr %354)
-  %symbol151 = alloca %SchemeObject, align 8
-  %355 = getelementptr %SchemeObject, ptr %symbol151, i32 0, i32 0
-  store i64 2, ptr %355, align 4
-  %356 = getelementptr %SchemeObject, ptr %symbol151, i32 0, i32 3
-  store ptr @symbol_global.1, ptr %356, align 8
-  call void @__GLPrint(ptr %symbol151)
-  br label %end_branch152
-
-continue_branch127:                               ; preds = %is_boolean_branch128, %end_branch98
-  %357 = phi ptr [ %number126, %end_branch98 ], [ %360, %is_boolean_branch128 ]
-  br label %comparison_branch132
-
-is_boolean_branch128:                             ; preds = %end_branch98
-  %358 = getelementptr %SchemeObject, ptr %number126, i32 0, i32 2
-  %359 = load i1, ptr %358, align 1
-  %is_boolean_smth_check131 = icmp eq i1 %359, false
-  %360 = phi ptr [ %number126, %end_branch98 ]
-  br i1 %is_boolean_smth_check131, label %is_boolean_smth_branch129, label %continue_branch127
-
-is_boolean_smth_branch129:                        ; preds = %is_boolean_branch128
-  %361 = phi ptr [ %360, %is_boolean_branch128 ]
-  br label %end_branch125
-
-comparison_branch132:                             ; preds = %continue_branch127
-  %number136 = alloca %SchemeObject, align 8
-  %362 = getelementptr %SchemeObject, ptr %number136, i32 0, i32 0
-  store i64 0, ptr %362, align 4
-  %363 = getelementptr %SchemeObject, ptr %number136, i32 0, i32 1
-  store i64 200, ptr %363, align 4
-  %364 = getelementptr %SchemeObject, ptr %number136, i32 0, i32 0
-  %365 = load i64, ptr %364, align 4
-  %366 = icmp eq i64 %365, 0
-  call void @__GLAssert(i1 %366)
-  %number137 = alloca %SchemeObject, align 8
-  %367 = getelementptr %SchemeObject, ptr %number137, i32 0, i32 0
-  store i64 0, ptr %367, align 4
-  %368 = getelementptr %SchemeObject, ptr %number137, i32 0, i32 1
-  store i64 200, ptr %368, align 4
-  %369 = getelementptr %SchemeObject, ptr %number137, i32 0, i32 0
-  %370 = load i64, ptr %369, align 4
-  %371 = icmp eq i64 %370, 0
-  call void @__GLAssert(i1 %371)
-  %372 = getelementptr %SchemeObject, ptr %number136, i32 0, i32 1
-  %373 = load i64, ptr %372, align 4
-  %374 = getelementptr %SchemeObject, ptr %number137, i32 0, i32 1
-  %375 = load i64, ptr %374, align 4
-  %376 = icmp ne i64 %373, %375
-  br i1 %376, label %false_branch134, label %true_branch133
-
-true_branch133:                                   ; preds = %comparison_branch132
-  %boolean138 = alloca %SchemeObject, align 8
-  %377 = getelementptr %SchemeObject, ptr %boolean138, i32 0, i32 0
-  store i64 1, ptr %377, align 4
-  %378 = getelementptr %SchemeObject, ptr %boolean138, i32 0, i32 2
-  store i1 true, ptr %378, align 1
-  br label %merge_branch135
-
-false_branch134:                                  ; preds = %comparison_branch132
-  %boolean139 = alloca %SchemeObject, align 8
-  %379 = getelementptr %SchemeObject, ptr %boolean139, i32 0, i32 0
-  store i64 1, ptr %379, align 4
-  %380 = getelementptr %SchemeObject, ptr %boolean139, i32 0, i32 2
-  store i1 false, ptr %380, align 1
-  br label %merge_branch135
-
-merge_branch135:                                  ; preds = %false_branch134, %true_branch133
-  %381 = phi ptr [ %boolean138, %true_branch133 ], [ %boolean139, %false_branch134 ]
-  %382 = getelementptr %SchemeObject, ptr %381, i32 0, i32 0
-  %383 = load i64, ptr %382, align 4
-  %is_type_check143 = icmp eq i64 %383, 1
-  br i1 %is_type_check143, label %is_boolean_branch141, label %continue_branch140
-
-continue_branch140:                               ; preds = %is_boolean_branch141, %merge_branch135
-  %384 = phi ptr [ %381, %merge_branch135 ], [ %391, %is_boolean_branch141 ]
-  %number145 = alloca %SchemeObject, align 8
-  %385 = getelementptr %SchemeObject, ptr %number145, i32 0, i32 0
-  store i64 0, ptr %385, align 4
-  %386 = getelementptr %SchemeObject, ptr %number145, i32 0, i32 1
-  store i64 400, ptr %386, align 4
-  %387 = getelementptr %SchemeObject, ptr %number145, i32 0, i32 0
-  %388 = load i64, ptr %387, align 4
-  %is_type_check149 = icmp eq i64 %388, 1
-  br i1 %is_type_check149, label %is_boolean_branch147, label %continue_branch146
-
-is_boolean_branch141:                             ; preds = %merge_branch135
-  %389 = getelementptr %SchemeObject, ptr %381, i32 0, i32 2
-  %390 = load i1, ptr %389, align 1
-  %is_boolean_smth_check144 = icmp eq i1 %390, false
-  %391 = phi ptr [ %381, %merge_branch135 ]
-  br i1 %is_boolean_smth_check144, label %is_boolean_smth_branch142, label %continue_branch140
-
-is_boolean_smth_branch142:                        ; preds = %is_boolean_branch141
-  %392 = phi ptr [ %391, %is_boolean_branch141 ]
-  br label %end_branch125
-
-continue_branch146:                               ; preds = %is_boolean_branch147, %continue_branch140
-  %393 = phi ptr [ %number145, %continue_branch140 ], [ %396, %is_boolean_branch147 ]
-  br label %end_branch125
-
-is_boolean_branch147:                             ; preds = %continue_branch140
-  %394 = getelementptr %SchemeObject, ptr %number145, i32 0, i32 2
-  %395 = load i1, ptr %394, align 1
-  %is_boolean_smth_check150 = icmp eq i1 %395, false
-  %396 = phi ptr [ %number145, %continue_branch140 ]
-  br i1 %is_boolean_smth_check150, label %is_boolean_smth_branch148, label %continue_branch146
-
-is_boolean_smth_branch148:                        ; preds = %is_boolean_branch147
-  %397 = phi ptr [ %396, %is_boolean_branch147 ]
-  br label %end_branch125
-
-end_branch152:                                    ; preds = %end_branch125
-  %boolean153 = alloca %SchemeObject, align 8
-  %398 = getelementptr %SchemeObject, ptr %boolean153, i32 0, i32 0
-  store i64 1, ptr %398, align 4
-  %399 = getelementptr %SchemeObject, ptr %boolean153, i32 0, i32 2
-  store i1 false, ptr %399, align 1
-  call void @__GLPrint(ptr %boolean153)
-  br label %comparison_branch155
-
-end_branch154:                                    ; preds = %continue_branch176, %is_boolean_smth_branch178, %is_boolean_smth_branch165
-  %400 = phi ptr [ %431, %is_boolean_smth_branch165 ], [ %458, %is_boolean_smth_branch178 ], [ %454, %continue_branch176 ]
-  call void @__GLPrint(ptr %400)
-  %boolean182 = alloca %SchemeObject, align 8
-  %401 = getelementptr %SchemeObject, ptr %boolean182, i32 0, i32 0
-  store i64 1, ptr %401, align 4
-  %402 = getelementptr %SchemeObject, ptr %boolean182, i32 0, i32 2
-  store i1 false, ptr %402, align 1
-  %403 = getelementptr %SchemeObject, ptr %boolean182, i32 0, i32 0
-  %404 = load i64, ptr %403, align 4
-  %is_type_check186 = icmp eq i64 %404, 1
-  br i1 %is_type_check186, label %is_boolean_branch184, label %continue_branch183
-
-comparison_branch155:                             ; preds = %end_branch152
-  %number159 = alloca %SchemeObject, align 8
-  %405 = getelementptr %SchemeObject, ptr %number159, i32 0, i32 0
-  store i64 0, ptr %405, align 4
-  %406 = getelementptr %SchemeObject, ptr %number159, i32 0, i32 1
-  store i64 200, ptr %406, align 4
-  %407 = getelementptr %SchemeObject, ptr %number159, i32 0, i32 0
-  %408 = load i64, ptr %407, align 4
-  %409 = icmp eq i64 %408, 0
-  call void @__GLAssert(i1 %409)
-  %number160 = alloca %SchemeObject, align 8
-  %410 = getelementptr %SchemeObject, ptr %number160, i32 0, i32 0
-  store i64 0, ptr %410, align 4
-  %411 = getelementptr %SchemeObject, ptr %number160, i32 0, i32 1
-  store i64 200, ptr %411, align 4
-  %412 = getelementptr %SchemeObject, ptr %number160, i32 0, i32 0
-  %413 = load i64, ptr %412, align 4
-  %414 = icmp eq i64 %413, 0
-  call void @__GLAssert(i1 %414)
-  %415 = getelementptr %SchemeObject, ptr %number159, i32 0, i32 1
-  %416 = load i64, ptr %415, align 4
-  %417 = getelementptr %SchemeObject, ptr %number160, i32 0, i32 1
-  %418 = load i64, ptr %417, align 4
-  %419 = icmp ne i64 %416, %418
-  br i1 %419, label %false_branch157, label %true_branch156
-
-true_branch156:                                   ; preds = %comparison_branch155
-  %boolean161 = alloca %SchemeObject, align 8
-  %420 = getelementptr %SchemeObject, ptr %boolean161, i32 0, i32 0
-  store i64 1, ptr %420, align 4
-  %421 = getelementptr %SchemeObject, ptr %boolean161, i32 0, i32 2
-  store i1 true, ptr %421, align 1
-  br label %merge_branch158
-
-false_branch157:                                  ; preds = %comparison_branch155
-  %boolean162 = alloca %SchemeObject, align 8
-  %422 = getelementptr %SchemeObject, ptr %boolean162, i32 0, i32 0
-  store i64 1, ptr %422, align 4
-  %423 = getelementptr %SchemeObject, ptr %boolean162, i32 0, i32 2
-  store i1 false, ptr %423, align 1
-  br label %merge_branch158
-
-merge_branch158:                                  ; preds = %false_branch157, %true_branch156
-  %424 = phi ptr [ %boolean161, %true_branch156 ], [ %boolean162, %false_branch157 ]
-  %425 = getelementptr %SchemeObject, ptr %424, i32 0, i32 0
-  %426 = load i64, ptr %425, align 4
-  %is_type_check166 = icmp eq i64 %426, 1
-  br i1 %is_type_check166, label %is_boolean_branch164, label %continue_branch163
-
-continue_branch163:                               ; preds = %is_boolean_branch164, %merge_branch158
-  %427 = phi ptr [ %424, %merge_branch158 ], [ %430, %is_boolean_branch164 ]
-  br label %comparison_branch168
-
-is_boolean_branch164:                             ; preds = %merge_branch158
-  %428 = getelementptr %SchemeObject, ptr %424, i32 0, i32 2
-  %429 = load i1, ptr %428, align 1
-  %is_boolean_smth_check167 = icmp eq i1 %429, true
-  %430 = phi ptr [ %424, %merge_branch158 ]
-  br i1 %is_boolean_smth_check167, label %is_boolean_smth_branch165, label %continue_branch163
-
-is_boolean_smth_branch165:                        ; preds = %is_boolean_branch164
-  %431 = phi ptr [ %430, %is_boolean_branch164 ]
-  br label %end_branch154
-
-comparison_branch168:                             ; preds = %continue_branch163
-  %number172 = alloca %SchemeObject, align 8
-  %432 = getelementptr %SchemeObject, ptr %number172, i32 0, i32 0
-  store i64 0, ptr %432, align 4
-  %433 = getelementptr %SchemeObject, ptr %number172, i32 0, i32 1
-  store i64 200, ptr %433, align 4
-  %434 = getelementptr %SchemeObject, ptr %number172, i32 0, i32 0
-  %435 = load i64, ptr %434, align 4
-  %436 = icmp eq i64 %435, 0
-  call void @__GLAssert(i1 %436)
-  %number173 = alloca %SchemeObject, align 8
-  %437 = getelementptr %SchemeObject, ptr %number173, i32 0, i32 0
-  store i64 0, ptr %437, align 4
-  %438 = getelementptr %SchemeObject, ptr %number173, i32 0, i32 1
-  store i64 100, ptr %438, align 4
-  %439 = getelementptr %SchemeObject, ptr %number173, i32 0, i32 0
-  %440 = load i64, ptr %439, align 4
-  %441 = icmp eq i64 %440, 0
-  call void @__GLAssert(i1 %441)
-  %442 = getelementptr %SchemeObject, ptr %number172, i32 0, i32 1
-  %443 = load i64, ptr %442, align 4
-  %444 = getelementptr %SchemeObject, ptr %number173, i32 0, i32 1
-  %445 = load i64, ptr %444, align 4
-  %446 = icmp sle i64 %443, %445
-  br i1 %446, label %false_branch170, label %true_branch169
-
-true_branch169:                                   ; preds = %comparison_branch168
-  %boolean174 = alloca %SchemeObject, align 8
-  %447 = getelementptr %SchemeObject, ptr %boolean174, i32 0, i32 0
-  store i64 1, ptr %447, align 4
-  %448 = getelementptr %SchemeObject, ptr %boolean174, i32 0, i32 2
-  store i1 true, ptr %448, align 1
-  br label %merge_branch171
-
-false_branch170:                                  ; preds = %comparison_branch168
-  %boolean175 = alloca %SchemeObject, align 8
-  %449 = getelementptr %SchemeObject, ptr %boolean175, i32 0, i32 0
-  store i64 1, ptr %449, align 4
-  %450 = getelementptr %SchemeObject, ptr %boolean175, i32 0, i32 2
-  store i1 false, ptr %450, align 1
-  br label %merge_branch171
-
-merge_branch171:                                  ; preds = %false_branch170, %true_branch169
-  %451 = phi ptr [ %boolean174, %true_branch169 ], [ %boolean175, %false_branch170 ]
-  %452 = getelementptr %SchemeObject, ptr %451, i32 0, i32 0
-  %453 = load i64, ptr %452, align 4
-  %is_type_check179 = icmp eq i64 %453, 1
-  br i1 %is_type_check179, label %is_boolean_branch177, label %continue_branch176
-
-continue_branch176:                               ; preds = %is_boolean_branch177, %merge_branch171
-  %454 = phi ptr [ %451, %merge_branch171 ], [ %457, %is_boolean_branch177 ]
-  br label %end_branch154
-
-is_boolean_branch177:                             ; preds = %merge_branch171
-  %455 = getelementptr %SchemeObject, ptr %451, i32 0, i32 2
-  %456 = load i1, ptr %455, align 1
-  %is_boolean_smth_check180 = icmp eq i1 %456, true
-  %457 = phi ptr [ %451, %merge_branch171 ]
-  br i1 %is_boolean_smth_check180, label %is_boolean_smth_branch178, label %continue_branch176
-
-is_boolean_smth_branch178:                        ; preds = %is_boolean_branch177
-  %458 = phi ptr [ %457, %is_boolean_branch177 ]
-  br label %end_branch154
-
-end_branch181:                                    ; preds = %continue_branch196, %is_boolean_smth_branch198, %is_boolean_smth_branch185
-  %459 = phi ptr [ %468, %is_boolean_smth_branch185 ], [ %495, %is_boolean_smth_branch198 ], [ %491, %continue_branch196 ]
-  call void @__GLPrint(ptr %459)
-  %boolean202 = alloca %SchemeObject, align 8
-  %460 = getelementptr %SchemeObject, ptr %boolean202, i32 0, i32 0
-  store i64 1, ptr %460, align 4
-  %461 = getelementptr %SchemeObject, ptr %boolean202, i32 0, i32 2
-  store i1 false, ptr %461, align 1
-  %462 = getelementptr %SchemeObject, ptr %boolean202, i32 0, i32 0
-  %463 = load i64, ptr %462, align 4
-  %is_type_check206 = icmp eq i64 %463, 1
-  br i1 %is_type_check206, label %is_boolean_branch204, label %continue_branch203
-
-continue_branch183:                               ; preds = %is_boolean_branch184, %end_branch154
-  %464 = phi ptr [ %boolean182, %end_branch154 ], [ %467, %is_boolean_branch184 ]
-  br label %comparison_branch188
-
-is_boolean_branch184:                             ; preds = %end_branch154
-  %465 = getelementptr %SchemeObject, ptr %boolean182, i32 0, i32 2
-  %466 = load i1, ptr %465, align 1
-  %is_boolean_smth_check187 = icmp eq i1 %466, true
-  %467 = phi ptr [ %boolean182, %end_branch154 ]
-  br i1 %is_boolean_smth_check187, label %is_boolean_smth_branch185, label %continue_branch183
-
-is_boolean_smth_branch185:                        ; preds = %is_boolean_branch184
-  %468 = phi ptr [ %467, %is_boolean_branch184 ]
-  br label %end_branch181
-
-comparison_branch188:                             ; preds = %continue_branch183
-  %number192 = alloca %SchemeObject, align 8
-  %469 = getelementptr %SchemeObject, ptr %number192, i32 0, i32 0
-  store i64 0, ptr %469, align 4
-  %470 = getelementptr %SchemeObject, ptr %number192, i32 0, i32 1
-  store i64 200, ptr %470, align 4
-  %471 = getelementptr %SchemeObject, ptr %number192, i32 0, i32 0
-  %472 = load i64, ptr %471, align 4
-  %473 = icmp eq i64 %472, 0
-  call void @__GLAssert(i1 %473)
-  %number193 = alloca %SchemeObject, align 8
-  %474 = getelementptr %SchemeObject, ptr %number193, i32 0, i32 0
-  store i64 0, ptr %474, align 4
-  %475 = getelementptr %SchemeObject, ptr %number193, i32 0, i32 1
-  store i64 100, ptr %475, align 4
-  %476 = getelementptr %SchemeObject, ptr %number193, i32 0, i32 0
-  %477 = load i64, ptr %476, align 4
-  %478 = icmp eq i64 %477, 0
-  call void @__GLAssert(i1 %478)
-  %479 = getelementptr %SchemeObject, ptr %number192, i32 0, i32 1
-  %480 = load i64, ptr %479, align 4
-  %481 = getelementptr %SchemeObject, ptr %number193, i32 0, i32 1
-  %482 = load i64, ptr %481, align 4
-  %483 = icmp sge i64 %480, %482
-  br i1 %483, label %false_branch190, label %true_branch189
-
-true_branch189:                                   ; preds = %comparison_branch188
-  %boolean194 = alloca %SchemeObject, align 8
-  %484 = getelementptr %SchemeObject, ptr %boolean194, i32 0, i32 0
-  store i64 1, ptr %484, align 4
-  %485 = getelementptr %SchemeObject, ptr %boolean194, i32 0, i32 2
-  store i1 true, ptr %485, align 1
-  br label %merge_branch191
-
-false_branch190:                                  ; preds = %comparison_branch188
-  %boolean195 = alloca %SchemeObject, align 8
-  %486 = getelementptr %SchemeObject, ptr %boolean195, i32 0, i32 0
-  store i64 1, ptr %486, align 4
-  %487 = getelementptr %SchemeObject, ptr %boolean195, i32 0, i32 2
-  store i1 false, ptr %487, align 1
-  br label %merge_branch191
-
-merge_branch191:                                  ; preds = %false_branch190, %true_branch189
-  %488 = phi ptr [ %boolean194, %true_branch189 ], [ %boolean195, %false_branch190 ]
-  %489 = getelementptr %SchemeObject, ptr %488, i32 0, i32 0
-  %490 = load i64, ptr %489, align 4
-  %is_type_check199 = icmp eq i64 %490, 1
-  br i1 %is_type_check199, label %is_boolean_branch197, label %continue_branch196
-
-continue_branch196:                               ; preds = %is_boolean_branch197, %merge_branch191
-  %491 = phi ptr [ %488, %merge_branch191 ], [ %494, %is_boolean_branch197 ]
-  br label %end_branch181
-
-is_boolean_branch197:                             ; preds = %merge_branch191
-  %492 = getelementptr %SchemeObject, ptr %488, i32 0, i32 2
-  %493 = load i1, ptr %492, align 1
-  %is_boolean_smth_check200 = icmp eq i1 %493, true
-  %494 = phi ptr [ %488, %merge_branch191 ]
-  br i1 %is_boolean_smth_check200, label %is_boolean_smth_branch198, label %continue_branch196
-
-is_boolean_smth_branch198:                        ; preds = %is_boolean_branch197
-  %495 = phi ptr [ %494, %is_boolean_branch197 ]
-  br label %end_branch181
-
-end_branch201:                                    ; preds = %continue_branch209, %is_boolean_smth_branch211, %is_boolean_smth_branch205
-  %496 = phi ptr [ %511, %is_boolean_smth_branch205 ], [ %516, %is_boolean_smth_branch211 ], [ %512, %continue_branch209 ]
-  call void @__GLPrint(ptr %496)
-  %symbol214 = alloca %SchemeObject, align 8
-  %497 = getelementptr %SchemeObject, ptr %symbol214, i32 0, i32 0
-  store i64 2, ptr %497, align 4
-  %498 = getelementptr %SchemeObject, ptr %symbol214, i32 0, i32 3
-  store ptr @symbol_global.2, ptr %498, align 8
-  call void @__GLPrint(ptr %symbol214)
-  %boolean218 = alloca %SchemeObject, align 8
-  %499 = getelementptr %SchemeObject, ptr %boolean218, i32 0, i32 0
-  store i64 1, ptr %499, align 4
-  %500 = getelementptr %SchemeObject, ptr %boolean218, i32 0, i32 2
-  store i1 true, ptr %500, align 1
-  %501 = getelementptr %SchemeObject, ptr %boolean218, i32 0, i32 0
-  %502 = load i64, ptr %501, align 4
-  %is_type_check219 = icmp eq i64 %502, 1
-  br i1 %is_type_check219, label %true_branch215, label %false_branch216
-
-continue_branch203:                               ; preds = %is_boolean_branch204, %end_branch181
-  %503 = phi ptr [ %boolean202, %end_branch181 ], [ %510, %is_boolean_branch204 ]
-  %number208 = alloca %SchemeObject, align 8
-  %504 = getelementptr %SchemeObject, ptr %number208, i32 0, i32 0
-  store i64 0, ptr %504, align 4
-  %505 = getelementptr %SchemeObject, ptr %number208, i32 0, i32 1
-  store i64 100, ptr %505, align 4
-  %506 = getelementptr %SchemeObject, ptr %number208, i32 0, i32 0
-  %507 = load i64, ptr %506, align 4
-  %is_type_check212 = icmp eq i64 %507, 1
-  br i1 %is_type_check212, label %is_boolean_branch210, label %continue_branch209
-
-is_boolean_branch204:                             ; preds = %end_branch181
-  %508 = getelementptr %SchemeObject, ptr %boolean202, i32 0, i32 2
-  %509 = load i1, ptr %508, align 1
-  %is_boolean_smth_check207 = icmp eq i1 %509, true
-  %510 = phi ptr [ %boolean202, %end_branch181 ]
-  br i1 %is_boolean_smth_check207, label %is_boolean_smth_branch205, label %continue_branch203
-
-is_boolean_smth_branch205:                        ; preds = %is_boolean_branch204
-  %511 = phi ptr [ %510, %is_boolean_branch204 ]
-  br label %end_branch201
-
-continue_branch209:                               ; preds = %is_boolean_branch210, %continue_branch203
-  %512 = phi ptr [ %number208, %continue_branch203 ], [ %515, %is_boolean_branch210 ]
-  br label %end_branch201
-
-is_boolean_branch210:                             ; preds = %continue_branch203
-  %513 = getelementptr %SchemeObject, ptr %number208, i32 0, i32 2
-  %514 = load i1, ptr %513, align 1
-  %is_boolean_smth_check213 = icmp eq i1 %514, true
-  %515 = phi ptr [ %number208, %continue_branch203 ]
-  br i1 %is_boolean_smth_check213, label %is_boolean_smth_branch211, label %continue_branch209
-
-is_boolean_smth_branch211:                        ; preds = %is_boolean_branch210
-  %516 = phi ptr [ %515, %is_boolean_branch210 ]
-  br label %end_branch201
-
-true_branch215:                                   ; preds = %end_branch201
-  %boolean220 = alloca %SchemeObject, align 8
-  %517 = getelementptr %SchemeObject, ptr %boolean220, i32 0, i32 0
-  store i64 1, ptr %517, align 4
-  %518 = getelementptr %SchemeObject, ptr %boolean220, i32 0, i32 2
-  store i1 true, ptr %518, align 1
-  br label %merge_branch217
-
-false_branch216:                                  ; preds = %end_branch201
-  %boolean221 = alloca %SchemeObject, align 8
-  %519 = getelementptr %SchemeObject, ptr %boolean221, i32 0, i32 0
-  store i64 1, ptr %519, align 4
-  %520 = getelementptr %SchemeObject, ptr %boolean221, i32 0, i32 2
-  store i1 false, ptr %520, align 1
-  br label %merge_branch217
-
-merge_branch217:                                  ; preds = %false_branch216, %true_branch215
-  %521 = phi ptr [ %boolean220, %true_branch215 ], [ %boolean221, %false_branch216 ]
-  call void @__GLPrint(ptr %521)
-  %boolean225 = alloca %SchemeObject, align 8
-  %522 = getelementptr %SchemeObject, ptr %boolean225, i32 0, i32 0
-  store i64 1, ptr %522, align 4
-  %523 = getelementptr %SchemeObject, ptr %boolean225, i32 0, i32 2
-  store i1 false, ptr %523, align 1
-  %524 = getelementptr %SchemeObject, ptr %boolean225, i32 0, i32 0
-  %525 = load i64, ptr %524, align 4
-  %is_type_check226 = icmp eq i64 %525, 1
-  br i1 %is_type_check226, label %true_branch222, label %false_branch223
-
-true_branch222:                                   ; preds = %merge_branch217
-  %boolean227 = alloca %SchemeObject, align 8
-  %526 = getelementptr %SchemeObject, ptr %boolean227, i32 0, i32 0
-  store i64 1, ptr %526, align 4
-  %527 = getelementptr %SchemeObject, ptr %boolean227, i32 0, i32 2
-  store i1 true, ptr %527, align 1
-  br label %merge_branch224
-
-false_branch223:                                  ; preds = %merge_branch217
-  %boolean228 = alloca %SchemeObject, align 8
-  %528 = getelementptr %SchemeObject, ptr %boolean228, i32 0, i32 0
-  store i64 1, ptr %528, align 4
-  %529 = getelementptr %SchemeObject, ptr %boolean228, i32 0, i32 2
-  store i1 false, ptr %529, align 1
-  br label %merge_branch224
-
-merge_branch224:                                  ; preds = %false_branch223, %true_branch222
-  %530 = phi ptr [ %boolean227, %true_branch222 ], [ %boolean228, %false_branch223 ]
-  call void @__GLPrint(ptr %530)
-  %number232 = alloca %SchemeObject, align 8
-  %531 = getelementptr %SchemeObject, ptr %number232, i32 0, i32 0
-  store i64 0, ptr %531, align 4
-  %532 = getelementptr %SchemeObject, ptr %number232, i32 0, i32 1
-  store i64 100, ptr %532, align 4
-  %533 = getelementptr %SchemeObject, ptr %number232, i32 0, i32 0
-  %534 = load i64, ptr %533, align 4
-  %is_type_check233 = icmp eq i64 %534, 1
-  br i1 %is_type_check233, label %true_branch229, label %false_branch230
-
-true_branch229:                                   ; preds = %merge_branch224
-  %boolean234 = alloca %SchemeObject, align 8
-  %535 = getelementptr %SchemeObject, ptr %boolean234, i32 0, i32 0
-  store i64 1, ptr %535, align 4
-  %536 = getelementptr %SchemeObject, ptr %boolean234, i32 0, i32 2
-  store i1 true, ptr %536, align 1
-  br label %merge_branch231
-
-false_branch230:                                  ; preds = %merge_branch224
-  %boolean235 = alloca %SchemeObject, align 8
-  %537 = getelementptr %SchemeObject, ptr %boolean235, i32 0, i32 0
-  store i64 1, ptr %537, align 4
-  %538 = getelementptr %SchemeObject, ptr %boolean235, i32 0, i32 2
-  store i1 false, ptr %538, align 1
-  br label %merge_branch231
-
-merge_branch231:                                  ; preds = %false_branch230, %true_branch229
-  %539 = phi ptr [ %boolean234, %true_branch229 ], [ %boolean235, %false_branch230 ]
-  call void @__GLPrint(ptr %539)
-  %symbol236 = alloca %SchemeObject, align 8
-  %540 = getelementptr %SchemeObject, ptr %symbol236, i32 0, i32 0
-  store i64 2, ptr %540, align 4
-  %541 = getelementptr %SchemeObject, ptr %symbol236, i32 0, i32 3
-  store ptr @symbol_global.3, ptr %541, align 8
-  call void @__GLPrint(ptr %symbol236)
-  %symbol240 = alloca %SchemeObject, align 8
-  %542 = getelementptr %SchemeObject, ptr %symbol240, i32 0, i32 0
-  store i64 2, ptr %542, align 4
-  %543 = getelementptr %SchemeObject, ptr %symbol240, i32 0, i32 3
-  store ptr @symbol_global.4, ptr %543, align 8
-  %544 = getelementptr %SchemeObject, ptr %symbol240, i32 0, i32 0
-  %545 = load i64, ptr %544, align 4
-  %is_type_check241 = icmp eq i64 %545, 2
-  br i1 %is_type_check241, label %true_branch237, label %false_branch238
-
-true_branch237:                                   ; preds = %merge_branch231
-  %boolean242 = alloca %SchemeObject, align 8
-  %546 = getelementptr %SchemeObject, ptr %boolean242, i32 0, i32 0
-  store i64 1, ptr %546, align 4
-  %547 = getelementptr %SchemeObject, ptr %boolean242, i32 0, i32 2
-  store i1 true, ptr %547, align 1
-  br label %merge_branch239
-
-false_branch238:                                  ; preds = %merge_branch231
-  %boolean243 = alloca %SchemeObject, align 8
-  %548 = getelementptr %SchemeObject, ptr %boolean243, i32 0, i32 0
-  store i64 1, ptr %548, align 4
-  %549 = getelementptr %SchemeObject, ptr %boolean243, i32 0, i32 2
-  store i1 false, ptr %549, align 1
-  br label %merge_branch239
-
-merge_branch239:                                  ; preds = %false_branch238, %true_branch237
-  %550 = phi ptr [ %boolean242, %true_branch237 ], [ %boolean243, %false_branch238 ]
-  call void @__GLPrint(ptr %550)
-  %number247 = alloca %SchemeObject, align 8
-  %551 = getelementptr %SchemeObject, ptr %number247, i32 0, i32 0
-  store i64 0, ptr %551, align 4
-  %552 = getelementptr %SchemeObject, ptr %number247, i32 0, i32 1
-  store i64 100, ptr %552, align 4
-  %553 = getelementptr %SchemeObject, ptr %number247, i32 0, i32 0
-  %554 = load i64, ptr %553, align 4
-  %is_type_check248 = icmp eq i64 %554, 2
-  br i1 %is_type_check248, label %true_branch244, label %false_branch245
-
-true_branch244:                                   ; preds = %merge_branch239
-  %boolean249 = alloca %SchemeObject, align 8
-  %555 = getelementptr %SchemeObject, ptr %boolean249, i32 0, i32 0
-  store i64 1, ptr %555, align 4
-  %556 = getelementptr %SchemeObject, ptr %boolean249, i32 0, i32 2
-  store i1 true, ptr %556, align 1
-  br label %merge_branch246
-
-false_branch245:                                  ; preds = %merge_branch239
-  %boolean250 = alloca %SchemeObject, align 8
-  %557 = getelementptr %SchemeObject, ptr %boolean250, i32 0, i32 0
-  store i64 1, ptr %557, align 4
-  %558 = getelementptr %SchemeObject, ptr %boolean250, i32 0, i32 2
-  store i1 false, ptr %558, align 1
-  br label %merge_branch246
-
-merge_branch246:                                  ; preds = %false_branch245, %true_branch244
-  %559 = phi ptr [ %boolean249, %true_branch244 ], [ %boolean250, %false_branch245 ]
-  call void @__GLPrint(ptr %559)
-  %symbol251 = alloca %SchemeObject, align 8
-  %560 = getelementptr %SchemeObject, ptr %symbol251, i32 0, i32 0
-  store i64 2, ptr %560, align 4
-  %561 = getelementptr %SchemeObject, ptr %symbol251, i32 0, i32 3
-  store ptr @symbol_global.5, ptr %561, align 8
-  call void @__GLPrint(ptr %symbol251)
-  %number255 = alloca %SchemeObject, align 8
-  %562 = getelementptr %SchemeObject, ptr %number255, i32 0, i32 0
-  store i64 0, ptr %562, align 4
-  %563 = getelementptr %SchemeObject, ptr %number255, i32 0, i32 1
-  store i64 -100, ptr %563, align 4
-  %564 = getelementptr %SchemeObject, ptr %number255, i32 0, i32 0
-  %565 = load i64, ptr %564, align 4
-  %is_type_check256 = icmp eq i64 %565, 0
-  br i1 %is_type_check256, label %true_branch252, label %false_branch253
-
-true_branch252:                                   ; preds = %merge_branch246
-  %boolean257 = alloca %SchemeObject, align 8
-  %566 = getelementptr %SchemeObject, ptr %boolean257, i32 0, i32 0
-  store i64 1, ptr %566, align 4
-  %567 = getelementptr %SchemeObject, ptr %boolean257, i32 0, i32 2
-  store i1 true, ptr %567, align 1
-  br label %merge_branch254
-
-false_branch253:                                  ; preds = %merge_branch246
-  %boolean258 = alloca %SchemeObject, align 8
-  %568 = getelementptr %SchemeObject, ptr %boolean258, i32 0, i32 0
-  store i64 1, ptr %568, align 4
-  %569 = getelementptr %SchemeObject, ptr %boolean258, i32 0, i32 2
-  store i1 false, ptr %569, align 1
-  br label %merge_branch254
-
-merge_branch254:                                  ; preds = %false_branch253, %true_branch252
-  %570 = phi ptr [ %boolean257, %true_branch252 ], [ %boolean258, %false_branch253 ]
-  call void @__GLPrint(ptr %570)
-  %number262 = alloca %SchemeObject, align 8
-  %571 = getelementptr %SchemeObject, ptr %number262, i32 0, i32 0
-  store i64 0, ptr %571, align 4
-  %572 = getelementptr %SchemeObject, ptr %number262, i32 0, i32 1
-  store i64 100, ptr %572, align 4
-  %573 = getelementptr %SchemeObject, ptr %number262, i32 0, i32 0
-  %574 = load i64, ptr %573, align 4
-  %is_type_check263 = icmp eq i64 %574, 0
-  br i1 %is_type_check263, label %true_branch259, label %false_branch260
-
-true_branch259:                                   ; preds = %merge_branch254
-  %boolean264 = alloca %SchemeObject, align 8
-  %575 = getelementptr %SchemeObject, ptr %boolean264, i32 0, i32 0
-  store i64 1, ptr %575, align 4
-  %576 = getelementptr %SchemeObject, ptr %boolean264, i32 0, i32 2
-  store i1 true, ptr %576, align 1
-  br label %merge_branch261
-
-false_branch260:                                  ; preds = %merge_branch254
-  %boolean265 = alloca %SchemeObject, align 8
-  %577 = getelementptr %SchemeObject, ptr %boolean265, i32 0, i32 0
-  store i64 1, ptr %577, align 4
-  %578 = getelementptr %SchemeObject, ptr %boolean265, i32 0, i32 2
-  store i1 false, ptr %578, align 1
-  br label %merge_branch261
-
-merge_branch261:                                  ; preds = %false_branch260, %true_branch259
-  %579 = phi ptr [ %boolean264, %true_branch259 ], [ %boolean265, %false_branch260 ]
-  call void @__GLPrint(ptr %579)
-  %boolean269 = alloca %SchemeObject, align 8
-  %580 = getelementptr %SchemeObject, ptr %boolean269, i32 0, i32 0
-  store i64 1, ptr %580, align 4
-  %581 = getelementptr %SchemeObject, ptr %boolean269, i32 0, i32 2
-  store i1 true, ptr %581, align 1
-  %582 = getelementptr %SchemeObject, ptr %boolean269, i32 0, i32 0
-  %583 = load i64, ptr %582, align 4
-  %is_type_check270 = icmp eq i64 %583, 0
-  br i1 %is_type_check270, label %true_branch266, label %false_branch267
-
-true_branch266:                                   ; preds = %merge_branch261
-  %boolean271 = alloca %SchemeObject, align 8
-  %584 = getelementptr %SchemeObject, ptr %boolean271, i32 0, i32 0
-  store i64 1, ptr %584, align 4
-  %585 = getelementptr %SchemeObject, ptr %boolean271, i32 0, i32 2
-  store i1 true, ptr %585, align 1
-  br label %merge_branch268
-
-false_branch267:                                  ; preds = %merge_branch261
-  %boolean272 = alloca %SchemeObject, align 8
-  %586 = getelementptr %SchemeObject, ptr %boolean272, i32 0, i32 0
-  store i64 1, ptr %586, align 4
-  %587 = getelementptr %SchemeObject, ptr %boolean272, i32 0, i32 2
-  store i1 false, ptr %587, align 1
-  br label %merge_branch268
-
-merge_branch268:                                  ; preds = %false_branch267, %true_branch266
-  %588 = phi ptr [ %boolean271, %true_branch266 ], [ %boolean272, %false_branch267 ]
-  call void @__GLPrint(ptr %588)
-  %589 = alloca %SchemeObject, align 8
-  %590 = getelementptr %SchemeObject, ptr %589, i32 0, i32 0
-  store i64 3, ptr %590, align 4
-  %591 = getelementptr %SchemeObject, ptr %589, i32 0, i32 4
-  store ptr null, ptr %591, align 8
-  %592 = getelementptr %SchemeObject, ptr %589, i32 0, i32 5
-  store ptr null, ptr %592, align 8
-  %number273 = alloca %SchemeObject, align 8
-  %593 = getelementptr %SchemeObject, ptr %number273, i32 0, i32 0
-  store i64 0, ptr %593, align 4
-  %594 = getelementptr %SchemeObject, ptr %number273, i32 0, i32 1
-  store i64 100, ptr %594, align 4
-  %595 = getelementptr %SchemeObject, ptr %589, i32 0, i32 4
-  store ptr %number273, ptr %595, align 8
-  %596 = alloca %SchemeObject, align 8
-  %597 = getelementptr %SchemeObject, ptr %596, i32 0, i32 0
-  store i64 3, ptr %597, align 4
-  %598 = getelementptr %SchemeObject, ptr %596, i32 0, i32 4
-  store ptr null, ptr %598, align 8
-  %599 = getelementptr %SchemeObject, ptr %596, i32 0, i32 5
-  store ptr null, ptr %599, align 8
-  %600 = getelementptr %SchemeObject, ptr %589, i32 0, i32 5
-  store ptr %596, ptr %600, align 8
-  %number274 = alloca %SchemeObject, align 8
-  %601 = getelementptr %SchemeObject, ptr %number274, i32 0, i32 0
-  store i64 0, ptr %601, align 4
-  %602 = getelementptr %SchemeObject, ptr %number274, i32 0, i32 1
-  store i64 200, ptr %602, align 4
-  %603 = getelementptr %SchemeObject, ptr %596, i32 0, i32 4
-  store ptr %number274, ptr %603, align 8
-  %604 = alloca %SchemeObject, align 8
-  %605 = getelementptr %SchemeObject, ptr %604, i32 0, i32 0
-  store i64 3, ptr %605, align 4
-  %606 = getelementptr %SchemeObject, ptr %604, i32 0, i32 4
-  store ptr null, ptr %606, align 8
-  %607 = getelementptr %SchemeObject, ptr %604, i32 0, i32 5
-  store ptr null, ptr %607, align 8
-  %608 = getelementptr %SchemeObject, ptr %596, i32 0, i32 5
-  store ptr %604, ptr %608, align 8
-  %number275 = alloca %SchemeObject, align 8
-  %609 = getelementptr %SchemeObject, ptr %number275, i32 0, i32 0
-  store i64 0, ptr %609, align 4
-  %610 = getelementptr %SchemeObject, ptr %number275, i32 0, i32 1
-  store i64 300, ptr %610, align 4
-  %611 = getelementptr %SchemeObject, ptr %604, i32 0, i32 4
-  store ptr %number275, ptr %611, align 8
-  %612 = alloca %SchemeObject, align 8
-  %613 = getelementptr %SchemeObject, ptr %612, i32 0, i32 0
-  store i64 3, ptr %613, align 4
-  %614 = getelementptr %SchemeObject, ptr %612, i32 0, i32 4
-  store ptr null, ptr %614, align 8
-  %615 = getelementptr %SchemeObject, ptr %612, i32 0, i32 5
-  store ptr null, ptr %615, align 8
-  %616 = getelementptr %SchemeObject, ptr %604, i32 0, i32 5
-  store ptr %612, ptr %616, align 8
-  %617 = getelementptr %SchemeObject, ptr %604, i32 0, i32 5
-  store ptr null, ptr %617, align 8
-  %variable276 = alloca %SchemeObject, align 8
-  %618 = getelementptr %SchemeObject, ptr %589, i32 0
-  %619 = load %SchemeObject, ptr %618, align 8
-  store %SchemeObject %619, ptr %variable276, align 8
-  %symbol277 = alloca %SchemeObject, align 8
-  %620 = getelementptr %SchemeObject, ptr %symbol277, i32 0, i32 0
-  store i64 2, ptr %620, align 4
-  %621 = getelementptr %SchemeObject, ptr %symbol277, i32 0, i32 3
-  store ptr @symbol_global.6, ptr %621, align 8
-  call void @__GLPrint(ptr %symbol277)
-  %622 = alloca %SchemeObject, align 8
-  %623 = getelementptr %SchemeObject, ptr %622, i32 0, i32 0
-  store i64 3, ptr %623, align 4
-  %624 = getelementptr %SchemeObject, ptr %622, i32 0, i32 4
-  store ptr null, ptr %624, align 8
-  %625 = getelementptr %SchemeObject, ptr %622, i32 0, i32 5
-  store ptr null, ptr %625, align 8
-  %number278 = alloca %SchemeObject, align 8
-  %626 = getelementptr %SchemeObject, ptr %number278, i32 0, i32 0
-  store i64 0, ptr %626, align 4
-  %627 = getelementptr %SchemeObject, ptr %number278, i32 0, i32 1
-  store i64 100, ptr %627, align 4
-  %628 = getelementptr %SchemeObject, ptr %622, i32 0, i32 4
-  store ptr %number278, ptr %628, align 8
-  %number279 = alloca %SchemeObject, align 8
-  %629 = getelementptr %SchemeObject, ptr %number279, i32 0, i32 0
-  store i64 0, ptr %629, align 4
-  %630 = getelementptr %SchemeObject, ptr %number279, i32 0, i32 1
-  store i64 200, ptr %630, align 4
-  %631 = getelementptr %SchemeObject, ptr %622, i32 0, i32 5
-  store ptr %number279, ptr %631, align 8
-  call void @__GLPrint(ptr %622)
-  %symbol280 = alloca %SchemeObject, align 8
-  %632 = getelementptr %SchemeObject, ptr %symbol280, i32 0, i32 0
-  store i64 2, ptr %632, align 4
-  %633 = getelementptr %SchemeObject, ptr %symbol280, i32 0, i32 3
-  store ptr @symbol_global.7, ptr %633, align 8
-  call void @__GLPrint(ptr %symbol280)
-  %634 = getelementptr %SchemeObject, ptr %variable276, i32 0, i32 0
-  %635 = load i64, ptr %634, align 4
-  %is_type_check288 = icmp eq i64 %635, 3
-  br i1 %is_type_check288, label %true_branch285, label %false_branch286
-
-continue_branch281:                               ; preds = %merge_branch287
-  %636 = getelementptr %SchemeObject, ptr %654, i32 0, i32 0
-  %637 = load i64, ptr %636, align 4
-  %is_type_check289 = icmp eq i64 %637, 3
-  br i1 %is_type_check289, label %is_cell_branch, label %false_branch283
-
-is_cell_branch:                                   ; preds = %continue_branch281
-  %638 = getelementptr %SchemeObject, ptr %654, i32 0, i32 4
-  %639 = load ptr, ptr %638, align 8
-  %640 = icmp eq ptr %639, null
-  br i1 %640, label %is_cell_first_null_branch, label %false_branch283
-
-is_cell_first_null_branch:                        ; preds = %is_cell_branch
-  %641 = getelementptr %SchemeObject, ptr %654, i32 0, i32 5
-  %642 = load ptr, ptr %641, align 8
-  %643 = icmp eq ptr %642, null
-  br i1 %643, label %true_branch282, label %false_branch283
-
-true_branch282:                                   ; preds = %is_cell_first_null_branch, %merge_branch287
-  %boolean290 = alloca %SchemeObject, align 8
-  %644 = getelementptr %SchemeObject, ptr %boolean290, i32 0, i32 0
-  store i64 1, ptr %644, align 4
-  %645 = getelementptr %SchemeObject, ptr %boolean290, i32 0, i32 2
-  store i1 true, ptr %645, align 1
-  br label %merge_branch284
-
-false_branch283:                                  ; preds = %is_cell_first_null_branch, %is_cell_branch, %continue_branch281
-  %boolean291 = alloca %SchemeObject, align 8
-  %646 = getelementptr %SchemeObject, ptr %boolean291, i32 0, i32 0
-  store i64 1, ptr %646, align 4
-  %647 = getelementptr %SchemeObject, ptr %boolean291, i32 0, i32 2
-  store i1 false, ptr %647, align 1
-  br label %merge_branch284
-
-merge_branch284:                                  ; preds = %false_branch283, %true_branch282
-  %648 = phi ptr [ %boolean290, %true_branch282 ], [ %boolean291, %false_branch283 ]
-  call void @__GLPrint(ptr %648)
-  %649 = getelementptr %SchemeObject, ptr %variable276, i32 0, i32 0
-  %650 = load i64, ptr %649, align 4
-  %is_type_check301 = icmp eq i64 %650, 3
-  br i1 %is_type_check301, label %true_branch298, label %false_branch299
-
-true_branch285:                                   ; preds = %merge_branch268
-  %651 = getelementptr %SchemeObject, ptr %variable276, i32 0, i32 4
-  %652 = load ptr, ptr %651, align 8
-  br label %merge_branch287
-
-false_branch286:                                  ; preds = %merge_branch268
-  %653 = phi ptr [ %variable276, %merge_branch268 ]
-  br label %merge_branch287
-
-merge_branch287:                                  ; preds = %false_branch286, %true_branch285
-  %654 = phi ptr [ %652, %true_branch285 ], [ %653, %false_branch286 ]
-  %655 = icmp eq ptr %654, null
-  br i1 %655, label %true_branch282, label %continue_branch281
-
-continue_branch292:                               ; preds = %merge_branch300
-  %656 = getelementptr %SchemeObject, ptr %677, i32 0, i32 0
-  %657 = load i64, ptr %656, align 4
-  %is_type_check302 = icmp eq i64 %657, 3
-  br i1 %is_type_check302, label %is_cell_branch293, label %false_branch296
-
-is_cell_branch293:                                ; preds = %continue_branch292
-  %658 = getelementptr %SchemeObject, ptr %677, i32 0, i32 4
-  %659 = load ptr, ptr %658, align 8
-  %660 = icmp eq ptr %659, null
-  br i1 %660, label %is_cell_first_null_branch294, label %false_branch296
-
-is_cell_first_null_branch294:                     ; preds = %is_cell_branch293
-  %661 = getelementptr %SchemeObject, ptr %677, i32 0, i32 5
-  %662 = load ptr, ptr %661, align 8
-  %663 = icmp eq ptr %662, null
-  br i1 %663, label %true_branch295, label %false_branch296
-
-true_branch295:                                   ; preds = %is_cell_first_null_branch294, %merge_branch300
-  %boolean303 = alloca %SchemeObject, align 8
-  %664 = getelementptr %SchemeObject, ptr %boolean303, i32 0, i32 0
-  store i64 1, ptr %664, align 4
-  %665 = getelementptr %SchemeObject, ptr %boolean303, i32 0, i32 2
-  store i1 true, ptr %665, align 1
-  br label %merge_branch297
-
-false_branch296:                                  ; preds = %is_cell_first_null_branch294, %is_cell_branch293, %continue_branch292
-  %boolean304 = alloca %SchemeObject, align 8
-  %666 = getelementptr %SchemeObject, ptr %boolean304, i32 0, i32 0
-  store i64 1, ptr %666, align 4
-  %667 = getelementptr %SchemeObject, ptr %boolean304, i32 0, i32 2
-  store i1 false, ptr %667, align 1
-  br label %merge_branch297
-
-merge_branch297:                                  ; preds = %false_branch296, %true_branch295
-  %668 = phi ptr [ %boolean303, %true_branch295 ], [ %boolean304, %false_branch296 ]
-  call void @__GLPrint(ptr %668)
-  %669 = getelementptr %SchemeObject, ptr %variable276, i32 0, i32 0
-  %670 = load i64, ptr %669, align 4
-  %is_type_check317 = icmp eq i64 %670, 3
-  br i1 %is_type_check317, label %true_branch314, label %false_branch315
-
-true_branch298:                                   ; preds = %merge_branch284
-  %671 = getelementptr %SchemeObject, ptr %variable276, i32 0, i32 5
-  %672 = load ptr, ptr %671, align 8
-  br label %merge_branch300
-
-false_branch299:                                  ; preds = %merge_branch284
-  %673 = alloca %SchemeObject, align 8
-  %674 = getelementptr %SchemeObject, ptr %673, i32 0, i32 0
-  store i64 3, ptr %674, align 4
-  %675 = getelementptr %SchemeObject, ptr %673, i32 0, i32 4
-  store ptr null, ptr %675, align 8
-  %676 = getelementptr %SchemeObject, ptr %673, i32 0, i32 5
-  store ptr null, ptr %676, align 8
-  br label %merge_branch300
-
-merge_branch300:                                  ; preds = %false_branch299, %true_branch298
-  %677 = phi ptr [ %672, %true_branch298 ], [ %673, %false_branch299 ]
-  %678 = icmp eq ptr %677, null
-  br i1 %678, label %true_branch295, label %continue_branch292
-
-continue_branch305:                               ; preds = %merge_branch313
-  %679 = getelementptr %SchemeObject, ptr %697, i32 0, i32 0
-  %680 = load i64, ptr %679, align 4
-  %is_type_check319 = icmp eq i64 %680, 3
-  br i1 %is_type_check319, label %is_cell_branch306, label %false_branch309
-
-is_cell_branch306:                                ; preds = %continue_branch305
-  %681 = getelementptr %SchemeObject, ptr %697, i32 0, i32 4
-  %682 = load ptr, ptr %681, align 8
-  %683 = icmp eq ptr %682, null
-  br i1 %683, label %is_cell_first_null_branch307, label %false_branch309
-
-is_cell_first_null_branch307:                     ; preds = %is_cell_branch306
-  %684 = getelementptr %SchemeObject, ptr %697, i32 0, i32 5
-  %685 = load ptr, ptr %684, align 8
-  %686 = icmp eq ptr %685, null
-  br i1 %686, label %true_branch308, label %false_branch309
-
-true_branch308:                                   ; preds = %is_cell_first_null_branch307, %merge_branch313
-  %boolean320 = alloca %SchemeObject, align 8
-  %687 = getelementptr %SchemeObject, ptr %boolean320, i32 0, i32 0
-  store i64 1, ptr %687, align 4
-  %688 = getelementptr %SchemeObject, ptr %boolean320, i32 0, i32 2
-  store i1 true, ptr %688, align 1
-  br label %merge_branch310
-
-false_branch309:                                  ; preds = %is_cell_first_null_branch307, %is_cell_branch306, %continue_branch305
-  %boolean321 = alloca %SchemeObject, align 8
-  %689 = getelementptr %SchemeObject, ptr %boolean321, i32 0, i32 0
-  store i64 1, ptr %689, align 4
-  %690 = getelementptr %SchemeObject, ptr %boolean321, i32 0, i32 2
-  store i1 false, ptr %690, align 1
-  br label %merge_branch310
-
-merge_branch310:                                  ; preds = %false_branch309, %true_branch308
-  %691 = phi ptr [ %boolean320, %true_branch308 ], [ %boolean321, %false_branch309 ]
-  call void @__GLPrint(ptr %691)
-  %692 = getelementptr %SchemeObject, ptr %variable276, i32 0, i32 0
-  %693 = load i64, ptr %692, align 4
-  %is_type_check334 = icmp eq i64 %693, 3
-  br i1 %is_type_check334, label %true_branch331, label %false_branch332
-
-true_branch311:                                   ; preds = %merge_branch316
-  %694 = getelementptr %SchemeObject, ptr %705, i32 0, i32 4
-  %695 = load ptr, ptr %694, align 8
-  br label %merge_branch313
-
-false_branch312:                                  ; preds = %merge_branch316
-  %696 = phi ptr [ %705, %merge_branch316 ]
-  br label %merge_branch313
-
-merge_branch313:                                  ; preds = %false_branch312, %true_branch311
-  %697 = phi ptr [ %695, %true_branch311 ], [ %696, %false_branch312 ]
-  %698 = icmp eq ptr %697, null
-  br i1 %698, label %true_branch308, label %continue_branch305
-
-true_branch314:                                   ; preds = %merge_branch297
-  %699 = getelementptr %SchemeObject, ptr %variable276, i32 0, i32 5
-  %700 = load ptr, ptr %699, align 8
-  br label %merge_branch316
-
-false_branch315:                                  ; preds = %merge_branch297
-  %701 = alloca %SchemeObject, align 8
-  %702 = getelementptr %SchemeObject, ptr %701, i32 0, i32 0
-  store i64 3, ptr %702, align 4
-  %703 = getelementptr %SchemeObject, ptr %701, i32 0, i32 4
-  store ptr null, ptr %703, align 8
-  %704 = getelementptr %SchemeObject, ptr %701, i32 0, i32 5
-  store ptr null, ptr %704, align 8
-  br label %merge_branch316
-
-merge_branch316:                                  ; preds = %false_branch315, %true_branch314
-  %705 = phi ptr [ %700, %true_branch314 ], [ %701, %false_branch315 ]
-  %706 = getelementptr %SchemeObject, ptr %705, i32 0, i32 0
-  %707 = load i64, ptr %706, align 4
-  %is_type_check318 = icmp eq i64 %707, 3
-  br i1 %is_type_check318, label %true_branch311, label %false_branch312
-
-continue_branch322:                               ; preds = %merge_branch330
-  %708 = getelementptr %SchemeObject, ptr %729, i32 0, i32 0
-  %709 = load i64, ptr %708, align 4
-  %is_type_check336 = icmp eq i64 %709, 3
-  br i1 %is_type_check336, label %is_cell_branch323, label %false_branch326
-
-is_cell_branch323:                                ; preds = %continue_branch322
-  %710 = getelementptr %SchemeObject, ptr %729, i32 0, i32 4
-  %711 = load ptr, ptr %710, align 8
-  %712 = icmp eq ptr %711, null
-  br i1 %712, label %is_cell_first_null_branch324, label %false_branch326
-
-is_cell_first_null_branch324:                     ; preds = %is_cell_branch323
-  %713 = getelementptr %SchemeObject, ptr %729, i32 0, i32 5
-  %714 = load ptr, ptr %713, align 8
-  %715 = icmp eq ptr %714, null
-  br i1 %715, label %true_branch325, label %false_branch326
-
-true_branch325:                                   ; preds = %is_cell_first_null_branch324, %merge_branch330
-  %boolean337 = alloca %SchemeObject, align 8
-  %716 = getelementptr %SchemeObject, ptr %boolean337, i32 0, i32 0
-  store i64 1, ptr %716, align 4
-  %717 = getelementptr %SchemeObject, ptr %boolean337, i32 0, i32 2
-  store i1 true, ptr %717, align 1
-  br label %merge_branch327
-
-false_branch326:                                  ; preds = %is_cell_first_null_branch324, %is_cell_branch323, %continue_branch322
-  %boolean338 = alloca %SchemeObject, align 8
-  %718 = getelementptr %SchemeObject, ptr %boolean338, i32 0, i32 0
-  store i64 1, ptr %718, align 4
-  %719 = getelementptr %SchemeObject, ptr %boolean338, i32 0, i32 2
-  store i1 false, ptr %719, align 1
-  br label %merge_branch327
-
-merge_branch327:                                  ; preds = %false_branch326, %true_branch325
-  %720 = phi ptr [ %boolean337, %true_branch325 ], [ %boolean338, %false_branch326 ]
-  call void @__GLPrint(ptr %720)
-  %721 = getelementptr %SchemeObject, ptr %variable276, i32 0, i32 0
-  %722 = load i64, ptr %721, align 4
-  %is_type_check354 = icmp eq i64 %722, 3
-  br i1 %is_type_check354, label %true_branch351, label %false_branch352
-
-true_branch328:                                   ; preds = %merge_branch333
-  %723 = getelementptr %SchemeObject, ptr %737, i32 0, i32 5
-  %724 = load ptr, ptr %723, align 8
-  br label %merge_branch330
-
-false_branch329:                                  ; preds = %merge_branch333
-  %725 = alloca %SchemeObject, align 8
-  %726 = getelementptr %SchemeObject, ptr %725, i32 0, i32 0
-  store i64 3, ptr %726, align 4
-  %727 = getelementptr %SchemeObject, ptr %725, i32 0, i32 4
-  store ptr null, ptr %727, align 8
-  %728 = getelementptr %SchemeObject, ptr %725, i32 0, i32 5
-  store ptr null, ptr %728, align 8
-  br label %merge_branch330
-
-merge_branch330:                                  ; preds = %false_branch329, %true_branch328
-  %729 = phi ptr [ %724, %true_branch328 ], [ %725, %false_branch329 ]
-  %730 = icmp eq ptr %729, null
-  br i1 %730, label %true_branch325, label %continue_branch322
-
-true_branch331:                                   ; preds = %merge_branch310
-  %731 = getelementptr %SchemeObject, ptr %variable276, i32 0, i32 5
-  %732 = load ptr, ptr %731, align 8
-  br label %merge_branch333
-
-false_branch332:                                  ; preds = %merge_branch310
-  %733 = alloca %SchemeObject, align 8
-  %734 = getelementptr %SchemeObject, ptr %733, i32 0, i32 0
-  store i64 3, ptr %734, align 4
-  %735 = getelementptr %SchemeObject, ptr %733, i32 0, i32 4
-  store ptr null, ptr %735, align 8
-  %736 = getelementptr %SchemeObject, ptr %733, i32 0, i32 5
-  store ptr null, ptr %736, align 8
-  br label %merge_branch333
-
-merge_branch333:                                  ; preds = %false_branch332, %true_branch331
-  %737 = phi ptr [ %732, %true_branch331 ], [ %733, %false_branch332 ]
-  %738 = getelementptr %SchemeObject, ptr %737, i32 0, i32 0
-  %739 = load i64, ptr %738, align 4
-  %is_type_check335 = icmp eq i64 %739, 3
-  br i1 %is_type_check335, label %true_branch328, label %false_branch329
-
-continue_branch339:                               ; preds = %merge_branch347
-  %740 = getelementptr %SchemeObject, ptr %758, i32 0, i32 0
-  %741 = load i64, ptr %740, align 4
-  %is_type_check357 = icmp eq i64 %741, 3
-  br i1 %is_type_check357, label %is_cell_branch340, label %false_branch343
-
-is_cell_branch340:                                ; preds = %continue_branch339
-  %742 = getelementptr %SchemeObject, ptr %758, i32 0, i32 4
-  %743 = load ptr, ptr %742, align 8
-  %744 = icmp eq ptr %743, null
-  br i1 %744, label %is_cell_first_null_branch341, label %false_branch343
-
-is_cell_first_null_branch341:                     ; preds = %is_cell_branch340
-  %745 = getelementptr %SchemeObject, ptr %758, i32 0, i32 5
-  %746 = load ptr, ptr %745, align 8
-  %747 = icmp eq ptr %746, null
-  br i1 %747, label %true_branch342, label %false_branch343
-
-true_branch342:                                   ; preds = %is_cell_first_null_branch341, %merge_branch347
-  %boolean358 = alloca %SchemeObject, align 8
-  %748 = getelementptr %SchemeObject, ptr %boolean358, i32 0, i32 0
-  store i64 1, ptr %748, align 4
-  %749 = getelementptr %SchemeObject, ptr %boolean358, i32 0, i32 2
-  store i1 true, ptr %749, align 1
-  br label %merge_branch344
-
-false_branch343:                                  ; preds = %is_cell_first_null_branch341, %is_cell_branch340, %continue_branch339
-  %boolean359 = alloca %SchemeObject, align 8
-  %750 = getelementptr %SchemeObject, ptr %boolean359, i32 0, i32 0
-  store i64 1, ptr %750, align 4
-  %751 = getelementptr %SchemeObject, ptr %boolean359, i32 0, i32 2
-  store i1 false, ptr %751, align 1
-  br label %merge_branch344
-
-merge_branch344:                                  ; preds = %false_branch343, %true_branch342
-  %752 = phi ptr [ %boolean358, %true_branch342 ], [ %boolean359, %false_branch343 ]
-  call void @__GLPrint(ptr %752)
-  %753 = getelementptr %SchemeObject, ptr %variable276, i32 0, i32 0
-  %754 = load i64, ptr %753, align 4
-  %is_type_check375 = icmp eq i64 %754, 3
-  br i1 %is_type_check375, label %true_branch372, label %false_branch373
-
-true_branch345:                                   ; preds = %merge_branch350
-  %755 = getelementptr %SchemeObject, ptr %766, i32 0, i32 4
-  %756 = load ptr, ptr %755, align 8
-  br label %merge_branch347
-
-false_branch346:                                  ; preds = %merge_branch350
-  %757 = phi ptr [ %766, %merge_branch350 ]
-  br label %merge_branch347
-
-merge_branch347:                                  ; preds = %false_branch346, %true_branch345
-  %758 = phi ptr [ %756, %true_branch345 ], [ %757, %false_branch346 ]
-  %759 = icmp eq ptr %758, null
-  br i1 %759, label %true_branch342, label %continue_branch339
-
-true_branch348:                                   ; preds = %merge_branch353
-  %760 = getelementptr %SchemeObject, ptr %775, i32 0, i32 5
-  %761 = load ptr, ptr %760, align 8
-  br label %merge_branch350
-
-false_branch349:                                  ; preds = %merge_branch353
-  %762 = alloca %SchemeObject, align 8
-  %763 = getelementptr %SchemeObject, ptr %762, i32 0, i32 0
-  store i64 3, ptr %763, align 4
-  %764 = getelementptr %SchemeObject, ptr %762, i32 0, i32 4
-  store ptr null, ptr %764, align 8
-  %765 = getelementptr %SchemeObject, ptr %762, i32 0, i32 5
-  store ptr null, ptr %765, align 8
-  br label %merge_branch350
-
-merge_branch350:                                  ; preds = %false_branch349, %true_branch348
-  %766 = phi ptr [ %761, %true_branch348 ], [ %762, %false_branch349 ]
-  %767 = getelementptr %SchemeObject, ptr %766, i32 0, i32 0
-  %768 = load i64, ptr %767, align 4
-  %is_type_check356 = icmp eq i64 %768, 3
-  br i1 %is_type_check356, label %true_branch345, label %false_branch346
-
-true_branch351:                                   ; preds = %merge_branch327
-  %769 = getelementptr %SchemeObject, ptr %variable276, i32 0, i32 5
-  %770 = load ptr, ptr %769, align 8
-  br label %merge_branch353
-
-false_branch352:                                  ; preds = %merge_branch327
-  %771 = alloca %SchemeObject, align 8
-  %772 = getelementptr %SchemeObject, ptr %771, i32 0, i32 0
-  store i64 3, ptr %772, align 4
-  %773 = getelementptr %SchemeObject, ptr %771, i32 0, i32 4
-  store ptr null, ptr %773, align 8
-  %774 = getelementptr %SchemeObject, ptr %771, i32 0, i32 5
-  store ptr null, ptr %774, align 8
-  br label %merge_branch353
-
-merge_branch353:                                  ; preds = %false_branch352, %true_branch351
-  %775 = phi ptr [ %770, %true_branch351 ], [ %771, %false_branch352 ]
-  %776 = getelementptr %SchemeObject, ptr %775, i32 0, i32 0
-  %777 = load i64, ptr %776, align 4
-  %is_type_check355 = icmp eq i64 %777, 3
-  br i1 %is_type_check355, label %true_branch348, label %false_branch349
-
-continue_branch360:                               ; preds = %merge_branch368
-  %778 = getelementptr %SchemeObject, ptr %797, i32 0, i32 0
-  %779 = load i64, ptr %778, align 4
-  %is_type_check378 = icmp eq i64 %779, 3
-  br i1 %is_type_check378, label %is_cell_branch361, label %false_branch364
-
-is_cell_branch361:                                ; preds = %continue_branch360
-  %780 = getelementptr %SchemeObject, ptr %797, i32 0, i32 4
-  %781 = load ptr, ptr %780, align 8
-  %782 = icmp eq ptr %781, null
-  br i1 %782, label %is_cell_first_null_branch362, label %false_branch364
-
-is_cell_first_null_branch362:                     ; preds = %is_cell_branch361
-  %783 = getelementptr %SchemeObject, ptr %797, i32 0, i32 5
-  %784 = load ptr, ptr %783, align 8
-  %785 = icmp eq ptr %784, null
-  br i1 %785, label %true_branch363, label %false_branch364
-
-true_branch363:                                   ; preds = %is_cell_first_null_branch362, %merge_branch368
-  %boolean379 = alloca %SchemeObject, align 8
-  %786 = getelementptr %SchemeObject, ptr %boolean379, i32 0, i32 0
-  store i64 1, ptr %786, align 4
-  %787 = getelementptr %SchemeObject, ptr %boolean379, i32 0, i32 2
-  store i1 true, ptr %787, align 1
-  br label %merge_branch365
-
-false_branch364:                                  ; preds = %is_cell_first_null_branch362, %is_cell_branch361, %continue_branch360
-  %boolean380 = alloca %SchemeObject, align 8
-  %788 = getelementptr %SchemeObject, ptr %boolean380, i32 0, i32 0
-  store i64 1, ptr %788, align 4
-  %789 = getelementptr %SchemeObject, ptr %boolean380, i32 0, i32 2
-  store i1 false, ptr %789, align 1
-  br label %merge_branch365
-
-merge_branch365:                                  ; preds = %false_branch364, %true_branch363
-  %790 = phi ptr [ %boolean379, %true_branch363 ], [ %boolean380, %false_branch364 ]
-  call void @__GLPrint(ptr %790)
   ret i32 0
-
-true_branch366:                                   ; preds = %merge_branch371
-  %791 = getelementptr %SchemeObject, ptr %805, i32 0, i32 5
-  %792 = load ptr, ptr %791, align 8
-  br label %merge_branch368
-
-false_branch367:                                  ; preds = %merge_branch371
-  %793 = alloca %SchemeObject, align 8
-  %794 = getelementptr %SchemeObject, ptr %793, i32 0, i32 0
-  store i64 3, ptr %794, align 4
-  %795 = getelementptr %SchemeObject, ptr %793, i32 0, i32 4
-  store ptr null, ptr %795, align 8
-  %796 = getelementptr %SchemeObject, ptr %793, i32 0, i32 5
-  store ptr null, ptr %796, align 8
-  br label %merge_branch368
-
-merge_branch368:                                  ; preds = %false_branch367, %true_branch366
-  %797 = phi ptr [ %792, %true_branch366 ], [ %793, %false_branch367 ]
-  %798 = icmp eq ptr %797, null
-  br i1 %798, label %true_branch363, label %continue_branch360
-
-true_branch369:                                   ; preds = %merge_branch374
-  %799 = getelementptr %SchemeObject, ptr %814, i32 0, i32 5
-  %800 = load ptr, ptr %799, align 8
-  br label %merge_branch371
-
-false_branch370:                                  ; preds = %merge_branch374
-  %801 = alloca %SchemeObject, align 8
-  %802 = getelementptr %SchemeObject, ptr %801, i32 0, i32 0
-  store i64 3, ptr %802, align 4
-  %803 = getelementptr %SchemeObject, ptr %801, i32 0, i32 4
-  store ptr null, ptr %803, align 8
-  %804 = getelementptr %SchemeObject, ptr %801, i32 0, i32 5
-  store ptr null, ptr %804, align 8
-  br label %merge_branch371
-
-merge_branch371:                                  ; preds = %false_branch370, %true_branch369
-  %805 = phi ptr [ %800, %true_branch369 ], [ %801, %false_branch370 ]
-  %806 = getelementptr %SchemeObject, ptr %805, i32 0, i32 0
-  %807 = load i64, ptr %806, align 4
-  %is_type_check377 = icmp eq i64 %807, 3
-  br i1 %is_type_check377, label %true_branch366, label %false_branch367
-
-true_branch372:                                   ; preds = %merge_branch344
-  %808 = getelementptr %SchemeObject, ptr %variable276, i32 0, i32 5
-  %809 = load ptr, ptr %808, align 8
-  br label %merge_branch374
-
-false_branch373:                                  ; preds = %merge_branch344
-  %810 = alloca %SchemeObject, align 8
-  %811 = getelementptr %SchemeObject, ptr %810, i32 0, i32 0
-  store i64 3, ptr %811, align 4
-  %812 = getelementptr %SchemeObject, ptr %810, i32 0, i32 4
-  store ptr null, ptr %812, align 8
-  %813 = getelementptr %SchemeObject, ptr %810, i32 0, i32 5
-  store ptr null, ptr %813, align 8
-  br label %merge_branch374
-
-merge_branch374:                                  ; preds = %false_branch373, %true_branch372
-  %814 = phi ptr [ %809, %true_branch372 ], [ %810, %false_branch373 ]
-  %815 = getelementptr %SchemeObject, ptr %814, i32 0, i32 0
-  %816 = load i64, ptr %815, align 4
-  %is_type_check376 = icmp eq i64 %816, 3
-  br i1 %is_type_check376, label %true_branch369, label %false_branch370
 }
 
 declare void @__GLInit()
@@ -2070,10 +28,3252 @@ declare %SchemeObject @__GLExpt(ptr, ptr)
 
 declare %SchemeObject @__GLSqrt(ptr)
 
+define %SchemeObject @LambdaFunction(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %3 = icmp eq ptr %variable, null
+  br i1 %3, label %true_branch1, label %continue_branch
+
+true_branch:                                      ; preds = %merge_branch3
+  %number = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %number, i32 0, i32 0
+  store i64 0, ptr %4, align 4
+  %5 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 0, ptr %5, align 4
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch3
+  %number5 = alloca %SchemeObject, align 8
+  %6 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 0
+  store i64 0, ptr %6, align 4
+  %7 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 1
+  store i64 0, ptr %7, align 4
+  %8 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %9 = load i64, ptr %8, align 4
+  %is_type_check9 = icmp eq i64 %9, 3
+  br i1 %is_type_check9, label %true_branch6, label %false_branch7
+
+merge_branch:                                     ; preds = %merge_branch12, %true_branch
+  %10 = phi ptr [ %number, %true_branch ], [ %number5, %merge_branch12 ]
+  %11 = getelementptr %SchemeObject, ptr %10, i32 0
+  %12 = load %SchemeObject, ptr %11, align 8
+  ret %SchemeObject %12
+
+continue_branch:                                  ; preds = %entry
+  %13 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %14 = load i64, ptr %13, align 4
+  %is_type_check = icmp eq i64 %14, 3
+  br i1 %is_type_check, label %is_cell_branch, label %false_branch2
+
+is_cell_branch:                                   ; preds = %continue_branch
+  %15 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 4
+  %16 = load ptr, ptr %15, align 8
+  %17 = icmp eq ptr %16, null
+  br i1 %17, label %is_cell_first_null_branch, label %false_branch2
+
+is_cell_first_null_branch:                        ; preds = %is_cell_branch
+  %18 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 5
+  %19 = load ptr, ptr %18, align 8
+  %20 = icmp eq ptr %19, null
+  br i1 %20, label %true_branch1, label %false_branch2
+
+true_branch1:                                     ; preds = %is_cell_first_null_branch, %entry
+  %boolean = alloca %SchemeObject, align 8
+  %21 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 0
+  store i64 1, ptr %21, align 4
+  %22 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 2
+  store i1 true, ptr %22, align 1
+  br label %merge_branch3
+
+false_branch2:                                    ; preds = %is_cell_first_null_branch, %is_cell_branch, %continue_branch
+  %boolean4 = alloca %SchemeObject, align 8
+  %23 = getelementptr %SchemeObject, ptr %boolean4, i32 0, i32 0
+  store i64 1, ptr %23, align 4
+  %24 = getelementptr %SchemeObject, ptr %boolean4, i32 0, i32 2
+  store i1 false, ptr %24, align 1
+  br label %merge_branch3
+
+merge_branch3:                                    ; preds = %false_branch2, %true_branch1
+  %25 = phi ptr [ %boolean, %true_branch1 ], [ %boolean4, %false_branch2 ]
+  %26 = getelementptr %SchemeObject, ptr %25, i32 0, i32 0
+  %27 = load i64, ptr %26, align 4
+  %28 = icmp eq i64 %27, 1
+  call void @__GLAssert(i1 %28)
+  %29 = getelementptr %SchemeObject, ptr %25, i32 0, i32 2
+  %30 = load i1, ptr %29, align 1
+  br i1 %30, label %true_branch, label %false_branch
+
+true_branch6:                                     ; preds = %false_branch
+  %31 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 4
+  %32 = load ptr, ptr %31, align 8
+  br label %merge_branch8
+
+false_branch7:                                    ; preds = %false_branch
+  %33 = phi ptr [ %variable, %false_branch ]
+  br label %merge_branch8
+
+merge_branch8:                                    ; preds = %false_branch7, %true_branch6
+  %34 = phi ptr [ %32, %true_branch6 ], [ %33, %false_branch7 ]
+  %35 = getelementptr %SchemeObject, ptr %34, i32 0, i32 0
+  %36 = load i64, ptr %35, align 4
+  %37 = icmp eq i64 %36, 0
+  call void @__GLAssert(i1 %37)
+  %38 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 1
+  %39 = load i64, ptr %38, align 4
+  %40 = getelementptr %SchemeObject, ptr %34, i32 0, i32 1
+  %41 = load i64, ptr %40, align 4
+  %42 = add i64 %39, %41
+  %43 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 1
+  store i64 %42, ptr %43, align 4
+  %44 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %45 = load i64, ptr %44, align 4
+  %is_type_check13 = icmp eq i64 %45, 3
+  br i1 %is_type_check13, label %true_branch10, label %false_branch11
+
+true_branch10:                                    ; preds = %merge_branch8
+  %46 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 5
+  %47 = load ptr, ptr %46, align 8
+  br label %merge_branch12
+
+false_branch11:                                   ; preds = %merge_branch8
+  %48 = alloca %SchemeObject, align 8
+  %49 = getelementptr %SchemeObject, ptr %48, i32 0, i32 0
+  store i64 3, ptr %49, align 4
+  %50 = getelementptr %SchemeObject, ptr %48, i32 0, i32 4
+  store ptr null, ptr %50, align 8
+  %51 = getelementptr %SchemeObject, ptr %48, i32 0, i32 5
+  store ptr null, ptr %51, align 8
+  br label %merge_branch12
+
+merge_branch12:                                   ; preds = %false_branch11, %true_branch10
+  %52 = phi ptr [ %47, %true_branch10 ], [ %48, %false_branch11 ]
+  %function_returned = alloca %SchemeObject, align 8
+  %53 = call ptr @llvm.stacksave()
+  %54 = call %SchemeObject @LambdaFunction(ptr %52)
+  store %SchemeObject %54, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %53)
+  %55 = getelementptr %SchemeObject, ptr %function_returned, i32 0, i32 0
+  %56 = load i64, ptr %55, align 4
+  %57 = icmp eq i64 %56, 0
+  call void @__GLAssert(i1 %57)
+  %58 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 1
+  %59 = load i64, ptr %58, align 4
+  %60 = getelementptr %SchemeObject, ptr %function_returned, i32 0, i32 1
+  %61 = load i64, ptr %60, align 4
+  %62 = add i64 %59, %61
+  %63 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 1
+  store i64 %62, ptr %63, align 4
+  br label %merge_branch
+}
+
 ; Function Attrs: nocallback nofree nosync nounwind willreturn
 declare ptr @llvm.stacksave() #0
 
 ; Function Attrs: nocallback nofree nosync nounwind willreturn
 declare void @llvm.stackrestore(ptr) #0
+
+define %SchemeObject @LambdaFunction.1(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %3 = icmp eq ptr %variable, null
+  br i1 %3, label %true_branch1, label %continue_branch
+
+true_branch:                                      ; preds = %merge_branch3
+  %number = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %number, i32 0, i32 0
+  store i64 0, ptr %4, align 4
+  %5 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 100, ptr %5, align 4
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch3
+  %number5 = alloca %SchemeObject, align 8
+  %6 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 0
+  store i64 0, ptr %6, align 4
+  %7 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 1
+  store i64 100, ptr %7, align 4
+  %8 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %9 = load i64, ptr %8, align 4
+  %is_type_check9 = icmp eq i64 %9, 3
+  br i1 %is_type_check9, label %true_branch6, label %false_branch7
+
+merge_branch:                                     ; preds = %merge_branch12, %true_branch
+  %10 = phi ptr [ %number, %true_branch ], [ %number5, %merge_branch12 ]
+  %11 = getelementptr %SchemeObject, ptr %10, i32 0
+  %12 = load %SchemeObject, ptr %11, align 8
+  ret %SchemeObject %12
+
+continue_branch:                                  ; preds = %entry
+  %13 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %14 = load i64, ptr %13, align 4
+  %is_type_check = icmp eq i64 %14, 3
+  br i1 %is_type_check, label %is_cell_branch, label %false_branch2
+
+is_cell_branch:                                   ; preds = %continue_branch
+  %15 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 4
+  %16 = load ptr, ptr %15, align 8
+  %17 = icmp eq ptr %16, null
+  br i1 %17, label %is_cell_first_null_branch, label %false_branch2
+
+is_cell_first_null_branch:                        ; preds = %is_cell_branch
+  %18 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 5
+  %19 = load ptr, ptr %18, align 8
+  %20 = icmp eq ptr %19, null
+  br i1 %20, label %true_branch1, label %false_branch2
+
+true_branch1:                                     ; preds = %is_cell_first_null_branch, %entry
+  %boolean = alloca %SchemeObject, align 8
+  %21 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 0
+  store i64 1, ptr %21, align 4
+  %22 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 2
+  store i1 true, ptr %22, align 1
+  br label %merge_branch3
+
+false_branch2:                                    ; preds = %is_cell_first_null_branch, %is_cell_branch, %continue_branch
+  %boolean4 = alloca %SchemeObject, align 8
+  %23 = getelementptr %SchemeObject, ptr %boolean4, i32 0, i32 0
+  store i64 1, ptr %23, align 4
+  %24 = getelementptr %SchemeObject, ptr %boolean4, i32 0, i32 2
+  store i1 false, ptr %24, align 1
+  br label %merge_branch3
+
+merge_branch3:                                    ; preds = %false_branch2, %true_branch1
+  %25 = phi ptr [ %boolean, %true_branch1 ], [ %boolean4, %false_branch2 ]
+  %26 = getelementptr %SchemeObject, ptr %25, i32 0, i32 0
+  %27 = load i64, ptr %26, align 4
+  %28 = icmp eq i64 %27, 1
+  call void @__GLAssert(i1 %28)
+  %29 = getelementptr %SchemeObject, ptr %25, i32 0, i32 2
+  %30 = load i1, ptr %29, align 1
+  br i1 %30, label %true_branch, label %false_branch
+
+true_branch6:                                     ; preds = %false_branch
+  %31 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 4
+  %32 = load ptr, ptr %31, align 8
+  br label %merge_branch8
+
+false_branch7:                                    ; preds = %false_branch
+  %33 = phi ptr [ %variable, %false_branch ]
+  br label %merge_branch8
+
+merge_branch8:                                    ; preds = %false_branch7, %true_branch6
+  %34 = phi ptr [ %32, %true_branch6 ], [ %33, %false_branch7 ]
+  %35 = getelementptr %SchemeObject, ptr %34, i32 0, i32 0
+  %36 = load i64, ptr %35, align 4
+  %37 = icmp eq i64 %36, 0
+  call void @__GLAssert(i1 %37)
+  %38 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 1
+  %39 = load i64, ptr %38, align 4
+  %40 = getelementptr %SchemeObject, ptr %34, i32 0, i32 1
+  %41 = load i64, ptr %40, align 4
+  %42 = mul i64 %39, %41
+  %43 = sdiv i64 %42, 100
+  %44 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 1
+  store i64 %43, ptr %44, align 4
+  %45 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %46 = load i64, ptr %45, align 4
+  %is_type_check13 = icmp eq i64 %46, 3
+  br i1 %is_type_check13, label %true_branch10, label %false_branch11
+
+true_branch10:                                    ; preds = %merge_branch8
+  %47 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 5
+  %48 = load ptr, ptr %47, align 8
+  br label %merge_branch12
+
+false_branch11:                                   ; preds = %merge_branch8
+  %49 = alloca %SchemeObject, align 8
+  %50 = getelementptr %SchemeObject, ptr %49, i32 0, i32 0
+  store i64 3, ptr %50, align 4
+  %51 = getelementptr %SchemeObject, ptr %49, i32 0, i32 4
+  store ptr null, ptr %51, align 8
+  %52 = getelementptr %SchemeObject, ptr %49, i32 0, i32 5
+  store ptr null, ptr %52, align 8
+  br label %merge_branch12
+
+merge_branch12:                                   ; preds = %false_branch11, %true_branch10
+  %53 = phi ptr [ %48, %true_branch10 ], [ %49, %false_branch11 ]
+  %function_returned = alloca %SchemeObject, align 8
+  %54 = call ptr @llvm.stacksave()
+  %55 = call %SchemeObject @LambdaFunction.1(ptr %53)
+  store %SchemeObject %55, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %54)
+  %56 = getelementptr %SchemeObject, ptr %function_returned, i32 0, i32 0
+  %57 = load i64, ptr %56, align 4
+  %58 = icmp eq i64 %57, 0
+  call void @__GLAssert(i1 %58)
+  %59 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 1
+  %60 = load i64, ptr %59, align 4
+  %61 = getelementptr %SchemeObject, ptr %function_returned, i32 0, i32 1
+  %62 = load i64, ptr %61, align 4
+  %63 = mul i64 %60, %62
+  %64 = sdiv i64 %63, 100
+  %65 = getelementptr %SchemeObject, ptr %number5, i32 0, i32 1
+  store i64 %64, ptr %65, align 4
+  br label %merge_branch
+}
+
+define %SchemeObject @LambdaFunction.2(ptr %0, ptr %1, ptr %2) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %3 = getelementptr %SchemeObject, ptr %0, i32 0
+  %4 = load %SchemeObject, ptr %3, align 8
+  store %SchemeObject %4, ptr %variable, align 8
+  %variable1 = alloca %SchemeObject, align 8
+  %5 = getelementptr %SchemeObject, ptr %1, i32 0
+  %6 = load %SchemeObject, ptr %5, align 8
+  store %SchemeObject %6, ptr %variable1, align 8
+  %variable2 = alloca %SchemeObject, align 8
+  %7 = getelementptr %SchemeObject, ptr %2, i32 0
+  %8 = load %SchemeObject, ptr %7, align 8
+  store %SchemeObject %8, ptr %variable2, align 8
+  %9 = alloca %SchemeObject, align 8
+  %10 = getelementptr %SchemeObject, ptr %9, i32 0, i32 0
+  store i64 3, ptr %10, align 4
+  %11 = getelementptr %SchemeObject, ptr %9, i32 0, i32 4
+  store ptr null, ptr %11, align 8
+  %12 = getelementptr %SchemeObject, ptr %9, i32 0, i32 5
+  store ptr null, ptr %12, align 8
+  %13 = getelementptr %SchemeObject, ptr %9, i32 0, i32 4
+  store ptr %variable, ptr %13, align 8
+  %14 = alloca %SchemeObject, align 8
+  %15 = getelementptr %SchemeObject, ptr %14, i32 0, i32 0
+  store i64 3, ptr %15, align 4
+  %16 = getelementptr %SchemeObject, ptr %14, i32 0, i32 4
+  store ptr null, ptr %16, align 8
+  %17 = getelementptr %SchemeObject, ptr %14, i32 0, i32 5
+  store ptr null, ptr %17, align 8
+  %18 = getelementptr %SchemeObject, ptr %9, i32 0, i32 5
+  store ptr %14, ptr %18, align 8
+  %19 = getelementptr %SchemeObject, ptr %14, i32 0, i32 4
+  store ptr %variable1, ptr %19, align 8
+  %20 = alloca %SchemeObject, align 8
+  %21 = getelementptr %SchemeObject, ptr %20, i32 0, i32 0
+  store i64 3, ptr %21, align 4
+  %22 = getelementptr %SchemeObject, ptr %20, i32 0, i32 4
+  store ptr null, ptr %22, align 8
+  %23 = getelementptr %SchemeObject, ptr %20, i32 0, i32 5
+  store ptr null, ptr %23, align 8
+  %24 = getelementptr %SchemeObject, ptr %14, i32 0, i32 5
+  store ptr %20, ptr %24, align 8
+  %25 = getelementptr %SchemeObject, ptr %20, i32 0, i32 4
+  store ptr %variable2, ptr %25, align 8
+  %26 = alloca %SchemeObject, align 8
+  %27 = getelementptr %SchemeObject, ptr %26, i32 0, i32 0
+  store i64 3, ptr %27, align 4
+  %28 = getelementptr %SchemeObject, ptr %26, i32 0, i32 4
+  store ptr null, ptr %28, align 8
+  %29 = getelementptr %SchemeObject, ptr %26, i32 0, i32 5
+  store ptr null, ptr %29, align 8
+  %30 = getelementptr %SchemeObject, ptr %20, i32 0, i32 5
+  store ptr %26, ptr %30, align 8
+  %31 = getelementptr %SchemeObject, ptr %20, i32 0, i32 5
+  store ptr null, ptr %31, align 8
+  %32 = getelementptr %SchemeObject, ptr %9, i32 0
+  %33 = load %SchemeObject, ptr %32, align 8
+  ret %SchemeObject %33
+}
+
+define %SchemeObject @LambdaFunction.3(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %3 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %4 = load i64, ptr %3, align 4
+  %is_type_check = icmp eq i64 %4, 3
+  br i1 %is_type_check, label %true_branch, label %false_branch
+
+true_branch:                                      ; preds = %entry
+  %5 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 4
+  %6 = load ptr, ptr %5, align 8
+  br label %merge_branch
+
+false_branch:                                     ; preds = %entry
+  %7 = phi ptr [ %variable, %entry ]
+  br label %merge_branch
+
+merge_branch:                                     ; preds = %false_branch, %true_branch
+  %8 = phi ptr [ %6, %true_branch ], [ %7, %false_branch ]
+  %9 = getelementptr %SchemeObject, ptr %8, i32 0
+  %10 = load %SchemeObject, ptr %9, align 8
+  ret %SchemeObject %10
+}
+
+define %SchemeObject @LambdaFunction.4(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %3 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %4 = load i64, ptr %3, align 4
+  %is_type_check = icmp eq i64 %4, 3
+  br i1 %is_type_check, label %true_branch1, label %false_branch2
+
+true_branch:                                      ; preds = %merge_branch3
+  %5 = getelementptr %SchemeObject, ptr %17, i32 0, i32 4
+  %6 = load ptr, ptr %5, align 8
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch3
+  %7 = phi ptr [ %17, %merge_branch3 ]
+  br label %merge_branch
+
+merge_branch:                                     ; preds = %false_branch, %true_branch
+  %8 = phi ptr [ %6, %true_branch ], [ %7, %false_branch ]
+  %9 = getelementptr %SchemeObject, ptr %8, i32 0
+  %10 = load %SchemeObject, ptr %9, align 8
+  ret %SchemeObject %10
+
+true_branch1:                                     ; preds = %entry
+  %11 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 5
+  %12 = load ptr, ptr %11, align 8
+  br label %merge_branch3
+
+false_branch2:                                    ; preds = %entry
+  %13 = alloca %SchemeObject, align 8
+  %14 = getelementptr %SchemeObject, ptr %13, i32 0, i32 0
+  store i64 3, ptr %14, align 4
+  %15 = getelementptr %SchemeObject, ptr %13, i32 0, i32 4
+  store ptr null, ptr %15, align 8
+  %16 = getelementptr %SchemeObject, ptr %13, i32 0, i32 5
+  store ptr null, ptr %16, align 8
+  br label %merge_branch3
+
+merge_branch3:                                    ; preds = %false_branch2, %true_branch1
+  %17 = phi ptr [ %12, %true_branch1 ], [ %13, %false_branch2 ]
+  %18 = getelementptr %SchemeObject, ptr %17, i32 0, i32 0
+  %19 = load i64, ptr %18, align 4
+  %is_type_check4 = icmp eq i64 %19, 3
+  br i1 %is_type_check4, label %true_branch, label %false_branch
+}
+
+define %SchemeObject @LambdaFunction.5(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %3 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %4 = load i64, ptr %3, align 4
+  %is_type_check = icmp eq i64 %4, 3
+  br i1 %is_type_check, label %true_branch4, label %false_branch5
+
+true_branch:                                      ; preds = %merge_branch3
+  %5 = getelementptr %SchemeObject, ptr %17, i32 0, i32 4
+  %6 = load ptr, ptr %5, align 8
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch3
+  %7 = phi ptr [ %17, %merge_branch3 ]
+  br label %merge_branch
+
+merge_branch:                                     ; preds = %false_branch, %true_branch
+  %8 = phi ptr [ %6, %true_branch ], [ %7, %false_branch ]
+  %9 = getelementptr %SchemeObject, ptr %8, i32 0
+  %10 = load %SchemeObject, ptr %9, align 8
+  ret %SchemeObject %10
+
+true_branch1:                                     ; preds = %merge_branch6
+  %11 = getelementptr %SchemeObject, ptr %26, i32 0, i32 5
+  %12 = load ptr, ptr %11, align 8
+  br label %merge_branch3
+
+false_branch2:                                    ; preds = %merge_branch6
+  %13 = alloca %SchemeObject, align 8
+  %14 = getelementptr %SchemeObject, ptr %13, i32 0, i32 0
+  store i64 3, ptr %14, align 4
+  %15 = getelementptr %SchemeObject, ptr %13, i32 0, i32 4
+  store ptr null, ptr %15, align 8
+  %16 = getelementptr %SchemeObject, ptr %13, i32 0, i32 5
+  store ptr null, ptr %16, align 8
+  br label %merge_branch3
+
+merge_branch3:                                    ; preds = %false_branch2, %true_branch1
+  %17 = phi ptr [ %12, %true_branch1 ], [ %13, %false_branch2 ]
+  %18 = getelementptr %SchemeObject, ptr %17, i32 0, i32 0
+  %19 = load i64, ptr %18, align 4
+  %is_type_check8 = icmp eq i64 %19, 3
+  br i1 %is_type_check8, label %true_branch, label %false_branch
+
+true_branch4:                                     ; preds = %entry
+  %20 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 5
+  %21 = load ptr, ptr %20, align 8
+  br label %merge_branch6
+
+false_branch5:                                    ; preds = %entry
+  %22 = alloca %SchemeObject, align 8
+  %23 = getelementptr %SchemeObject, ptr %22, i32 0, i32 0
+  store i64 3, ptr %23, align 4
+  %24 = getelementptr %SchemeObject, ptr %22, i32 0, i32 4
+  store ptr null, ptr %24, align 8
+  %25 = getelementptr %SchemeObject, ptr %22, i32 0, i32 5
+  store ptr null, ptr %25, align 8
+  br label %merge_branch6
+
+merge_branch6:                                    ; preds = %false_branch5, %true_branch4
+  %26 = phi ptr [ %21, %true_branch4 ], [ %22, %false_branch5 ]
+  %27 = getelementptr %SchemeObject, ptr %26, i32 0, i32 0
+  %28 = load i64, ptr %27, align 4
+  %is_type_check7 = icmp eq i64 %28, 3
+  br i1 %is_type_check7, label %true_branch1, label %false_branch2
+}
+
+define %SchemeObject @LambdaFunction.6(ptr %0, ptr %1) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %2 = getelementptr %SchemeObject, ptr %0, i32 0
+  %3 = load %SchemeObject, ptr %2, align 8
+  store %SchemeObject %3, ptr %variable, align 8
+  %variable1 = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %1, i32 0
+  %5 = load %SchemeObject, ptr %4, align 8
+  store %SchemeObject %5, ptr %variable1, align 8
+  %6 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %7 = load i64, ptr %6, align 4
+  %is_type_check = icmp eq i64 %7, 3
+  br i1 %is_type_check, label %true_branch2, label %false_branch3
+
+true_branch:                                      ; preds = %merge_branch4
+  %number = alloca %SchemeObject, align 8
+  %8 = getelementptr %SchemeObject, ptr %number, i32 0, i32 0
+  store i64 0, ptr %8, align 4
+  %9 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 0, ptr %9, align 4
+  %function_returned = alloca %SchemeObject, align 8
+  %10 = call ptr @llvm.stacksave()
+  %11 = call %SchemeObject @LambdaFunction.3(ptr %variable)
+  store %SchemeObject %11, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %10)
+  %12 = getelementptr %SchemeObject, ptr %function_returned, i32 0, i32 0
+  %13 = load i64, ptr %12, align 4
+  %14 = icmp eq i64 %13, 0
+  call void @__GLAssert(i1 %14)
+  %15 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  %16 = load i64, ptr %15, align 4
+  %17 = getelementptr %SchemeObject, ptr %function_returned, i32 0, i32 1
+  %18 = load i64, ptr %17, align 4
+  %19 = add i64 %16, %18
+  %20 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 %19, ptr %20, align 4
+  %function_returned6 = alloca %SchemeObject, align 8
+  %21 = call ptr @llvm.stacksave()
+  %22 = call %SchemeObject @LambdaFunction.3(ptr %variable1)
+  store %SchemeObject %22, ptr %function_returned6, align 8
+  call void @llvm.stackrestore(ptr %21)
+  %23 = getelementptr %SchemeObject, ptr %function_returned6, i32 0, i32 0
+  %24 = load i64, ptr %23, align 4
+  %25 = icmp eq i64 %24, 0
+  call void @__GLAssert(i1 %25)
+  %26 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  %27 = load i64, ptr %26, align 4
+  %28 = getelementptr %SchemeObject, ptr %function_returned6, i32 0, i32 1
+  %29 = load i64, ptr %28, align 4
+  %30 = add i64 %27, %29
+  %31 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 %30, ptr %31, align 4
+  %number7 = alloca %SchemeObject, align 8
+  %32 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 0
+  store i64 0, ptr %32, align 4
+  %33 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  store i64 0, ptr %33, align 4
+  %function_returned8 = alloca %SchemeObject, align 8
+  %34 = call ptr @llvm.stacksave()
+  %35 = call %SchemeObject @LambdaFunction.4(ptr %variable)
+  store %SchemeObject %35, ptr %function_returned8, align 8
+  call void @llvm.stackrestore(ptr %34)
+  %36 = getelementptr %SchemeObject, ptr %function_returned8, i32 0, i32 0
+  %37 = load i64, ptr %36, align 4
+  %38 = icmp eq i64 %37, 0
+  call void @__GLAssert(i1 %38)
+  %39 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  %40 = load i64, ptr %39, align 4
+  %41 = getelementptr %SchemeObject, ptr %function_returned8, i32 0, i32 1
+  %42 = load i64, ptr %41, align 4
+  %43 = add i64 %40, %42
+  %44 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  store i64 %43, ptr %44, align 4
+  %function_returned9 = alloca %SchemeObject, align 8
+  %45 = call ptr @llvm.stacksave()
+  %46 = call %SchemeObject @LambdaFunction.4(ptr %variable1)
+  store %SchemeObject %46, ptr %function_returned9, align 8
+  call void @llvm.stackrestore(ptr %45)
+  %47 = getelementptr %SchemeObject, ptr %function_returned9, i32 0, i32 0
+  %48 = load i64, ptr %47, align 4
+  %49 = icmp eq i64 %48, 0
+  call void @__GLAssert(i1 %49)
+  %50 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  %51 = load i64, ptr %50, align 4
+  %52 = getelementptr %SchemeObject, ptr %function_returned9, i32 0, i32 1
+  %53 = load i64, ptr %52, align 4
+  %54 = add i64 %51, %53
+  %55 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  store i64 %54, ptr %55, align 4
+  %number10 = alloca %SchemeObject, align 8
+  %56 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 0
+  store i64 0, ptr %56, align 4
+  %57 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 0, ptr %57, align 4
+  %function_returned11 = alloca %SchemeObject, align 8
+  %58 = call ptr @llvm.stacksave()
+  %59 = call %SchemeObject @LambdaFunction.5(ptr %variable)
+  store %SchemeObject %59, ptr %function_returned11, align 8
+  call void @llvm.stackrestore(ptr %58)
+  %60 = getelementptr %SchemeObject, ptr %function_returned11, i32 0, i32 0
+  %61 = load i64, ptr %60, align 4
+  %62 = icmp eq i64 %61, 0
+  call void @__GLAssert(i1 %62)
+  %63 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  %64 = load i64, ptr %63, align 4
+  %65 = getelementptr %SchemeObject, ptr %function_returned11, i32 0, i32 1
+  %66 = load i64, ptr %65, align 4
+  %67 = add i64 %64, %66
+  %68 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 %67, ptr %68, align 4
+  %function_returned12 = alloca %SchemeObject, align 8
+  %69 = call ptr @llvm.stacksave()
+  %70 = call %SchemeObject @LambdaFunction.5(ptr %variable1)
+  store %SchemeObject %70, ptr %function_returned12, align 8
+  call void @llvm.stackrestore(ptr %69)
+  %71 = getelementptr %SchemeObject, ptr %function_returned12, i32 0, i32 0
+  %72 = load i64, ptr %71, align 4
+  %73 = icmp eq i64 %72, 0
+  call void @__GLAssert(i1 %73)
+  %74 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  %75 = load i64, ptr %74, align 4
+  %76 = getelementptr %SchemeObject, ptr %function_returned12, i32 0, i32 1
+  %77 = load i64, ptr %76, align 4
+  %78 = add i64 %75, %77
+  %79 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 %78, ptr %79, align 4
+  %function_returned13 = alloca %SchemeObject, align 8
+  %80 = call ptr @llvm.stacksave()
+  %81 = call %SchemeObject @LambdaFunction.2(ptr %number, ptr %number7, ptr %number10)
+  store %SchemeObject %81, ptr %function_returned13, align 8
+  call void @llvm.stackrestore(ptr %80)
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch4
+  %number14 = alloca %SchemeObject, align 8
+  %82 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 0
+  store i64 0, ptr %82, align 4
+  %83 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  store i64 0, ptr %83, align 4
+  %function_returned15 = alloca %SchemeObject, align 8
+  %84 = call ptr @llvm.stacksave()
+  %85 = call %SchemeObject @LambdaFunction.3(ptr %variable)
+  store %SchemeObject %85, ptr %function_returned15, align 8
+  call void @llvm.stackrestore(ptr %84)
+  %86 = getelementptr %SchemeObject, ptr %function_returned15, i32 0, i32 0
+  %87 = load i64, ptr %86, align 4
+  %88 = icmp eq i64 %87, 0
+  call void @__GLAssert(i1 %88)
+  %89 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  %90 = load i64, ptr %89, align 4
+  %91 = getelementptr %SchemeObject, ptr %function_returned15, i32 0, i32 1
+  %92 = load i64, ptr %91, align 4
+  %93 = add i64 %90, %92
+  %94 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  store i64 %93, ptr %94, align 4
+  %95 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %96 = load i64, ptr %95, align 4
+  %97 = icmp eq i64 %96, 0
+  call void @__GLAssert(i1 %97)
+  %98 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  %99 = load i64, ptr %98, align 4
+  %100 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 1
+  %101 = load i64, ptr %100, align 4
+  %102 = add i64 %99, %101
+  %103 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  store i64 %102, ptr %103, align 4
+  %number16 = alloca %SchemeObject, align 8
+  %104 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 0
+  store i64 0, ptr %104, align 4
+  %105 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  store i64 0, ptr %105, align 4
+  %function_returned17 = alloca %SchemeObject, align 8
+  %106 = call ptr @llvm.stacksave()
+  %107 = call %SchemeObject @LambdaFunction.4(ptr %variable)
+  store %SchemeObject %107, ptr %function_returned17, align 8
+  call void @llvm.stackrestore(ptr %106)
+  %108 = getelementptr %SchemeObject, ptr %function_returned17, i32 0, i32 0
+  %109 = load i64, ptr %108, align 4
+  %110 = icmp eq i64 %109, 0
+  call void @__GLAssert(i1 %110)
+  %111 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  %112 = load i64, ptr %111, align 4
+  %113 = getelementptr %SchemeObject, ptr %function_returned17, i32 0, i32 1
+  %114 = load i64, ptr %113, align 4
+  %115 = add i64 %112, %114
+  %116 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  store i64 %115, ptr %116, align 4
+  %117 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %118 = load i64, ptr %117, align 4
+  %119 = icmp eq i64 %118, 0
+  call void @__GLAssert(i1 %119)
+  %120 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  %121 = load i64, ptr %120, align 4
+  %122 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 1
+  %123 = load i64, ptr %122, align 4
+  %124 = add i64 %121, %123
+  %125 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  store i64 %124, ptr %125, align 4
+  %number18 = alloca %SchemeObject, align 8
+  %126 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 0
+  store i64 0, ptr %126, align 4
+  %127 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  store i64 0, ptr %127, align 4
+  %function_returned19 = alloca %SchemeObject, align 8
+  %128 = call ptr @llvm.stacksave()
+  %129 = call %SchemeObject @LambdaFunction.5(ptr %variable)
+  store %SchemeObject %129, ptr %function_returned19, align 8
+  call void @llvm.stackrestore(ptr %128)
+  %130 = getelementptr %SchemeObject, ptr %function_returned19, i32 0, i32 0
+  %131 = load i64, ptr %130, align 4
+  %132 = icmp eq i64 %131, 0
+  call void @__GLAssert(i1 %132)
+  %133 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  %134 = load i64, ptr %133, align 4
+  %135 = getelementptr %SchemeObject, ptr %function_returned19, i32 0, i32 1
+  %136 = load i64, ptr %135, align 4
+  %137 = add i64 %134, %136
+  %138 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  store i64 %137, ptr %138, align 4
+  %139 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %140 = load i64, ptr %139, align 4
+  %141 = icmp eq i64 %140, 0
+  call void @__GLAssert(i1 %141)
+  %142 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  %143 = load i64, ptr %142, align 4
+  %144 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 1
+  %145 = load i64, ptr %144, align 4
+  %146 = add i64 %143, %145
+  %147 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  store i64 %146, ptr %147, align 4
+  %function_returned20 = alloca %SchemeObject, align 8
+  %148 = call ptr @llvm.stacksave()
+  %149 = call %SchemeObject @LambdaFunction.2(ptr %number14, ptr %number16, ptr %number18)
+  store %SchemeObject %149, ptr %function_returned20, align 8
+  call void @llvm.stackrestore(ptr %148)
+  br label %merge_branch
+
+merge_branch:                                     ; preds = %false_branch, %true_branch
+  %150 = phi ptr [ %function_returned13, %true_branch ], [ %function_returned20, %false_branch ]
+  %151 = getelementptr %SchemeObject, ptr %150, i32 0
+  %152 = load %SchemeObject, ptr %151, align 8
+  ret %SchemeObject %152
+
+true_branch2:                                     ; preds = %entry
+  %boolean = alloca %SchemeObject, align 8
+  %153 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 0
+  store i64 1, ptr %153, align 4
+  %154 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 2
+  store i1 true, ptr %154, align 1
+  br label %merge_branch4
+
+false_branch3:                                    ; preds = %entry
+  %boolean5 = alloca %SchemeObject, align 8
+  %155 = getelementptr %SchemeObject, ptr %boolean5, i32 0, i32 0
+  store i64 1, ptr %155, align 4
+  %156 = getelementptr %SchemeObject, ptr %boolean5, i32 0, i32 2
+  store i1 false, ptr %156, align 1
+  br label %merge_branch4
+
+merge_branch4:                                    ; preds = %false_branch3, %true_branch2
+  %157 = phi ptr [ %boolean, %true_branch2 ], [ %boolean5, %false_branch3 ]
+  %158 = getelementptr %SchemeObject, ptr %157, i32 0, i32 0
+  %159 = load i64, ptr %158, align 4
+  %160 = icmp eq i64 %159, 1
+  call void @__GLAssert(i1 %160)
+  %161 = getelementptr %SchemeObject, ptr %157, i32 0, i32 2
+  %162 = load i1, ptr %161, align 1
+  br i1 %162, label %true_branch, label %false_branch
+}
+
+define %SchemeObject @LambdaFunction.7(ptr %0, ptr %1) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %2 = getelementptr %SchemeObject, ptr %0, i32 0
+  %3 = load %SchemeObject, ptr %2, align 8
+  store %SchemeObject %3, ptr %variable, align 8
+  %variable1 = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %1, i32 0
+  %5 = load %SchemeObject, ptr %4, align 8
+  store %SchemeObject %5, ptr %variable1, align 8
+  %6 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %7 = load i64, ptr %6, align 4
+  %is_type_check = icmp eq i64 %7, 3
+  br i1 %is_type_check, label %true_branch2, label %false_branch3
+
+true_branch:                                      ; preds = %merge_branch4
+  %number = alloca %SchemeObject, align 8
+  %8 = getelementptr %SchemeObject, ptr %number, i32 0, i32 0
+  store i64 0, ptr %8, align 4
+  %9 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 0, ptr %9, align 4
+  %function_returned = alloca %SchemeObject, align 8
+  %10 = call ptr @llvm.stacksave()
+  %11 = call %SchemeObject @LambdaFunction.3(ptr %variable)
+  store %SchemeObject %11, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %10)
+  %12 = getelementptr %SchemeObject, ptr %function_returned, i32 0, i32 0
+  %13 = load i64, ptr %12, align 4
+  %14 = icmp eq i64 %13, 0
+  call void @__GLAssert(i1 %14)
+  %15 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  %16 = load i64, ptr %15, align 4
+  %17 = getelementptr %SchemeObject, ptr %function_returned, i32 0, i32 1
+  %18 = load i64, ptr %17, align 4
+  %19 = sub i64 %16, %18
+  %20 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 %18, ptr %20, align 4
+  %function_returned6 = alloca %SchemeObject, align 8
+  %21 = call ptr @llvm.stacksave()
+  %22 = call %SchemeObject @LambdaFunction.3(ptr %variable1)
+  store %SchemeObject %22, ptr %function_returned6, align 8
+  call void @llvm.stackrestore(ptr %21)
+  %23 = getelementptr %SchemeObject, ptr %function_returned6, i32 0, i32 0
+  %24 = load i64, ptr %23, align 4
+  %25 = icmp eq i64 %24, 0
+  call void @__GLAssert(i1 %25)
+  %26 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  %27 = load i64, ptr %26, align 4
+  %28 = getelementptr %SchemeObject, ptr %function_returned6, i32 0, i32 1
+  %29 = load i64, ptr %28, align 4
+  %30 = sub i64 %27, %29
+  %31 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 %30, ptr %31, align 4
+  %number7 = alloca %SchemeObject, align 8
+  %32 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 0
+  store i64 0, ptr %32, align 4
+  %33 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  store i64 0, ptr %33, align 4
+  %function_returned8 = alloca %SchemeObject, align 8
+  %34 = call ptr @llvm.stacksave()
+  %35 = call %SchemeObject @LambdaFunction.4(ptr %variable)
+  store %SchemeObject %35, ptr %function_returned8, align 8
+  call void @llvm.stackrestore(ptr %34)
+  %36 = getelementptr %SchemeObject, ptr %function_returned8, i32 0, i32 0
+  %37 = load i64, ptr %36, align 4
+  %38 = icmp eq i64 %37, 0
+  call void @__GLAssert(i1 %38)
+  %39 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  %40 = load i64, ptr %39, align 4
+  %41 = getelementptr %SchemeObject, ptr %function_returned8, i32 0, i32 1
+  %42 = load i64, ptr %41, align 4
+  %43 = sub i64 %40, %42
+  %44 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  store i64 %42, ptr %44, align 4
+  %function_returned9 = alloca %SchemeObject, align 8
+  %45 = call ptr @llvm.stacksave()
+  %46 = call %SchemeObject @LambdaFunction.4(ptr %variable1)
+  store %SchemeObject %46, ptr %function_returned9, align 8
+  call void @llvm.stackrestore(ptr %45)
+  %47 = getelementptr %SchemeObject, ptr %function_returned9, i32 0, i32 0
+  %48 = load i64, ptr %47, align 4
+  %49 = icmp eq i64 %48, 0
+  call void @__GLAssert(i1 %49)
+  %50 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  %51 = load i64, ptr %50, align 4
+  %52 = getelementptr %SchemeObject, ptr %function_returned9, i32 0, i32 1
+  %53 = load i64, ptr %52, align 4
+  %54 = sub i64 %51, %53
+  %55 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  store i64 %54, ptr %55, align 4
+  %number10 = alloca %SchemeObject, align 8
+  %56 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 0
+  store i64 0, ptr %56, align 4
+  %57 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 0, ptr %57, align 4
+  %function_returned11 = alloca %SchemeObject, align 8
+  %58 = call ptr @llvm.stacksave()
+  %59 = call %SchemeObject @LambdaFunction.5(ptr %variable)
+  store %SchemeObject %59, ptr %function_returned11, align 8
+  call void @llvm.stackrestore(ptr %58)
+  %60 = getelementptr %SchemeObject, ptr %function_returned11, i32 0, i32 0
+  %61 = load i64, ptr %60, align 4
+  %62 = icmp eq i64 %61, 0
+  call void @__GLAssert(i1 %62)
+  %63 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  %64 = load i64, ptr %63, align 4
+  %65 = getelementptr %SchemeObject, ptr %function_returned11, i32 0, i32 1
+  %66 = load i64, ptr %65, align 4
+  %67 = sub i64 %64, %66
+  %68 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 %66, ptr %68, align 4
+  %function_returned12 = alloca %SchemeObject, align 8
+  %69 = call ptr @llvm.stacksave()
+  %70 = call %SchemeObject @LambdaFunction.5(ptr %variable1)
+  store %SchemeObject %70, ptr %function_returned12, align 8
+  call void @llvm.stackrestore(ptr %69)
+  %71 = getelementptr %SchemeObject, ptr %function_returned12, i32 0, i32 0
+  %72 = load i64, ptr %71, align 4
+  %73 = icmp eq i64 %72, 0
+  call void @__GLAssert(i1 %73)
+  %74 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  %75 = load i64, ptr %74, align 4
+  %76 = getelementptr %SchemeObject, ptr %function_returned12, i32 0, i32 1
+  %77 = load i64, ptr %76, align 4
+  %78 = sub i64 %75, %77
+  %79 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 %78, ptr %79, align 4
+  %function_returned13 = alloca %SchemeObject, align 8
+  %80 = call ptr @llvm.stacksave()
+  %81 = call %SchemeObject @LambdaFunction.2(ptr %number, ptr %number7, ptr %number10)
+  store %SchemeObject %81, ptr %function_returned13, align 8
+  call void @llvm.stackrestore(ptr %80)
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch4
+  %number14 = alloca %SchemeObject, align 8
+  %82 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 0
+  store i64 0, ptr %82, align 4
+  %83 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  store i64 0, ptr %83, align 4
+  %function_returned15 = alloca %SchemeObject, align 8
+  %84 = call ptr @llvm.stacksave()
+  %85 = call %SchemeObject @LambdaFunction.3(ptr %variable)
+  store %SchemeObject %85, ptr %function_returned15, align 8
+  call void @llvm.stackrestore(ptr %84)
+  %86 = getelementptr %SchemeObject, ptr %function_returned15, i32 0, i32 0
+  %87 = load i64, ptr %86, align 4
+  %88 = icmp eq i64 %87, 0
+  call void @__GLAssert(i1 %88)
+  %89 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  %90 = load i64, ptr %89, align 4
+  %91 = getelementptr %SchemeObject, ptr %function_returned15, i32 0, i32 1
+  %92 = load i64, ptr %91, align 4
+  %93 = sub i64 %90, %92
+  %94 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  store i64 %92, ptr %94, align 4
+  %95 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %96 = load i64, ptr %95, align 4
+  %97 = icmp eq i64 %96, 0
+  call void @__GLAssert(i1 %97)
+  %98 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  %99 = load i64, ptr %98, align 4
+  %100 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 1
+  %101 = load i64, ptr %100, align 4
+  %102 = sub i64 %99, %101
+  %103 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  store i64 %102, ptr %103, align 4
+  %number16 = alloca %SchemeObject, align 8
+  %104 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 0
+  store i64 0, ptr %104, align 4
+  %105 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  store i64 0, ptr %105, align 4
+  %function_returned17 = alloca %SchemeObject, align 8
+  %106 = call ptr @llvm.stacksave()
+  %107 = call %SchemeObject @LambdaFunction.4(ptr %variable)
+  store %SchemeObject %107, ptr %function_returned17, align 8
+  call void @llvm.stackrestore(ptr %106)
+  %108 = getelementptr %SchemeObject, ptr %function_returned17, i32 0, i32 0
+  %109 = load i64, ptr %108, align 4
+  %110 = icmp eq i64 %109, 0
+  call void @__GLAssert(i1 %110)
+  %111 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  %112 = load i64, ptr %111, align 4
+  %113 = getelementptr %SchemeObject, ptr %function_returned17, i32 0, i32 1
+  %114 = load i64, ptr %113, align 4
+  %115 = sub i64 %112, %114
+  %116 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  store i64 %114, ptr %116, align 4
+  %117 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %118 = load i64, ptr %117, align 4
+  %119 = icmp eq i64 %118, 0
+  call void @__GLAssert(i1 %119)
+  %120 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  %121 = load i64, ptr %120, align 4
+  %122 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 1
+  %123 = load i64, ptr %122, align 4
+  %124 = sub i64 %121, %123
+  %125 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  store i64 %124, ptr %125, align 4
+  %number18 = alloca %SchemeObject, align 8
+  %126 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 0
+  store i64 0, ptr %126, align 4
+  %127 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  store i64 0, ptr %127, align 4
+  %function_returned19 = alloca %SchemeObject, align 8
+  %128 = call ptr @llvm.stacksave()
+  %129 = call %SchemeObject @LambdaFunction.5(ptr %variable)
+  store %SchemeObject %129, ptr %function_returned19, align 8
+  call void @llvm.stackrestore(ptr %128)
+  %130 = getelementptr %SchemeObject, ptr %function_returned19, i32 0, i32 0
+  %131 = load i64, ptr %130, align 4
+  %132 = icmp eq i64 %131, 0
+  call void @__GLAssert(i1 %132)
+  %133 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  %134 = load i64, ptr %133, align 4
+  %135 = getelementptr %SchemeObject, ptr %function_returned19, i32 0, i32 1
+  %136 = load i64, ptr %135, align 4
+  %137 = sub i64 %134, %136
+  %138 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  store i64 %136, ptr %138, align 4
+  %139 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %140 = load i64, ptr %139, align 4
+  %141 = icmp eq i64 %140, 0
+  call void @__GLAssert(i1 %141)
+  %142 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  %143 = load i64, ptr %142, align 4
+  %144 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 1
+  %145 = load i64, ptr %144, align 4
+  %146 = sub i64 %143, %145
+  %147 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  store i64 %146, ptr %147, align 4
+  %function_returned20 = alloca %SchemeObject, align 8
+  %148 = call ptr @llvm.stacksave()
+  %149 = call %SchemeObject @LambdaFunction.2(ptr %number14, ptr %number16, ptr %number18)
+  store %SchemeObject %149, ptr %function_returned20, align 8
+  call void @llvm.stackrestore(ptr %148)
+  br label %merge_branch
+
+merge_branch:                                     ; preds = %false_branch, %true_branch
+  %150 = phi ptr [ %function_returned13, %true_branch ], [ %function_returned20, %false_branch ]
+  %151 = getelementptr %SchemeObject, ptr %150, i32 0
+  %152 = load %SchemeObject, ptr %151, align 8
+  ret %SchemeObject %152
+
+true_branch2:                                     ; preds = %entry
+  %boolean = alloca %SchemeObject, align 8
+  %153 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 0
+  store i64 1, ptr %153, align 4
+  %154 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 2
+  store i1 true, ptr %154, align 1
+  br label %merge_branch4
+
+false_branch3:                                    ; preds = %entry
+  %boolean5 = alloca %SchemeObject, align 8
+  %155 = getelementptr %SchemeObject, ptr %boolean5, i32 0, i32 0
+  store i64 1, ptr %155, align 4
+  %156 = getelementptr %SchemeObject, ptr %boolean5, i32 0, i32 2
+  store i1 false, ptr %156, align 1
+  br label %merge_branch4
+
+merge_branch4:                                    ; preds = %false_branch3, %true_branch2
+  %157 = phi ptr [ %boolean, %true_branch2 ], [ %boolean5, %false_branch3 ]
+  %158 = getelementptr %SchemeObject, ptr %157, i32 0, i32 0
+  %159 = load i64, ptr %158, align 4
+  %160 = icmp eq i64 %159, 1
+  call void @__GLAssert(i1 %160)
+  %161 = getelementptr %SchemeObject, ptr %157, i32 0, i32 2
+  %162 = load i1, ptr %161, align 1
+  br i1 %162, label %true_branch, label %false_branch
+}
+
+define %SchemeObject @LambdaFunction.8(ptr %0, ptr %1) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %2 = getelementptr %SchemeObject, ptr %0, i32 0
+  %3 = load %SchemeObject, ptr %2, align 8
+  store %SchemeObject %3, ptr %variable, align 8
+  %variable1 = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %1, i32 0
+  %5 = load %SchemeObject, ptr %4, align 8
+  store %SchemeObject %5, ptr %variable1, align 8
+  %6 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %7 = load i64, ptr %6, align 4
+  %is_type_check = icmp eq i64 %7, 3
+  br i1 %is_type_check, label %true_branch2, label %false_branch3
+
+true_branch:                                      ; preds = %merge_branch4
+  %number = alloca %SchemeObject, align 8
+  %8 = getelementptr %SchemeObject, ptr %number, i32 0, i32 0
+  store i64 0, ptr %8, align 4
+  %9 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 100, ptr %9, align 4
+  %function_returned = alloca %SchemeObject, align 8
+  %10 = call ptr @llvm.stacksave()
+  %11 = call %SchemeObject @LambdaFunction.3(ptr %variable)
+  store %SchemeObject %11, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %10)
+  %12 = getelementptr %SchemeObject, ptr %function_returned, i32 0, i32 0
+  %13 = load i64, ptr %12, align 4
+  %14 = icmp eq i64 %13, 0
+  call void @__GLAssert(i1 %14)
+  %15 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  %16 = load i64, ptr %15, align 4
+  %17 = getelementptr %SchemeObject, ptr %function_returned, i32 0, i32 1
+  %18 = load i64, ptr %17, align 4
+  %19 = mul i64 %16, %18
+  %20 = sdiv i64 %19, 100
+  %21 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 %20, ptr %21, align 4
+  %function_returned6 = alloca %SchemeObject, align 8
+  %22 = call ptr @llvm.stacksave()
+  %23 = call %SchemeObject @LambdaFunction.3(ptr %variable1)
+  store %SchemeObject %23, ptr %function_returned6, align 8
+  call void @llvm.stackrestore(ptr %22)
+  %24 = getelementptr %SchemeObject, ptr %function_returned6, i32 0, i32 0
+  %25 = load i64, ptr %24, align 4
+  %26 = icmp eq i64 %25, 0
+  call void @__GLAssert(i1 %26)
+  %27 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  %28 = load i64, ptr %27, align 4
+  %29 = getelementptr %SchemeObject, ptr %function_returned6, i32 0, i32 1
+  %30 = load i64, ptr %29, align 4
+  %31 = mul i64 %28, %30
+  %32 = sdiv i64 %31, 100
+  %33 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 %32, ptr %33, align 4
+  %number7 = alloca %SchemeObject, align 8
+  %34 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 0
+  store i64 0, ptr %34, align 4
+  %35 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  store i64 100, ptr %35, align 4
+  %function_returned8 = alloca %SchemeObject, align 8
+  %36 = call ptr @llvm.stacksave()
+  %37 = call %SchemeObject @LambdaFunction.4(ptr %variable)
+  store %SchemeObject %37, ptr %function_returned8, align 8
+  call void @llvm.stackrestore(ptr %36)
+  %38 = getelementptr %SchemeObject, ptr %function_returned8, i32 0, i32 0
+  %39 = load i64, ptr %38, align 4
+  %40 = icmp eq i64 %39, 0
+  call void @__GLAssert(i1 %40)
+  %41 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  %42 = load i64, ptr %41, align 4
+  %43 = getelementptr %SchemeObject, ptr %function_returned8, i32 0, i32 1
+  %44 = load i64, ptr %43, align 4
+  %45 = mul i64 %42, %44
+  %46 = sdiv i64 %45, 100
+  %47 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  store i64 %46, ptr %47, align 4
+  %function_returned9 = alloca %SchemeObject, align 8
+  %48 = call ptr @llvm.stacksave()
+  %49 = call %SchemeObject @LambdaFunction.4(ptr %variable1)
+  store %SchemeObject %49, ptr %function_returned9, align 8
+  call void @llvm.stackrestore(ptr %48)
+  %50 = getelementptr %SchemeObject, ptr %function_returned9, i32 0, i32 0
+  %51 = load i64, ptr %50, align 4
+  %52 = icmp eq i64 %51, 0
+  call void @__GLAssert(i1 %52)
+  %53 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  %54 = load i64, ptr %53, align 4
+  %55 = getelementptr %SchemeObject, ptr %function_returned9, i32 0, i32 1
+  %56 = load i64, ptr %55, align 4
+  %57 = mul i64 %54, %56
+  %58 = sdiv i64 %57, 100
+  %59 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  store i64 %58, ptr %59, align 4
+  %number10 = alloca %SchemeObject, align 8
+  %60 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 0
+  store i64 0, ptr %60, align 4
+  %61 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 100, ptr %61, align 4
+  %function_returned11 = alloca %SchemeObject, align 8
+  %62 = call ptr @llvm.stacksave()
+  %63 = call %SchemeObject @LambdaFunction.5(ptr %variable)
+  store %SchemeObject %63, ptr %function_returned11, align 8
+  call void @llvm.stackrestore(ptr %62)
+  %64 = getelementptr %SchemeObject, ptr %function_returned11, i32 0, i32 0
+  %65 = load i64, ptr %64, align 4
+  %66 = icmp eq i64 %65, 0
+  call void @__GLAssert(i1 %66)
+  %67 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  %68 = load i64, ptr %67, align 4
+  %69 = getelementptr %SchemeObject, ptr %function_returned11, i32 0, i32 1
+  %70 = load i64, ptr %69, align 4
+  %71 = mul i64 %68, %70
+  %72 = sdiv i64 %71, 100
+  %73 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 %72, ptr %73, align 4
+  %function_returned12 = alloca %SchemeObject, align 8
+  %74 = call ptr @llvm.stacksave()
+  %75 = call %SchemeObject @LambdaFunction.5(ptr %variable1)
+  store %SchemeObject %75, ptr %function_returned12, align 8
+  call void @llvm.stackrestore(ptr %74)
+  %76 = getelementptr %SchemeObject, ptr %function_returned12, i32 0, i32 0
+  %77 = load i64, ptr %76, align 4
+  %78 = icmp eq i64 %77, 0
+  call void @__GLAssert(i1 %78)
+  %79 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  %80 = load i64, ptr %79, align 4
+  %81 = getelementptr %SchemeObject, ptr %function_returned12, i32 0, i32 1
+  %82 = load i64, ptr %81, align 4
+  %83 = mul i64 %80, %82
+  %84 = sdiv i64 %83, 100
+  %85 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 %84, ptr %85, align 4
+  %function_returned13 = alloca %SchemeObject, align 8
+  %86 = call ptr @llvm.stacksave()
+  %87 = call %SchemeObject @LambdaFunction.2(ptr %number, ptr %number7, ptr %number10)
+  store %SchemeObject %87, ptr %function_returned13, align 8
+  call void @llvm.stackrestore(ptr %86)
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch4
+  %number14 = alloca %SchemeObject, align 8
+  %88 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 0
+  store i64 0, ptr %88, align 4
+  %89 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  store i64 100, ptr %89, align 4
+  %function_returned15 = alloca %SchemeObject, align 8
+  %90 = call ptr @llvm.stacksave()
+  %91 = call %SchemeObject @LambdaFunction.3(ptr %variable)
+  store %SchemeObject %91, ptr %function_returned15, align 8
+  call void @llvm.stackrestore(ptr %90)
+  %92 = getelementptr %SchemeObject, ptr %function_returned15, i32 0, i32 0
+  %93 = load i64, ptr %92, align 4
+  %94 = icmp eq i64 %93, 0
+  call void @__GLAssert(i1 %94)
+  %95 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  %96 = load i64, ptr %95, align 4
+  %97 = getelementptr %SchemeObject, ptr %function_returned15, i32 0, i32 1
+  %98 = load i64, ptr %97, align 4
+  %99 = mul i64 %96, %98
+  %100 = sdiv i64 %99, 100
+  %101 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  store i64 %100, ptr %101, align 4
+  %102 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %103 = load i64, ptr %102, align 4
+  %104 = icmp eq i64 %103, 0
+  call void @__GLAssert(i1 %104)
+  %105 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  %106 = load i64, ptr %105, align 4
+  %107 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 1
+  %108 = load i64, ptr %107, align 4
+  %109 = mul i64 %106, %108
+  %110 = sdiv i64 %109, 100
+  %111 = getelementptr %SchemeObject, ptr %number14, i32 0, i32 1
+  store i64 %110, ptr %111, align 4
+  %number16 = alloca %SchemeObject, align 8
+  %112 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 0
+  store i64 0, ptr %112, align 4
+  %113 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  store i64 100, ptr %113, align 4
+  %function_returned17 = alloca %SchemeObject, align 8
+  %114 = call ptr @llvm.stacksave()
+  %115 = call %SchemeObject @LambdaFunction.4(ptr %variable)
+  store %SchemeObject %115, ptr %function_returned17, align 8
+  call void @llvm.stackrestore(ptr %114)
+  %116 = getelementptr %SchemeObject, ptr %function_returned17, i32 0, i32 0
+  %117 = load i64, ptr %116, align 4
+  %118 = icmp eq i64 %117, 0
+  call void @__GLAssert(i1 %118)
+  %119 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  %120 = load i64, ptr %119, align 4
+  %121 = getelementptr %SchemeObject, ptr %function_returned17, i32 0, i32 1
+  %122 = load i64, ptr %121, align 4
+  %123 = mul i64 %120, %122
+  %124 = sdiv i64 %123, 100
+  %125 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  store i64 %124, ptr %125, align 4
+  %126 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %127 = load i64, ptr %126, align 4
+  %128 = icmp eq i64 %127, 0
+  call void @__GLAssert(i1 %128)
+  %129 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  %130 = load i64, ptr %129, align 4
+  %131 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 1
+  %132 = load i64, ptr %131, align 4
+  %133 = mul i64 %130, %132
+  %134 = sdiv i64 %133, 100
+  %135 = getelementptr %SchemeObject, ptr %number16, i32 0, i32 1
+  store i64 %134, ptr %135, align 4
+  %number18 = alloca %SchemeObject, align 8
+  %136 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 0
+  store i64 0, ptr %136, align 4
+  %137 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  store i64 100, ptr %137, align 4
+  %function_returned19 = alloca %SchemeObject, align 8
+  %138 = call ptr @llvm.stacksave()
+  %139 = call %SchemeObject @LambdaFunction.5(ptr %variable)
+  store %SchemeObject %139, ptr %function_returned19, align 8
+  call void @llvm.stackrestore(ptr %138)
+  %140 = getelementptr %SchemeObject, ptr %function_returned19, i32 0, i32 0
+  %141 = load i64, ptr %140, align 4
+  %142 = icmp eq i64 %141, 0
+  call void @__GLAssert(i1 %142)
+  %143 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  %144 = load i64, ptr %143, align 4
+  %145 = getelementptr %SchemeObject, ptr %function_returned19, i32 0, i32 1
+  %146 = load i64, ptr %145, align 4
+  %147 = mul i64 %144, %146
+  %148 = sdiv i64 %147, 100
+  %149 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  store i64 %148, ptr %149, align 4
+  %150 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %151 = load i64, ptr %150, align 4
+  %152 = icmp eq i64 %151, 0
+  call void @__GLAssert(i1 %152)
+  %153 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  %154 = load i64, ptr %153, align 4
+  %155 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 1
+  %156 = load i64, ptr %155, align 4
+  %157 = mul i64 %154, %156
+  %158 = sdiv i64 %157, 100
+  %159 = getelementptr %SchemeObject, ptr %number18, i32 0, i32 1
+  store i64 %158, ptr %159, align 4
+  %function_returned20 = alloca %SchemeObject, align 8
+  %160 = call ptr @llvm.stacksave()
+  %161 = call %SchemeObject @LambdaFunction.2(ptr %number14, ptr %number16, ptr %number18)
+  store %SchemeObject %161, ptr %function_returned20, align 8
+  call void @llvm.stackrestore(ptr %160)
+  br label %merge_branch
+
+merge_branch:                                     ; preds = %false_branch, %true_branch
+  %162 = phi ptr [ %function_returned13, %true_branch ], [ %function_returned20, %false_branch ]
+  %163 = getelementptr %SchemeObject, ptr %162, i32 0
+  %164 = load %SchemeObject, ptr %163, align 8
+  ret %SchemeObject %164
+
+true_branch2:                                     ; preds = %entry
+  %boolean = alloca %SchemeObject, align 8
+  %165 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 0
+  store i64 1, ptr %165, align 4
+  %166 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 2
+  store i1 true, ptr %166, align 1
+  br label %merge_branch4
+
+false_branch3:                                    ; preds = %entry
+  %boolean5 = alloca %SchemeObject, align 8
+  %167 = getelementptr %SchemeObject, ptr %boolean5, i32 0, i32 0
+  store i64 1, ptr %167, align 4
+  %168 = getelementptr %SchemeObject, ptr %boolean5, i32 0, i32 2
+  store i1 false, ptr %168, align 1
+  br label %merge_branch4
+
+merge_branch4:                                    ; preds = %false_branch3, %true_branch2
+  %169 = phi ptr [ %boolean, %true_branch2 ], [ %boolean5, %false_branch3 ]
+  %170 = getelementptr %SchemeObject, ptr %169, i32 0, i32 0
+  %171 = load i64, ptr %170, align 4
+  %172 = icmp eq i64 %171, 1
+  call void @__GLAssert(i1 %172)
+  %173 = getelementptr %SchemeObject, ptr %169, i32 0, i32 2
+  %174 = load i1, ptr %173, align 1
+  br i1 %174, label %true_branch, label %false_branch
+}
+
+define %SchemeObject @LambdaFunction.9(ptr %0, ptr %1) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %2 = getelementptr %SchemeObject, ptr %0, i32 0
+  %3 = load %SchemeObject, ptr %2, align 8
+  store %SchemeObject %3, ptr %variable, align 8
+  %variable1 = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %1, i32 0
+  %5 = load %SchemeObject, ptr %4, align 8
+  store %SchemeObject %5, ptr %variable1, align 8
+  %6 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %7 = load i64, ptr %6, align 4
+  %is_type_check = icmp eq i64 %7, 3
+  br i1 %is_type_check, label %true_branch2, label %false_branch3
+
+true_branch:                                      ; preds = %merge_branch4
+  %number = alloca %SchemeObject, align 8
+  %8 = getelementptr %SchemeObject, ptr %number, i32 0, i32 0
+  store i64 0, ptr %8, align 4
+  %9 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 100, ptr %9, align 4
+  %function_returned = alloca %SchemeObject, align 8
+  %10 = call ptr @llvm.stacksave()
+  %11 = call %SchemeObject @LambdaFunction.3(ptr %variable)
+  store %SchemeObject %11, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %10)
+  %12 = getelementptr %SchemeObject, ptr %function_returned, i32 0, i32 0
+  %13 = load i64, ptr %12, align 4
+  %14 = icmp eq i64 %13, 0
+  call void @__GLAssert(i1 %14)
+  %15 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  %16 = load i64, ptr %15, align 4
+  %17 = getelementptr %SchemeObject, ptr %function_returned, i32 0, i32 1
+  %18 = load i64, ptr %17, align 4
+  %is_zero_then_one_check = icmp ne i64 %18, 0
+  br i1 %is_zero_then_one_check, label %continue_branch, label %modify_branch
+
+false_branch:                                     ; preds = %merge_branch4
+  %number29 = alloca %SchemeObject, align 8
+  %19 = getelementptr %SchemeObject, ptr %number29, i32 0, i32 0
+  store i64 0, ptr %19, align 4
+  %20 = getelementptr %SchemeObject, ptr %number29, i32 0, i32 1
+  store i64 100, ptr %20, align 4
+  %function_returned30 = alloca %SchemeObject, align 8
+  %21 = call ptr @llvm.stacksave()
+  %22 = call %SchemeObject @LambdaFunction.3(ptr %variable)
+  store %SchemeObject %22, ptr %function_returned30, align 8
+  call void @llvm.stackrestore(ptr %21)
+  %23 = getelementptr %SchemeObject, ptr %function_returned30, i32 0, i32 0
+  %24 = load i64, ptr %23, align 4
+  %25 = icmp eq i64 %24, 0
+  call void @__GLAssert(i1 %25)
+  %26 = getelementptr %SchemeObject, ptr %number29, i32 0, i32 1
+  %27 = load i64, ptr %26, align 4
+  %28 = getelementptr %SchemeObject, ptr %function_returned30, i32 0, i32 1
+  %29 = load i64, ptr %28, align 4
+  %is_zero_then_one_check33 = icmp ne i64 %29, 0
+  br i1 %is_zero_then_one_check33, label %continue_branch32, label %modify_branch31
+
+merge_branch:                                     ; preds = %continue_branch51, %continue_branch26
+  %30 = phi ptr [ %function_returned28, %continue_branch26 ], [ %function_returned53, %continue_branch51 ]
+  %31 = getelementptr %SchemeObject, ptr %30, i32 0
+  %32 = load %SchemeObject, ptr %31, align 8
+  ret %SchemeObject %32
+
+true_branch2:                                     ; preds = %entry
+  %boolean = alloca %SchemeObject, align 8
+  %33 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 0
+  store i64 1, ptr %33, align 4
+  %34 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 2
+  store i1 true, ptr %34, align 1
+  br label %merge_branch4
+
+false_branch3:                                    ; preds = %entry
+  %boolean5 = alloca %SchemeObject, align 8
+  %35 = getelementptr %SchemeObject, ptr %boolean5, i32 0, i32 0
+  store i64 1, ptr %35, align 4
+  %36 = getelementptr %SchemeObject, ptr %boolean5, i32 0, i32 2
+  store i1 false, ptr %36, align 1
+  br label %merge_branch4
+
+merge_branch4:                                    ; preds = %false_branch3, %true_branch2
+  %37 = phi ptr [ %boolean, %true_branch2 ], [ %boolean5, %false_branch3 ]
+  %38 = getelementptr %SchemeObject, ptr %37, i32 0, i32 0
+  %39 = load i64, ptr %38, align 4
+  %40 = icmp eq i64 %39, 1
+  call void @__GLAssert(i1 %40)
+  %41 = getelementptr %SchemeObject, ptr %37, i32 0, i32 2
+  %42 = load i1, ptr %41, align 1
+  br i1 %42, label %true_branch, label %false_branch
+
+modify_branch:                                    ; preds = %true_branch
+  br label %continue_branch
+
+continue_branch:                                  ; preds = %modify_branch, %true_branch
+  %43 = phi i64 [ 1, %modify_branch ], [ %18, %true_branch ]
+  %44 = mul i64 %16, 100
+  %45 = sdiv i64 %44, %43
+  %46 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 %18, ptr %46, align 4
+  %function_returned6 = alloca %SchemeObject, align 8
+  %47 = call ptr @llvm.stacksave()
+  %48 = call %SchemeObject @LambdaFunction.3(ptr %variable1)
+  store %SchemeObject %48, ptr %function_returned6, align 8
+  call void @llvm.stackrestore(ptr %47)
+  %49 = getelementptr %SchemeObject, ptr %function_returned6, i32 0, i32 0
+  %50 = load i64, ptr %49, align 4
+  %51 = icmp eq i64 %50, 0
+  call void @__GLAssert(i1 %51)
+  %52 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  %53 = load i64, ptr %52, align 4
+  %54 = getelementptr %SchemeObject, ptr %function_returned6, i32 0, i32 1
+  %55 = load i64, ptr %54, align 4
+  %is_zero_then_one_check9 = icmp ne i64 %55, 0
+  br i1 %is_zero_then_one_check9, label %continue_branch8, label %modify_branch7
+
+modify_branch7:                                   ; preds = %continue_branch
+  br label %continue_branch8
+
+continue_branch8:                                 ; preds = %modify_branch7, %continue_branch
+  %56 = phi i64 [ 1, %modify_branch7 ], [ %55, %continue_branch ]
+  %57 = mul i64 %53, 100
+  %58 = sdiv i64 %57, %56
+  %59 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 %58, ptr %59, align 4
+  %number10 = alloca %SchemeObject, align 8
+  %60 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 0
+  store i64 0, ptr %60, align 4
+  %61 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 100, ptr %61, align 4
+  %function_returned11 = alloca %SchemeObject, align 8
+  %62 = call ptr @llvm.stacksave()
+  %63 = call %SchemeObject @LambdaFunction.4(ptr %variable)
+  store %SchemeObject %63, ptr %function_returned11, align 8
+  call void @llvm.stackrestore(ptr %62)
+  %64 = getelementptr %SchemeObject, ptr %function_returned11, i32 0, i32 0
+  %65 = load i64, ptr %64, align 4
+  %66 = icmp eq i64 %65, 0
+  call void @__GLAssert(i1 %66)
+  %67 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  %68 = load i64, ptr %67, align 4
+  %69 = getelementptr %SchemeObject, ptr %function_returned11, i32 0, i32 1
+  %70 = load i64, ptr %69, align 4
+  %is_zero_then_one_check14 = icmp ne i64 %70, 0
+  br i1 %is_zero_then_one_check14, label %continue_branch13, label %modify_branch12
+
+modify_branch12:                                  ; preds = %continue_branch8
+  br label %continue_branch13
+
+continue_branch13:                                ; preds = %modify_branch12, %continue_branch8
+  %71 = phi i64 [ 1, %modify_branch12 ], [ %70, %continue_branch8 ]
+  %72 = mul i64 %68, 100
+  %73 = sdiv i64 %72, %71
+  %74 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 %70, ptr %74, align 4
+  %function_returned15 = alloca %SchemeObject, align 8
+  %75 = call ptr @llvm.stacksave()
+  %76 = call %SchemeObject @LambdaFunction.4(ptr %variable1)
+  store %SchemeObject %76, ptr %function_returned15, align 8
+  call void @llvm.stackrestore(ptr %75)
+  %77 = getelementptr %SchemeObject, ptr %function_returned15, i32 0, i32 0
+  %78 = load i64, ptr %77, align 4
+  %79 = icmp eq i64 %78, 0
+  call void @__GLAssert(i1 %79)
+  %80 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  %81 = load i64, ptr %80, align 4
+  %82 = getelementptr %SchemeObject, ptr %function_returned15, i32 0, i32 1
+  %83 = load i64, ptr %82, align 4
+  %is_zero_then_one_check18 = icmp ne i64 %83, 0
+  br i1 %is_zero_then_one_check18, label %continue_branch17, label %modify_branch16
+
+modify_branch16:                                  ; preds = %continue_branch13
+  br label %continue_branch17
+
+continue_branch17:                                ; preds = %modify_branch16, %continue_branch13
+  %84 = phi i64 [ 1, %modify_branch16 ], [ %83, %continue_branch13 ]
+  %85 = mul i64 %81, 100
+  %86 = sdiv i64 %85, %84
+  %87 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 %86, ptr %87, align 4
+  %number19 = alloca %SchemeObject, align 8
+  %88 = getelementptr %SchemeObject, ptr %number19, i32 0, i32 0
+  store i64 0, ptr %88, align 4
+  %89 = getelementptr %SchemeObject, ptr %number19, i32 0, i32 1
+  store i64 100, ptr %89, align 4
+  %function_returned20 = alloca %SchemeObject, align 8
+  %90 = call ptr @llvm.stacksave()
+  %91 = call %SchemeObject @LambdaFunction.5(ptr %variable)
+  store %SchemeObject %91, ptr %function_returned20, align 8
+  call void @llvm.stackrestore(ptr %90)
+  %92 = getelementptr %SchemeObject, ptr %function_returned20, i32 0, i32 0
+  %93 = load i64, ptr %92, align 4
+  %94 = icmp eq i64 %93, 0
+  call void @__GLAssert(i1 %94)
+  %95 = getelementptr %SchemeObject, ptr %number19, i32 0, i32 1
+  %96 = load i64, ptr %95, align 4
+  %97 = getelementptr %SchemeObject, ptr %function_returned20, i32 0, i32 1
+  %98 = load i64, ptr %97, align 4
+  %is_zero_then_one_check23 = icmp ne i64 %98, 0
+  br i1 %is_zero_then_one_check23, label %continue_branch22, label %modify_branch21
+
+modify_branch21:                                  ; preds = %continue_branch17
+  br label %continue_branch22
+
+continue_branch22:                                ; preds = %modify_branch21, %continue_branch17
+  %99 = phi i64 [ 1, %modify_branch21 ], [ %98, %continue_branch17 ]
+  %100 = mul i64 %96, 100
+  %101 = sdiv i64 %100, %99
+  %102 = getelementptr %SchemeObject, ptr %number19, i32 0, i32 1
+  store i64 %98, ptr %102, align 4
+  %function_returned24 = alloca %SchemeObject, align 8
+  %103 = call ptr @llvm.stacksave()
+  %104 = call %SchemeObject @LambdaFunction.5(ptr %variable1)
+  store %SchemeObject %104, ptr %function_returned24, align 8
+  call void @llvm.stackrestore(ptr %103)
+  %105 = getelementptr %SchemeObject, ptr %function_returned24, i32 0, i32 0
+  %106 = load i64, ptr %105, align 4
+  %107 = icmp eq i64 %106, 0
+  call void @__GLAssert(i1 %107)
+  %108 = getelementptr %SchemeObject, ptr %number19, i32 0, i32 1
+  %109 = load i64, ptr %108, align 4
+  %110 = getelementptr %SchemeObject, ptr %function_returned24, i32 0, i32 1
+  %111 = load i64, ptr %110, align 4
+  %is_zero_then_one_check27 = icmp ne i64 %111, 0
+  br i1 %is_zero_then_one_check27, label %continue_branch26, label %modify_branch25
+
+modify_branch25:                                  ; preds = %continue_branch22
+  br label %continue_branch26
+
+continue_branch26:                                ; preds = %modify_branch25, %continue_branch22
+  %112 = phi i64 [ 1, %modify_branch25 ], [ %111, %continue_branch22 ]
+  %113 = mul i64 %109, 100
+  %114 = sdiv i64 %113, %112
+  %115 = getelementptr %SchemeObject, ptr %number19, i32 0, i32 1
+  store i64 %114, ptr %115, align 4
+  %function_returned28 = alloca %SchemeObject, align 8
+  %116 = call ptr @llvm.stacksave()
+  %117 = call %SchemeObject @LambdaFunction.2(ptr %number, ptr %number10, ptr %number19)
+  store %SchemeObject %117, ptr %function_returned28, align 8
+  call void @llvm.stackrestore(ptr %116)
+  br label %merge_branch
+
+modify_branch31:                                  ; preds = %false_branch
+  br label %continue_branch32
+
+continue_branch32:                                ; preds = %modify_branch31, %false_branch
+  %118 = phi i64 [ 1, %modify_branch31 ], [ %29, %false_branch ]
+  %119 = mul i64 %27, 100
+  %120 = sdiv i64 %119, %118
+  %121 = getelementptr %SchemeObject, ptr %number29, i32 0, i32 1
+  store i64 %29, ptr %121, align 4
+  %122 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %123 = load i64, ptr %122, align 4
+  %124 = icmp eq i64 %123, 0
+  call void @__GLAssert(i1 %124)
+  %125 = getelementptr %SchemeObject, ptr %number29, i32 0, i32 1
+  %126 = load i64, ptr %125, align 4
+  %127 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 1
+  %128 = load i64, ptr %127, align 4
+  %is_zero_then_one_check36 = icmp ne i64 %128, 0
+  br i1 %is_zero_then_one_check36, label %continue_branch35, label %modify_branch34
+
+modify_branch34:                                  ; preds = %continue_branch32
+  br label %continue_branch35
+
+continue_branch35:                                ; preds = %modify_branch34, %continue_branch32
+  %129 = phi i64 [ 1, %modify_branch34 ], [ %128, %continue_branch32 ]
+  %130 = mul i64 %126, 100
+  %131 = sdiv i64 %130, %129
+  %132 = getelementptr %SchemeObject, ptr %number29, i32 0, i32 1
+  store i64 %131, ptr %132, align 4
+  %number37 = alloca %SchemeObject, align 8
+  %133 = getelementptr %SchemeObject, ptr %number37, i32 0, i32 0
+  store i64 0, ptr %133, align 4
+  %134 = getelementptr %SchemeObject, ptr %number37, i32 0, i32 1
+  store i64 100, ptr %134, align 4
+  %function_returned38 = alloca %SchemeObject, align 8
+  %135 = call ptr @llvm.stacksave()
+  %136 = call %SchemeObject @LambdaFunction.4(ptr %variable)
+  store %SchemeObject %136, ptr %function_returned38, align 8
+  call void @llvm.stackrestore(ptr %135)
+  %137 = getelementptr %SchemeObject, ptr %function_returned38, i32 0, i32 0
+  %138 = load i64, ptr %137, align 4
+  %139 = icmp eq i64 %138, 0
+  call void @__GLAssert(i1 %139)
+  %140 = getelementptr %SchemeObject, ptr %number37, i32 0, i32 1
+  %141 = load i64, ptr %140, align 4
+  %142 = getelementptr %SchemeObject, ptr %function_returned38, i32 0, i32 1
+  %143 = load i64, ptr %142, align 4
+  %is_zero_then_one_check41 = icmp ne i64 %143, 0
+  br i1 %is_zero_then_one_check41, label %continue_branch40, label %modify_branch39
+
+modify_branch39:                                  ; preds = %continue_branch35
+  br label %continue_branch40
+
+continue_branch40:                                ; preds = %modify_branch39, %continue_branch35
+  %144 = phi i64 [ 1, %modify_branch39 ], [ %143, %continue_branch35 ]
+  %145 = mul i64 %141, 100
+  %146 = sdiv i64 %145, %144
+  %147 = getelementptr %SchemeObject, ptr %number37, i32 0, i32 1
+  store i64 %143, ptr %147, align 4
+  %148 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %149 = load i64, ptr %148, align 4
+  %150 = icmp eq i64 %149, 0
+  call void @__GLAssert(i1 %150)
+  %151 = getelementptr %SchemeObject, ptr %number37, i32 0, i32 1
+  %152 = load i64, ptr %151, align 4
+  %153 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 1
+  %154 = load i64, ptr %153, align 4
+  %is_zero_then_one_check44 = icmp ne i64 %154, 0
+  br i1 %is_zero_then_one_check44, label %continue_branch43, label %modify_branch42
+
+modify_branch42:                                  ; preds = %continue_branch40
+  br label %continue_branch43
+
+continue_branch43:                                ; preds = %modify_branch42, %continue_branch40
+  %155 = phi i64 [ 1, %modify_branch42 ], [ %154, %continue_branch40 ]
+  %156 = mul i64 %152, 100
+  %157 = sdiv i64 %156, %155
+  %158 = getelementptr %SchemeObject, ptr %number37, i32 0, i32 1
+  store i64 %157, ptr %158, align 4
+  %number45 = alloca %SchemeObject, align 8
+  %159 = getelementptr %SchemeObject, ptr %number45, i32 0, i32 0
+  store i64 0, ptr %159, align 4
+  %160 = getelementptr %SchemeObject, ptr %number45, i32 0, i32 1
+  store i64 100, ptr %160, align 4
+  %function_returned46 = alloca %SchemeObject, align 8
+  %161 = call ptr @llvm.stacksave()
+  %162 = call %SchemeObject @LambdaFunction.5(ptr %variable)
+  store %SchemeObject %162, ptr %function_returned46, align 8
+  call void @llvm.stackrestore(ptr %161)
+  %163 = getelementptr %SchemeObject, ptr %function_returned46, i32 0, i32 0
+  %164 = load i64, ptr %163, align 4
+  %165 = icmp eq i64 %164, 0
+  call void @__GLAssert(i1 %165)
+  %166 = getelementptr %SchemeObject, ptr %number45, i32 0, i32 1
+  %167 = load i64, ptr %166, align 4
+  %168 = getelementptr %SchemeObject, ptr %function_returned46, i32 0, i32 1
+  %169 = load i64, ptr %168, align 4
+  %is_zero_then_one_check49 = icmp ne i64 %169, 0
+  br i1 %is_zero_then_one_check49, label %continue_branch48, label %modify_branch47
+
+modify_branch47:                                  ; preds = %continue_branch43
+  br label %continue_branch48
+
+continue_branch48:                                ; preds = %modify_branch47, %continue_branch43
+  %170 = phi i64 [ 1, %modify_branch47 ], [ %169, %continue_branch43 ]
+  %171 = mul i64 %167, 100
+  %172 = sdiv i64 %171, %170
+  %173 = getelementptr %SchemeObject, ptr %number45, i32 0, i32 1
+  store i64 %169, ptr %173, align 4
+  %174 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 0
+  %175 = load i64, ptr %174, align 4
+  %176 = icmp eq i64 %175, 0
+  call void @__GLAssert(i1 %176)
+  %177 = getelementptr %SchemeObject, ptr %number45, i32 0, i32 1
+  %178 = load i64, ptr %177, align 4
+  %179 = getelementptr %SchemeObject, ptr %variable1, i32 0, i32 1
+  %180 = load i64, ptr %179, align 4
+  %is_zero_then_one_check52 = icmp ne i64 %180, 0
+  br i1 %is_zero_then_one_check52, label %continue_branch51, label %modify_branch50
+
+modify_branch50:                                  ; preds = %continue_branch48
+  br label %continue_branch51
+
+continue_branch51:                                ; preds = %modify_branch50, %continue_branch48
+  %181 = phi i64 [ 1, %modify_branch50 ], [ %180, %continue_branch48 ]
+  %182 = mul i64 %178, 100
+  %183 = sdiv i64 %182, %181
+  %184 = getelementptr %SchemeObject, ptr %number45, i32 0, i32 1
+  store i64 %183, ptr %184, align 4
+  %function_returned53 = alloca %SchemeObject, align 8
+  %185 = call ptr @llvm.stacksave()
+  %186 = call %SchemeObject @LambdaFunction.2(ptr %number29, ptr %number37, ptr %number45)
+  store %SchemeObject %186, ptr %function_returned53, align 8
+  call void @llvm.stackrestore(ptr %185)
+  br label %merge_branch
+}
+
+define %SchemeObject @LambdaFunction.10(ptr %0, ptr %1) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %2 = getelementptr %SchemeObject, ptr %0, i32 0
+  %3 = load %SchemeObject, ptr %2, align 8
+  store %SchemeObject %3, ptr %variable, align 8
+  %variable1 = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %1, i32 0
+  %5 = load %SchemeObject, ptr %4, align 8
+  store %SchemeObject %5, ptr %variable1, align 8
+  %function_returned = alloca %SchemeObject, align 8
+  %6 = call ptr @llvm.stacksave()
+  %7 = call %SchemeObject @LambdaFunction.8(ptr %variable, ptr %variable1)
+  store %SchemeObject %7, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %6)
+  %function_returned2 = alloca %SchemeObject, align 8
+  %8 = call ptr @llvm.stacksave()
+  %9 = call %SchemeObject @LambdaFunction(ptr %function_returned)
+  store %SchemeObject %9, ptr %function_returned2, align 8
+  call void @llvm.stackrestore(ptr %8)
+  %10 = getelementptr %SchemeObject, ptr %function_returned2, i32 0
+  %11 = load %SchemeObject, ptr %10, align 8
+  ret %SchemeObject %11
+}
+
+define %SchemeObject @LambdaFunction.11(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %function_returned = alloca %SchemeObject, align 8
+  %3 = call ptr @llvm.stacksave()
+  %4 = call %SchemeObject @LambdaFunction.10(ptr %variable, ptr %variable)
+  store %SchemeObject %4, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %3)
+  %sqrt = alloca %SchemeObject, align 8
+  %5 = call %SchemeObject @__GLSqrt(ptr %function_returned)
+  store %SchemeObject %5, ptr %sqrt, align 8
+  %6 = getelementptr %SchemeObject, ptr %sqrt, i32 0
+  %7 = load %SchemeObject, ptr %6, align 8
+  ret %SchemeObject %7
+}
+
+define %SchemeObject @LambdaFunction.12(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %function_returned = alloca %SchemeObject, align 8
+  %3 = call ptr @llvm.stacksave()
+  %4 = call %SchemeObject @LambdaFunction.11(ptr %variable)
+  store %SchemeObject %4, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %3)
+  %function_returned1 = alloca %SchemeObject, align 8
+  %5 = call ptr @llvm.stacksave()
+  %6 = call %SchemeObject @LambdaFunction.9(ptr %variable, ptr %function_returned)
+  store %SchemeObject %6, ptr %function_returned1, align 8
+  call void @llvm.stackrestore(ptr %5)
+  %7 = getelementptr %SchemeObject, ptr %function_returned1, i32 0
+  %8 = load %SchemeObject, ptr %7, align 8
+  ret %SchemeObject %8
+}
+
+define %SchemeObject @LambdaFunction.13(ptr %0, ptr %1) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %2 = getelementptr %SchemeObject, ptr %0, i32 0
+  %3 = load %SchemeObject, ptr %2, align 8
+  store %SchemeObject %3, ptr %variable, align 8
+  %variable1 = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %1, i32 0
+  %5 = load %SchemeObject, ptr %4, align 8
+  store %SchemeObject %5, ptr %variable1, align 8
+  %6 = alloca %SchemeObject, align 8
+  %7 = getelementptr %SchemeObject, ptr %6, i32 0, i32 0
+  store i64 3, ptr %7, align 4
+  %8 = getelementptr %SchemeObject, ptr %6, i32 0, i32 4
+  store ptr null, ptr %8, align 8
+  %9 = getelementptr %SchemeObject, ptr %6, i32 0, i32 5
+  store ptr null, ptr %9, align 8
+  %10 = getelementptr %SchemeObject, ptr %6, i32 0, i32 4
+  store ptr %variable, ptr %10, align 8
+  %11 = alloca %SchemeObject, align 8
+  %12 = getelementptr %SchemeObject, ptr %11, i32 0, i32 0
+  store i64 3, ptr %12, align 4
+  %13 = getelementptr %SchemeObject, ptr %11, i32 0, i32 4
+  store ptr null, ptr %13, align 8
+  %14 = getelementptr %SchemeObject, ptr %11, i32 0, i32 5
+  store ptr null, ptr %14, align 8
+  %15 = getelementptr %SchemeObject, ptr %6, i32 0, i32 5
+  store ptr %11, ptr %15, align 8
+  %16 = getelementptr %SchemeObject, ptr %11, i32 0, i32 4
+  store ptr %variable1, ptr %16, align 8
+  %17 = alloca %SchemeObject, align 8
+  %18 = getelementptr %SchemeObject, ptr %17, i32 0, i32 0
+  store i64 3, ptr %18, align 4
+  %19 = getelementptr %SchemeObject, ptr %17, i32 0, i32 4
+  store ptr null, ptr %19, align 8
+  %20 = getelementptr %SchemeObject, ptr %17, i32 0, i32 5
+  store ptr null, ptr %20, align 8
+  %21 = getelementptr %SchemeObject, ptr %11, i32 0, i32 5
+  store ptr %17, ptr %21, align 8
+  %22 = getelementptr %SchemeObject, ptr %11, i32 0, i32 5
+  store ptr null, ptr %22, align 8
+  %23 = getelementptr %SchemeObject, ptr %6, i32 0
+  %24 = load %SchemeObject, ptr %23, align 8
+  ret %SchemeObject %24
+}
+
+define %SchemeObject @LambdaFunction.14(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %3 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %4 = load i64, ptr %3, align 4
+  %is_type_check = icmp eq i64 %4, 3
+  br i1 %is_type_check, label %true_branch, label %false_branch
+
+true_branch:                                      ; preds = %entry
+  %5 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 4
+  %6 = load ptr, ptr %5, align 8
+  br label %merge_branch
+
+false_branch:                                     ; preds = %entry
+  %7 = phi ptr [ %variable, %entry ]
+  br label %merge_branch
+
+merge_branch:                                     ; preds = %false_branch, %true_branch
+  %8 = phi ptr [ %6, %true_branch ], [ %7, %false_branch ]
+  %9 = getelementptr %SchemeObject, ptr %8, i32 0
+  %10 = load %SchemeObject, ptr %9, align 8
+  ret %SchemeObject %10
+}
+
+define %SchemeObject @LambdaFunction.15(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %3 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %4 = load i64, ptr %3, align 4
+  %is_type_check = icmp eq i64 %4, 3
+  br i1 %is_type_check, label %true_branch1, label %false_branch2
+
+true_branch:                                      ; preds = %merge_branch3
+  %5 = getelementptr %SchemeObject, ptr %17, i32 0, i32 4
+  %6 = load ptr, ptr %5, align 8
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch3
+  %7 = phi ptr [ %17, %merge_branch3 ]
+  br label %merge_branch
+
+merge_branch:                                     ; preds = %false_branch, %true_branch
+  %8 = phi ptr [ %6, %true_branch ], [ %7, %false_branch ]
+  %9 = getelementptr %SchemeObject, ptr %8, i32 0
+  %10 = load %SchemeObject, ptr %9, align 8
+  ret %SchemeObject %10
+
+true_branch1:                                     ; preds = %entry
+  %11 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 5
+  %12 = load ptr, ptr %11, align 8
+  br label %merge_branch3
+
+false_branch2:                                    ; preds = %entry
+  %13 = alloca %SchemeObject, align 8
+  %14 = getelementptr %SchemeObject, ptr %13, i32 0, i32 0
+  store i64 3, ptr %14, align 4
+  %15 = getelementptr %SchemeObject, ptr %13, i32 0, i32 4
+  store ptr null, ptr %15, align 8
+  %16 = getelementptr %SchemeObject, ptr %13, i32 0, i32 5
+  store ptr null, ptr %16, align 8
+  br label %merge_branch3
+
+merge_branch3:                                    ; preds = %false_branch2, %true_branch1
+  %17 = phi ptr [ %12, %true_branch1 ], [ %13, %false_branch2 ]
+  %18 = getelementptr %SchemeObject, ptr %17, i32 0, i32 0
+  %19 = load i64, ptr %18, align 4
+  %is_type_check4 = icmp eq i64 %19, 3
+  br i1 %is_type_check4, label %true_branch, label %false_branch
+}
+
+define %SchemeObject @LambdaFunction.16(ptr %0, ptr %1) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %2 = getelementptr %SchemeObject, ptr %0, i32 0
+  %3 = load %SchemeObject, ptr %2, align 8
+  store %SchemeObject %3, ptr %variable, align 8
+  %variable1 = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %1, i32 0
+  %5 = load %SchemeObject, ptr %4, align 8
+  store %SchemeObject %5, ptr %variable1, align 8
+  %function_returned = alloca %SchemeObject, align 8
+  %6 = call ptr @llvm.stacksave()
+  %7 = call %SchemeObject @LambdaFunction.14(ptr %variable)
+  store %SchemeObject %7, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %6)
+  %function_returned2 = alloca %SchemeObject, align 8
+  %8 = call ptr @llvm.stacksave()
+  %9 = call %SchemeObject @LambdaFunction.15(ptr %variable)
+  store %SchemeObject %9, ptr %function_returned2, align 8
+  call void @llvm.stackrestore(ptr %8)
+  %function_returned3 = alloca %SchemeObject, align 8
+  %10 = call ptr @llvm.stacksave()
+  %11 = call %SchemeObject @LambdaFunction.8(ptr %function_returned2, ptr %variable1)
+  store %SchemeObject %11, ptr %function_returned3, align 8
+  call void @llvm.stackrestore(ptr %10)
+  %function_returned4 = alloca %SchemeObject, align 8
+  %12 = call ptr @llvm.stacksave()
+  %13 = call %SchemeObject @LambdaFunction.6(ptr %function_returned, ptr %function_returned3)
+  store %SchemeObject %13, ptr %function_returned4, align 8
+  call void @llvm.stackrestore(ptr %12)
+  %14 = getelementptr %SchemeObject, ptr %function_returned4, i32 0
+  %15 = load %SchemeObject, ptr %14, align 8
+  ret %SchemeObject %15
+}
+
+define %SchemeObject @LambdaFunction.17(ptr %0, ptr %1, ptr %2, ptr %3) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %0, i32 0
+  %5 = load %SchemeObject, ptr %4, align 8
+  store %SchemeObject %5, ptr %variable, align 8
+  %variable1 = alloca %SchemeObject, align 8
+  %6 = getelementptr %SchemeObject, ptr %1, i32 0
+  %7 = load %SchemeObject, ptr %6, align 8
+  store %SchemeObject %7, ptr %variable1, align 8
+  %variable2 = alloca %SchemeObject, align 8
+  %8 = getelementptr %SchemeObject, ptr %2, i32 0
+  %9 = load %SchemeObject, ptr %8, align 8
+  store %SchemeObject %9, ptr %variable2, align 8
+  %variable3 = alloca %SchemeObject, align 8
+  %10 = getelementptr %SchemeObject, ptr %3, i32 0
+  %11 = load %SchemeObject, ptr %10, align 8
+  store %SchemeObject %11, ptr %variable3, align 8
+  %12 = alloca %SchemeObject, align 8
+  %13 = getelementptr %SchemeObject, ptr %12, i32 0, i32 0
+  store i64 3, ptr %13, align 4
+  %14 = getelementptr %SchemeObject, ptr %12, i32 0, i32 4
+  store ptr null, ptr %14, align 8
+  %15 = getelementptr %SchemeObject, ptr %12, i32 0, i32 5
+  store ptr null, ptr %15, align 8
+  %16 = getelementptr %SchemeObject, ptr %12, i32 0, i32 4
+  store ptr %variable, ptr %16, align 8
+  %17 = alloca %SchemeObject, align 8
+  %18 = getelementptr %SchemeObject, ptr %17, i32 0, i32 0
+  store i64 3, ptr %18, align 4
+  %19 = getelementptr %SchemeObject, ptr %17, i32 0, i32 4
+  store ptr null, ptr %19, align 8
+  %20 = getelementptr %SchemeObject, ptr %17, i32 0, i32 5
+  store ptr null, ptr %20, align 8
+  %21 = getelementptr %SchemeObject, ptr %12, i32 0, i32 5
+  store ptr %17, ptr %21, align 8
+  %22 = getelementptr %SchemeObject, ptr %17, i32 0, i32 4
+  store ptr %variable1, ptr %22, align 8
+  %23 = alloca %SchemeObject, align 8
+  %24 = getelementptr %SchemeObject, ptr %23, i32 0, i32 0
+  store i64 3, ptr %24, align 4
+  %25 = getelementptr %SchemeObject, ptr %23, i32 0, i32 4
+  store ptr null, ptr %25, align 8
+  %26 = getelementptr %SchemeObject, ptr %23, i32 0, i32 5
+  store ptr null, ptr %26, align 8
+  %27 = getelementptr %SchemeObject, ptr %17, i32 0, i32 5
+  store ptr %23, ptr %27, align 8
+  %28 = getelementptr %SchemeObject, ptr %23, i32 0, i32 4
+  store ptr %variable2, ptr %28, align 8
+  %29 = alloca %SchemeObject, align 8
+  %30 = getelementptr %SchemeObject, ptr %29, i32 0, i32 0
+  store i64 3, ptr %30, align 4
+  %31 = getelementptr %SchemeObject, ptr %29, i32 0, i32 4
+  store ptr null, ptr %31, align 8
+  %32 = getelementptr %SchemeObject, ptr %29, i32 0, i32 5
+  store ptr null, ptr %32, align 8
+  %33 = getelementptr %SchemeObject, ptr %23, i32 0, i32 5
+  store ptr %29, ptr %33, align 8
+  %34 = getelementptr %SchemeObject, ptr %29, i32 0, i32 4
+  store ptr %variable3, ptr %34, align 8
+  %35 = alloca %SchemeObject, align 8
+  %36 = getelementptr %SchemeObject, ptr %35, i32 0, i32 0
+  store i64 3, ptr %36, align 4
+  %37 = getelementptr %SchemeObject, ptr %35, i32 0, i32 4
+  store ptr null, ptr %37, align 8
+  %38 = getelementptr %SchemeObject, ptr %35, i32 0, i32 5
+  store ptr null, ptr %38, align 8
+  %39 = getelementptr %SchemeObject, ptr %29, i32 0, i32 5
+  store ptr %35, ptr %39, align 8
+  %40 = getelementptr %SchemeObject, ptr %29, i32 0, i32 5
+  store ptr null, ptr %40, align 8
+  %41 = getelementptr %SchemeObject, ptr %12, i32 0
+  %42 = load %SchemeObject, ptr %41, align 8
+  ret %SchemeObject %42
+}
+
+define %SchemeObject @LambdaFunction.18(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %3 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %4 = load i64, ptr %3, align 4
+  %is_type_check = icmp eq i64 %4, 3
+  br i1 %is_type_check, label %true_branch, label %false_branch
+
+true_branch:                                      ; preds = %entry
+  %5 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 4
+  %6 = load ptr, ptr %5, align 8
+  br label %merge_branch
+
+false_branch:                                     ; preds = %entry
+  %7 = phi ptr [ %variable, %entry ]
+  br label %merge_branch
+
+merge_branch:                                     ; preds = %false_branch, %true_branch
+  %8 = phi ptr [ %6, %true_branch ], [ %7, %false_branch ]
+  %9 = getelementptr %SchemeObject, ptr %8, i32 0
+  %10 = load %SchemeObject, ptr %9, align 8
+  ret %SchemeObject %10
+}
+
+define %SchemeObject @LambdaFunction.19(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %3 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %4 = load i64, ptr %3, align 4
+  %is_type_check = icmp eq i64 %4, 3
+  br i1 %is_type_check, label %true_branch1, label %false_branch2
+
+true_branch:                                      ; preds = %merge_branch3
+  %5 = getelementptr %SchemeObject, ptr %17, i32 0, i32 4
+  %6 = load ptr, ptr %5, align 8
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch3
+  %7 = phi ptr [ %17, %merge_branch3 ]
+  br label %merge_branch
+
+merge_branch:                                     ; preds = %false_branch, %true_branch
+  %8 = phi ptr [ %6, %true_branch ], [ %7, %false_branch ]
+  %9 = getelementptr %SchemeObject, ptr %8, i32 0
+  %10 = load %SchemeObject, ptr %9, align 8
+  ret %SchemeObject %10
+
+true_branch1:                                     ; preds = %entry
+  %11 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 5
+  %12 = load ptr, ptr %11, align 8
+  br label %merge_branch3
+
+false_branch2:                                    ; preds = %entry
+  %13 = alloca %SchemeObject, align 8
+  %14 = getelementptr %SchemeObject, ptr %13, i32 0, i32 0
+  store i64 3, ptr %14, align 4
+  %15 = getelementptr %SchemeObject, ptr %13, i32 0, i32 4
+  store ptr null, ptr %15, align 8
+  %16 = getelementptr %SchemeObject, ptr %13, i32 0, i32 5
+  store ptr null, ptr %16, align 8
+  br label %merge_branch3
+
+merge_branch3:                                    ; preds = %false_branch2, %true_branch1
+  %17 = phi ptr [ %12, %true_branch1 ], [ %13, %false_branch2 ]
+  %18 = getelementptr %SchemeObject, ptr %17, i32 0, i32 0
+  %19 = load i64, ptr %18, align 4
+  %is_type_check4 = icmp eq i64 %19, 3
+  br i1 %is_type_check4, label %true_branch, label %false_branch
+}
+
+define %SchemeObject @LambdaFunction.20(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %3 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %4 = load i64, ptr %3, align 4
+  %is_type_check = icmp eq i64 %4, 3
+  br i1 %is_type_check, label %true_branch4, label %false_branch5
+
+true_branch:                                      ; preds = %merge_branch3
+  %5 = getelementptr %SchemeObject, ptr %17, i32 0, i32 4
+  %6 = load ptr, ptr %5, align 8
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch3
+  %7 = phi ptr [ %17, %merge_branch3 ]
+  br label %merge_branch
+
+merge_branch:                                     ; preds = %false_branch, %true_branch
+  %8 = phi ptr [ %6, %true_branch ], [ %7, %false_branch ]
+  %9 = getelementptr %SchemeObject, ptr %8, i32 0
+  %10 = load %SchemeObject, ptr %9, align 8
+  ret %SchemeObject %10
+
+true_branch1:                                     ; preds = %merge_branch6
+  %11 = getelementptr %SchemeObject, ptr %26, i32 0, i32 5
+  %12 = load ptr, ptr %11, align 8
+  br label %merge_branch3
+
+false_branch2:                                    ; preds = %merge_branch6
+  %13 = alloca %SchemeObject, align 8
+  %14 = getelementptr %SchemeObject, ptr %13, i32 0, i32 0
+  store i64 3, ptr %14, align 4
+  %15 = getelementptr %SchemeObject, ptr %13, i32 0, i32 4
+  store ptr null, ptr %15, align 8
+  %16 = getelementptr %SchemeObject, ptr %13, i32 0, i32 5
+  store ptr null, ptr %16, align 8
+  br label %merge_branch3
+
+merge_branch3:                                    ; preds = %false_branch2, %true_branch1
+  %17 = phi ptr [ %12, %true_branch1 ], [ %13, %false_branch2 ]
+  %18 = getelementptr %SchemeObject, ptr %17, i32 0, i32 0
+  %19 = load i64, ptr %18, align 4
+  %is_type_check8 = icmp eq i64 %19, 3
+  br i1 %is_type_check8, label %true_branch, label %false_branch
+
+true_branch4:                                     ; preds = %entry
+  %20 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 5
+  %21 = load ptr, ptr %20, align 8
+  br label %merge_branch6
+
+false_branch5:                                    ; preds = %entry
+  %22 = alloca %SchemeObject, align 8
+  %23 = getelementptr %SchemeObject, ptr %22, i32 0, i32 0
+  store i64 3, ptr %23, align 4
+  %24 = getelementptr %SchemeObject, ptr %22, i32 0, i32 4
+  store ptr null, ptr %24, align 8
+  %25 = getelementptr %SchemeObject, ptr %22, i32 0, i32 5
+  store ptr null, ptr %25, align 8
+  br label %merge_branch6
+
+merge_branch6:                                    ; preds = %false_branch5, %true_branch4
+  %26 = phi ptr [ %21, %true_branch4 ], [ %22, %false_branch5 ]
+  %27 = getelementptr %SchemeObject, ptr %26, i32 0, i32 0
+  %28 = load i64, ptr %27, align 4
+  %is_type_check7 = icmp eq i64 %28, 3
+  br i1 %is_type_check7, label %true_branch1, label %false_branch2
+}
+
+define %SchemeObject @LambdaFunction.21(ptr %0) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %1 = getelementptr %SchemeObject, ptr %0, i32 0
+  %2 = load %SchemeObject, ptr %1, align 8
+  store %SchemeObject %2, ptr %variable, align 8
+  %3 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %4 = load i64, ptr %3, align 4
+  %is_type_check = icmp eq i64 %4, 3
+  br i1 %is_type_check, label %true_branch7, label %false_branch8
+
+true_branch:                                      ; preds = %merge_branch3
+  %5 = getelementptr %SchemeObject, ptr %17, i32 0, i32 4
+  %6 = load ptr, ptr %5, align 8
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch3
+  %7 = phi ptr [ %17, %merge_branch3 ]
+  br label %merge_branch
+
+merge_branch:                                     ; preds = %false_branch, %true_branch
+  %8 = phi ptr [ %6, %true_branch ], [ %7, %false_branch ]
+  %9 = getelementptr %SchemeObject, ptr %8, i32 0
+  %10 = load %SchemeObject, ptr %9, align 8
+  ret %SchemeObject %10
+
+true_branch1:                                     ; preds = %merge_branch6
+  %11 = getelementptr %SchemeObject, ptr %26, i32 0, i32 5
+  %12 = load ptr, ptr %11, align 8
+  br label %merge_branch3
+
+false_branch2:                                    ; preds = %merge_branch6
+  %13 = alloca %SchemeObject, align 8
+  %14 = getelementptr %SchemeObject, ptr %13, i32 0, i32 0
+  store i64 3, ptr %14, align 4
+  %15 = getelementptr %SchemeObject, ptr %13, i32 0, i32 4
+  store ptr null, ptr %15, align 8
+  %16 = getelementptr %SchemeObject, ptr %13, i32 0, i32 5
+  store ptr null, ptr %16, align 8
+  br label %merge_branch3
+
+merge_branch3:                                    ; preds = %false_branch2, %true_branch1
+  %17 = phi ptr [ %12, %true_branch1 ], [ %13, %false_branch2 ]
+  %18 = getelementptr %SchemeObject, ptr %17, i32 0, i32 0
+  %19 = load i64, ptr %18, align 4
+  %is_type_check12 = icmp eq i64 %19, 3
+  br i1 %is_type_check12, label %true_branch, label %false_branch
+
+true_branch4:                                     ; preds = %merge_branch9
+  %20 = getelementptr %SchemeObject, ptr %35, i32 0, i32 5
+  %21 = load ptr, ptr %20, align 8
+  br label %merge_branch6
+
+false_branch5:                                    ; preds = %merge_branch9
+  %22 = alloca %SchemeObject, align 8
+  %23 = getelementptr %SchemeObject, ptr %22, i32 0, i32 0
+  store i64 3, ptr %23, align 4
+  %24 = getelementptr %SchemeObject, ptr %22, i32 0, i32 4
+  store ptr null, ptr %24, align 8
+  %25 = getelementptr %SchemeObject, ptr %22, i32 0, i32 5
+  store ptr null, ptr %25, align 8
+  br label %merge_branch6
+
+merge_branch6:                                    ; preds = %false_branch5, %true_branch4
+  %26 = phi ptr [ %21, %true_branch4 ], [ %22, %false_branch5 ]
+  %27 = getelementptr %SchemeObject, ptr %26, i32 0, i32 0
+  %28 = load i64, ptr %27, align 4
+  %is_type_check11 = icmp eq i64 %28, 3
+  br i1 %is_type_check11, label %true_branch1, label %false_branch2
+
+true_branch7:                                     ; preds = %entry
+  %29 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 5
+  %30 = load ptr, ptr %29, align 8
+  br label %merge_branch9
+
+false_branch8:                                    ; preds = %entry
+  %31 = alloca %SchemeObject, align 8
+  %32 = getelementptr %SchemeObject, ptr %31, i32 0, i32 0
+  store i64 3, ptr %32, align 4
+  %33 = getelementptr %SchemeObject, ptr %31, i32 0, i32 4
+  store ptr null, ptr %33, align 8
+  %34 = getelementptr %SchemeObject, ptr %31, i32 0, i32 5
+  store ptr null, ptr %34, align 8
+  br label %merge_branch9
+
+merge_branch9:                                    ; preds = %false_branch8, %true_branch7
+  %35 = phi ptr [ %30, %true_branch7 ], [ %31, %false_branch8 ]
+  %36 = getelementptr %SchemeObject, ptr %35, i32 0, i32 0
+  %37 = load i64, ptr %36, align 4
+  %is_type_check10 = icmp eq i64 %37, 3
+  br i1 %is_type_check10, label %true_branch4, label %false_branch5
+}
+
+define %SchemeObject @LambdaFunction.22(ptr %0, ptr %1) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %2 = getelementptr %SchemeObject, ptr %0, i32 0
+  %3 = load %SchemeObject, ptr %2, align 8
+  store %SchemeObject %3, ptr %variable, align 8
+  %variable1 = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %1, i32 0
+  %5 = load %SchemeObject, ptr %4, align 8
+  store %SchemeObject %5, ptr %variable1, align 8
+  %function_returned = alloca %SchemeObject, align 8
+  %6 = call ptr @llvm.stacksave()
+  %7 = call %SchemeObject @LambdaFunction.18(ptr %variable)
+  store %SchemeObject %7, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %6)
+  %function_returned2 = alloca %SchemeObject, align 8
+  %8 = call ptr @llvm.stacksave()
+  %9 = call %SchemeObject @LambdaFunction.14(ptr %variable1)
+  store %SchemeObject %9, ptr %function_returned2, align 8
+  call void @llvm.stackrestore(ptr %8)
+  %function_returned3 = alloca %SchemeObject, align 8
+  %10 = call ptr @llvm.stacksave()
+  %11 = call %SchemeObject @LambdaFunction.7(ptr %function_returned, ptr %function_returned2)
+  store %SchemeObject %11, ptr %function_returned3, align 8
+  call void @llvm.stackrestore(ptr %10)
+  %variable4 = alloca %SchemeObject, align 8
+  %12 = getelementptr %SchemeObject, ptr %function_returned3, i32 0
+  %13 = load %SchemeObject, ptr %12, align 8
+  store %SchemeObject %13, ptr %variable4, align 8
+  %function_returned5 = alloca %SchemeObject, align 8
+  %14 = call ptr @llvm.stacksave()
+  %15 = call %SchemeObject @LambdaFunction.15(ptr %variable1)
+  store %SchemeObject %15, ptr %function_returned5, align 8
+  call void @llvm.stackrestore(ptr %14)
+  %function_returned6 = alloca %SchemeObject, align 8
+  %16 = call ptr @llvm.stacksave()
+  %17 = call %SchemeObject @LambdaFunction.10(ptr %variable4, ptr %function_returned5)
+  store %SchemeObject %17, ptr %function_returned6, align 8
+  call void @llvm.stackrestore(ptr %16)
+  %variable7 = alloca %SchemeObject, align 8
+  %18 = getelementptr %SchemeObject, ptr %function_returned6, i32 0
+  %19 = load %SchemeObject, ptr %18, align 8
+  store %SchemeObject %19, ptr %variable7, align 8
+  %number = alloca %SchemeObject, align 8
+  %20 = getelementptr %SchemeObject, ptr %number, i32 0, i32 0
+  store i64 0, ptr %20, align 4
+  %21 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 0, ptr %21, align 4
+  %function_returned8 = alloca %SchemeObject, align 8
+  %22 = call ptr @llvm.stacksave()
+  %23 = call %SchemeObject @LambdaFunction.19(ptr %variable)
+  store %SchemeObject %23, ptr %function_returned8, align 8
+  call void @llvm.stackrestore(ptr %22)
+  %number9 = alloca %SchemeObject, align 8
+  %24 = getelementptr %SchemeObject, ptr %number9, i32 0, i32 0
+  store i64 0, ptr %24, align 4
+  %25 = getelementptr %SchemeObject, ptr %number9, i32 0, i32 1
+  store i64 200, ptr %25, align 4
+  %expt = alloca %SchemeObject, align 8
+  %26 = call %SchemeObject @__GLExpt(ptr %function_returned8, ptr %number9)
+  store %SchemeObject %26, ptr %expt, align 8
+  %27 = getelementptr %SchemeObject, ptr %expt, i32 0, i32 0
+  %28 = load i64, ptr %27, align 4
+  %29 = icmp eq i64 %28, 0
+  call void @__GLAssert(i1 %29)
+  %30 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  %31 = load i64, ptr %30, align 4
+  %32 = getelementptr %SchemeObject, ptr %expt, i32 0, i32 1
+  %33 = load i64, ptr %32, align 4
+  %34 = sub i64 %31, %33
+  %35 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 %33, ptr %35, align 4
+  %number10 = alloca %SchemeObject, align 8
+  %36 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 0
+  store i64 0, ptr %36, align 4
+  %37 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 0, ptr %37, align 4
+  %function_returned11 = alloca %SchemeObject, align 8
+  %38 = call ptr @llvm.stacksave()
+  %39 = call %SchemeObject @LambdaFunction.10(ptr %variable4, ptr %variable4)
+  store %SchemeObject %39, ptr %function_returned11, align 8
+  call void @llvm.stackrestore(ptr %38)
+  %40 = getelementptr %SchemeObject, ptr %function_returned11, i32 0, i32 0
+  %41 = load i64, ptr %40, align 4
+  %42 = icmp eq i64 %41, 0
+  call void @__GLAssert(i1 %42)
+  %43 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  %44 = load i64, ptr %43, align 4
+  %45 = getelementptr %SchemeObject, ptr %function_returned11, i32 0, i32 1
+  %46 = load i64, ptr %45, align 4
+  %47 = sub i64 %44, %46
+  %48 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 %46, ptr %48, align 4
+  %number12 = alloca %SchemeObject, align 8
+  %49 = getelementptr %SchemeObject, ptr %number12, i32 0, i32 0
+  store i64 0, ptr %49, align 4
+  %50 = getelementptr %SchemeObject, ptr %number12, i32 0, i32 1
+  store i64 100, ptr %50, align 4
+  %51 = getelementptr %SchemeObject, ptr %variable7, i32 0, i32 0
+  %52 = load i64, ptr %51, align 4
+  %53 = icmp eq i64 %52, 0
+  call void @__GLAssert(i1 %53)
+  %54 = getelementptr %SchemeObject, ptr %number12, i32 0, i32 1
+  %55 = load i64, ptr %54, align 4
+  %56 = getelementptr %SchemeObject, ptr %variable7, i32 0, i32 1
+  %57 = load i64, ptr %56, align 4
+  %58 = mul i64 %55, %57
+  %59 = sdiv i64 %58, 100
+  %60 = getelementptr %SchemeObject, ptr %number12, i32 0, i32 1
+  store i64 %59, ptr %60, align 4
+  %61 = getelementptr %SchemeObject, ptr %variable7, i32 0, i32 0
+  %62 = load i64, ptr %61, align 4
+  %63 = icmp eq i64 %62, 0
+  call void @__GLAssert(i1 %63)
+  %64 = getelementptr %SchemeObject, ptr %number12, i32 0, i32 1
+  %65 = load i64, ptr %64, align 4
+  %66 = getelementptr %SchemeObject, ptr %variable7, i32 0, i32 1
+  %67 = load i64, ptr %66, align 4
+  %68 = mul i64 %65, %67
+  %69 = sdiv i64 %68, 100
+  %70 = getelementptr %SchemeObject, ptr %number12, i32 0, i32 1
+  store i64 %69, ptr %70, align 4
+  %71 = getelementptr %SchemeObject, ptr %number12, i32 0, i32 0
+  %72 = load i64, ptr %71, align 4
+  %73 = icmp eq i64 %72, 0
+  call void @__GLAssert(i1 %73)
+  %74 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  %75 = load i64, ptr %74, align 4
+  %76 = getelementptr %SchemeObject, ptr %number12, i32 0, i32 1
+  %77 = load i64, ptr %76, align 4
+  %78 = sub i64 %75, %77
+  %79 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 %78, ptr %79, align 4
+  %80 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 0
+  %81 = load i64, ptr %80, align 4
+  %82 = icmp eq i64 %81, 0
+  call void @__GLAssert(i1 %82)
+  %83 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  %84 = load i64, ptr %83, align 4
+  %85 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  %86 = load i64, ptr %85, align 4
+  %87 = sub i64 %84, %86
+  %88 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 %87, ptr %88, align 4
+  %variable13 = alloca %SchemeObject, align 8
+  %89 = getelementptr %SchemeObject, ptr %number, i32 0
+  %90 = load %SchemeObject, ptr %89, align 8
+  store %SchemeObject %90, ptr %variable13, align 8
+  br label %comparison_branch
+
+true_branch:                                      ; preds = %merge_branch16
+  %number19 = alloca %SchemeObject, align 8
+  %91 = getelementptr %SchemeObject, ptr %number19, i32 0, i32 0
+  store i64 0, ptr %91, align 4
+  %92 = getelementptr %SchemeObject, ptr %number19, i32 0, i32 1
+  store i64 -100, ptr %92, align 4
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch16
+  %number20 = alloca %SchemeObject, align 8
+  %93 = getelementptr %SchemeObject, ptr %number20, i32 0, i32 0
+  store i64 0, ptr %93, align 4
+  %94 = getelementptr %SchemeObject, ptr %number20, i32 0, i32 1
+  store i64 0, ptr %94, align 4
+  %95 = getelementptr %SchemeObject, ptr %variable7, i32 0, i32 0
+  %96 = load i64, ptr %95, align 4
+  %97 = icmp eq i64 %96, 0
+  call void @__GLAssert(i1 %97)
+  %98 = getelementptr %SchemeObject, ptr %number20, i32 0, i32 1
+  %99 = load i64, ptr %98, align 4
+  %100 = getelementptr %SchemeObject, ptr %variable7, i32 0, i32 1
+  %101 = load i64, ptr %100, align 4
+  %102 = sub i64 %99, %101
+  %103 = getelementptr %SchemeObject, ptr %number20, i32 0, i32 1
+  store i64 %101, ptr %103, align 4
+  %sqrt = alloca %SchemeObject, align 8
+  %104 = call %SchemeObject @__GLSqrt(ptr %variable13)
+  store %SchemeObject %104, ptr %sqrt, align 8
+  %105 = getelementptr %SchemeObject, ptr %sqrt, i32 0, i32 0
+  %106 = load i64, ptr %105, align 4
+  %107 = icmp eq i64 %106, 0
+  call void @__GLAssert(i1 %107)
+  %108 = getelementptr %SchemeObject, ptr %number20, i32 0, i32 1
+  %109 = load i64, ptr %108, align 4
+  %110 = getelementptr %SchemeObject, ptr %sqrt, i32 0, i32 1
+  %111 = load i64, ptr %110, align 4
+  %112 = sub i64 %109, %111
+  %113 = getelementptr %SchemeObject, ptr %number20, i32 0, i32 1
+  store i64 %112, ptr %113, align 4
+  %variable21 = alloca %SchemeObject, align 8
+  %114 = getelementptr %SchemeObject, ptr %number20, i32 0
+  %115 = load %SchemeObject, ptr %114, align 8
+  store %SchemeObject %115, ptr %variable21, align 8
+  br label %comparison_branch24
+
+merge_branch:                                     ; preds = %merge_branch23, %true_branch
+  %116 = phi ptr [ %number19, %true_branch ], [ %variable33, %merge_branch23 ]
+  %117 = getelementptr %SchemeObject, ptr %116, i32 0
+  %118 = load %SchemeObject, ptr %117, align 8
+  ret %SchemeObject %118
+
+comparison_branch:                                ; preds = %entry
+  %119 = getelementptr %SchemeObject, ptr %variable13, i32 0, i32 0
+  %120 = load i64, ptr %119, align 4
+  %121 = icmp eq i64 %120, 0
+  call void @__GLAssert(i1 %121)
+  %number17 = alloca %SchemeObject, align 8
+  %122 = getelementptr %SchemeObject, ptr %number17, i32 0, i32 0
+  store i64 0, ptr %122, align 4
+  %123 = getelementptr %SchemeObject, ptr %number17, i32 0, i32 1
+  store i64 0, ptr %123, align 4
+  %124 = getelementptr %SchemeObject, ptr %number17, i32 0, i32 0
+  %125 = load i64, ptr %124, align 4
+  %126 = icmp eq i64 %125, 0
+  call void @__GLAssert(i1 %126)
+  %127 = getelementptr %SchemeObject, ptr %variable13, i32 0, i32 1
+  %128 = load i64, ptr %127, align 4
+  %129 = getelementptr %SchemeObject, ptr %number17, i32 0, i32 1
+  %130 = load i64, ptr %129, align 4
+  %131 = icmp sge i64 %128, %130
+  br i1 %131, label %false_branch15, label %true_branch14
+
+true_branch14:                                    ; preds = %comparison_branch
+  %boolean = alloca %SchemeObject, align 8
+  %132 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 0
+  store i64 1, ptr %132, align 4
+  %133 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 2
+  store i1 true, ptr %133, align 1
+  br label %merge_branch16
+
+false_branch15:                                   ; preds = %comparison_branch
+  %boolean18 = alloca %SchemeObject, align 8
+  %134 = getelementptr %SchemeObject, ptr %boolean18, i32 0, i32 0
+  store i64 1, ptr %134, align 4
+  %135 = getelementptr %SchemeObject, ptr %boolean18, i32 0, i32 2
+  store i1 false, ptr %135, align 1
+  br label %merge_branch16
+
+merge_branch16:                                   ; preds = %false_branch15, %true_branch14
+  %136 = phi ptr [ %boolean, %true_branch14 ], [ %boolean18, %false_branch15 ]
+  %137 = getelementptr %SchemeObject, ptr %136, i32 0, i32 0
+  %138 = load i64, ptr %137, align 4
+  %139 = icmp eq i64 %138, 1
+  call void @__GLAssert(i1 %139)
+  %140 = getelementptr %SchemeObject, ptr %136, i32 0, i32 2
+  %141 = load i1, ptr %140, align 1
+  br i1 %141, label %true_branch, label %false_branch
+
+true_branch22:                                    ; preds = %merge_branch27
+  %number31 = alloca %SchemeObject, align 8
+  %142 = getelementptr %SchemeObject, ptr %number31, i32 0, i32 0
+  store i64 0, ptr %142, align 4
+  %143 = getelementptr %SchemeObject, ptr %number31, i32 0, i32 1
+  store i64 0, ptr %143, align 4
+  %144 = getelementptr %SchemeObject, ptr %variable7, i32 0, i32 0
+  %145 = load i64, ptr %144, align 4
+  %146 = icmp eq i64 %145, 0
+  call void @__GLAssert(i1 %146)
+  %147 = getelementptr %SchemeObject, ptr %number31, i32 0, i32 1
+  %148 = load i64, ptr %147, align 4
+  %149 = getelementptr %SchemeObject, ptr %variable7, i32 0, i32 1
+  %150 = load i64, ptr %149, align 4
+  %151 = add i64 %148, %150
+  %152 = getelementptr %SchemeObject, ptr %number31, i32 0, i32 1
+  store i64 %151, ptr %152, align 4
+  %sqrt32 = alloca %SchemeObject, align 8
+  %153 = call %SchemeObject @__GLSqrt(ptr %variable13)
+  store %SchemeObject %153, ptr %sqrt32, align 8
+  %154 = getelementptr %SchemeObject, ptr %sqrt32, i32 0, i32 0
+  %155 = load i64, ptr %154, align 4
+  %156 = icmp eq i64 %155, 0
+  call void @__GLAssert(i1 %156)
+  %157 = getelementptr %SchemeObject, ptr %number31, i32 0, i32 1
+  %158 = load i64, ptr %157, align 4
+  %159 = getelementptr %SchemeObject, ptr %sqrt32, i32 0, i32 1
+  %160 = load i64, ptr %159, align 4
+  %161 = add i64 %158, %160
+  %162 = getelementptr %SchemeObject, ptr %number31, i32 0, i32 1
+  store i64 %161, ptr %162, align 4
+  %variable33 = alloca %SchemeObject, align 8
+  %163 = getelementptr %SchemeObject, ptr %number31, i32 0
+  %164 = load %SchemeObject, ptr %163, align 8
+  store %SchemeObject %164, ptr %variable33, align 8
+  br label %merge_branch23
+
+merge_branch23:                                   ; preds = %true_branch22, %merge_branch27
+  %165 = phi ptr [ null, %true_branch22 ]
+  br label %merge_branch
+
+comparison_branch24:                              ; preds = %false_branch
+  %166 = getelementptr %SchemeObject, ptr %variable21, i32 0, i32 0
+  %167 = load i64, ptr %166, align 4
+  %168 = icmp eq i64 %167, 0
+  call void @__GLAssert(i1 %168)
+  %number28 = alloca %SchemeObject, align 8
+  %169 = getelementptr %SchemeObject, ptr %number28, i32 0, i32 0
+  store i64 0, ptr %169, align 4
+  %170 = getelementptr %SchemeObject, ptr %number28, i32 0, i32 1
+  store i64 0, ptr %170, align 4
+  %171 = getelementptr %SchemeObject, ptr %number28, i32 0, i32 0
+  %172 = load i64, ptr %171, align 4
+  %173 = icmp eq i64 %172, 0
+  call void @__GLAssert(i1 %173)
+  %174 = getelementptr %SchemeObject, ptr %variable21, i32 0, i32 1
+  %175 = load i64, ptr %174, align 4
+  %176 = getelementptr %SchemeObject, ptr %number28, i32 0, i32 1
+  %177 = load i64, ptr %176, align 4
+  %178 = icmp sge i64 %175, %177
+  br i1 %178, label %false_branch26, label %true_branch25
+
+true_branch25:                                    ; preds = %comparison_branch24
+  %boolean29 = alloca %SchemeObject, align 8
+  %179 = getelementptr %SchemeObject, ptr %boolean29, i32 0, i32 0
+  store i64 1, ptr %179, align 4
+  %180 = getelementptr %SchemeObject, ptr %boolean29, i32 0, i32 2
+  store i1 true, ptr %180, align 1
+  br label %merge_branch27
+
+false_branch26:                                   ; preds = %comparison_branch24
+  %boolean30 = alloca %SchemeObject, align 8
+  %181 = getelementptr %SchemeObject, ptr %boolean30, i32 0, i32 0
+  store i64 1, ptr %181, align 4
+  %182 = getelementptr %SchemeObject, ptr %boolean30, i32 0, i32 2
+  store i1 false, ptr %182, align 1
+  br label %merge_branch27
+
+merge_branch27:                                   ; preds = %false_branch26, %true_branch25
+  %183 = phi ptr [ %boolean29, %true_branch25 ], [ %boolean30, %false_branch26 ]
+  %184 = getelementptr %SchemeObject, ptr %183, i32 0, i32 0
+  %185 = load i64, ptr %184, align 4
+  %186 = icmp eq i64 %185, 1
+  call void @__GLAssert(i1 %186)
+  %187 = getelementptr %SchemeObject, ptr %183, i32 0, i32 2
+  %188 = load i1, ptr %187, align 1
+  br i1 %188, label %true_branch22, label %merge_branch23
+}
+
+define %SchemeObject @LambdaFunction.23(ptr %0, ptr %1) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %2 = getelementptr %SchemeObject, ptr %0, i32 0
+  %3 = load %SchemeObject, ptr %2, align 8
+  store %SchemeObject %3, ptr %variable, align 8
+  %variable1 = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %1, i32 0
+  %5 = load %SchemeObject, ptr %4, align 8
+  store %SchemeObject %5, ptr %variable1, align 8
+  %6 = icmp eq ptr %variable, null
+  br i1 %6, label %true_branch2, label %continue_branch
+
+true_branch:                                      ; preds = %merge_branch4
+  %7 = alloca %SchemeObject, align 8
+  %8 = getelementptr %SchemeObject, ptr %7, i32 0, i32 0
+  store i64 3, ptr %8, align 4
+  %9 = getelementptr %SchemeObject, ptr %7, i32 0, i32 4
+  store ptr null, ptr %9, align 8
+  %10 = getelementptr %SchemeObject, ptr %7, i32 0, i32 5
+  store ptr null, ptr %10, align 8
+  %number = alloca %SchemeObject, align 8
+  %11 = getelementptr %SchemeObject, ptr %number, i32 0, i32 0
+  store i64 0, ptr %11, align 4
+  %12 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 -100, ptr %12, align 4
+  %13 = getelementptr %SchemeObject, ptr %7, i32 0, i32 4
+  store ptr %number, ptr %13, align 8
+  %14 = alloca %SchemeObject, align 8
+  %15 = getelementptr %SchemeObject, ptr %14, i32 0, i32 0
+  store i64 3, ptr %15, align 4
+  %16 = getelementptr %SchemeObject, ptr %14, i32 0, i32 4
+  store ptr null, ptr %16, align 8
+  %17 = getelementptr %SchemeObject, ptr %14, i32 0, i32 5
+  store ptr null, ptr %17, align 8
+  %18 = getelementptr %SchemeObject, ptr %7, i32 0, i32 5
+  store ptr %14, ptr %18, align 8
+  %number6 = alloca %SchemeObject, align 8
+  %19 = getelementptr %SchemeObject, ptr %number6, i32 0, i32 0
+  store i64 0, ptr %19, align 4
+  %20 = getelementptr %SchemeObject, ptr %number6, i32 0, i32 1
+  store i64 200, ptr %20, align 4
+  %number7 = alloca %SchemeObject, align 8
+  %21 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 0
+  store i64 0, ptr %21, align 4
+  %22 = getelementptr %SchemeObject, ptr %number7, i32 0, i32 1
+  store i64 1600, ptr %22, align 4
+  %expt = alloca %SchemeObject, align 8
+  %23 = call %SchemeObject @__GLExpt(ptr %number6, ptr %number7)
+  store %SchemeObject %23, ptr %expt, align 8
+  %24 = getelementptr %SchemeObject, ptr %14, i32 0, i32 4
+  store ptr %expt, ptr %24, align 8
+  %25 = alloca %SchemeObject, align 8
+  %26 = getelementptr %SchemeObject, ptr %25, i32 0, i32 0
+  store i64 3, ptr %26, align 4
+  %27 = getelementptr %SchemeObject, ptr %25, i32 0, i32 4
+  store ptr null, ptr %27, align 8
+  %28 = getelementptr %SchemeObject, ptr %25, i32 0, i32 5
+  store ptr null, ptr %28, align 8
+  %29 = getelementptr %SchemeObject, ptr %14, i32 0, i32 5
+  store ptr %25, ptr %29, align 8
+  %30 = getelementptr %SchemeObject, ptr %14, i32 0, i32 5
+  store ptr null, ptr %30, align 8
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch4
+  %31 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %32 = load i64, ptr %31, align 4
+  %is_type_check11 = icmp eq i64 %32, 3
+  br i1 %is_type_check11, label %true_branch8, label %false_branch9
+
+merge_branch:                                     ; preds = %merge_branch21, %true_branch
+  %33 = phi ptr [ %7, %true_branch ], [ %75, %merge_branch21 ]
+  %34 = getelementptr %SchemeObject, ptr %33, i32 0
+  %35 = load %SchemeObject, ptr %34, align 8
+  ret %SchemeObject %35
+
+continue_branch:                                  ; preds = %entry
+  %36 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %37 = load i64, ptr %36, align 4
+  %is_type_check = icmp eq i64 %37, 3
+  br i1 %is_type_check, label %is_cell_branch, label %false_branch3
+
+is_cell_branch:                                   ; preds = %continue_branch
+  %38 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 4
+  %39 = load ptr, ptr %38, align 8
+  %40 = icmp eq ptr %39, null
+  br i1 %40, label %is_cell_first_null_branch, label %false_branch3
+
+is_cell_first_null_branch:                        ; preds = %is_cell_branch
+  %41 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 5
+  %42 = load ptr, ptr %41, align 8
+  %43 = icmp eq ptr %42, null
+  br i1 %43, label %true_branch2, label %false_branch3
+
+true_branch2:                                     ; preds = %is_cell_first_null_branch, %entry
+  %boolean = alloca %SchemeObject, align 8
+  %44 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 0
+  store i64 1, ptr %44, align 4
+  %45 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 2
+  store i1 true, ptr %45, align 1
+  br label %merge_branch4
+
+false_branch3:                                    ; preds = %is_cell_first_null_branch, %is_cell_branch, %continue_branch
+  %boolean5 = alloca %SchemeObject, align 8
+  %46 = getelementptr %SchemeObject, ptr %boolean5, i32 0, i32 0
+  store i64 1, ptr %46, align 4
+  %47 = getelementptr %SchemeObject, ptr %boolean5, i32 0, i32 2
+  store i1 false, ptr %47, align 1
+  br label %merge_branch4
+
+merge_branch4:                                    ; preds = %false_branch3, %true_branch2
+  %48 = phi ptr [ %boolean, %true_branch2 ], [ %boolean5, %false_branch3 ]
+  %49 = getelementptr %SchemeObject, ptr %48, i32 0, i32 0
+  %50 = load i64, ptr %49, align 4
+  %51 = icmp eq i64 %50, 1
+  call void @__GLAssert(i1 %51)
+  %52 = getelementptr %SchemeObject, ptr %48, i32 0, i32 2
+  %53 = load i1, ptr %52, align 1
+  br i1 %53, label %true_branch, label %false_branch
+
+true_branch8:                                     ; preds = %false_branch
+  %54 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 5
+  %55 = load ptr, ptr %54, align 8
+  br label %merge_branch10
+
+false_branch9:                                    ; preds = %false_branch
+  %56 = alloca %SchemeObject, align 8
+  %57 = getelementptr %SchemeObject, ptr %56, i32 0, i32 0
+  store i64 3, ptr %57, align 4
+  %58 = getelementptr %SchemeObject, ptr %56, i32 0, i32 4
+  store ptr null, ptr %58, align 8
+  %59 = getelementptr %SchemeObject, ptr %56, i32 0, i32 5
+  store ptr null, ptr %59, align 8
+  br label %merge_branch10
+
+merge_branch10:                                   ; preds = %false_branch9, %true_branch8
+  %60 = phi ptr [ %55, %true_branch8 ], [ %56, %false_branch9 ]
+  %function_returned = alloca %SchemeObject, align 8
+  %61 = call ptr @llvm.stacksave()
+  %62 = call %SchemeObject @LambdaFunction.23(ptr %60, ptr %variable1)
+  store %SchemeObject %62, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %61)
+  %variable12 = alloca %SchemeObject, align 8
+  %63 = getelementptr %SchemeObject, ptr %function_returned, i32 0
+  %64 = load %SchemeObject, ptr %63, align 8
+  store %SchemeObject %64, ptr %variable12, align 8
+  %65 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %66 = load i64, ptr %65, align 4
+  %is_type_check16 = icmp eq i64 %66, 3
+  br i1 %is_type_check16, label %true_branch13, label %false_branch14
+
+true_branch13:                                    ; preds = %merge_branch10
+  %67 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 4
+  %68 = load ptr, ptr %67, align 8
+  br label %merge_branch15
+
+false_branch14:                                   ; preds = %merge_branch10
+  %69 = phi ptr [ %variable, %merge_branch10 ]
+  br label %merge_branch15
+
+merge_branch15:                                   ; preds = %false_branch14, %true_branch13
+  %70 = phi ptr [ %68, %true_branch13 ], [ %69, %false_branch14 ]
+  %function_returned17 = alloca %SchemeObject, align 8
+  %71 = call ptr @llvm.stacksave()
+  %72 = call %SchemeObject @LambdaFunction.22(ptr %70, ptr %variable1)
+  store %SchemeObject %72, ptr %function_returned17, align 8
+  call void @llvm.stackrestore(ptr %71)
+  %variable18 = alloca %SchemeObject, align 8
+  %73 = getelementptr %SchemeObject, ptr %function_returned17, i32 0
+  %74 = load %SchemeObject, ptr %73, align 8
+  store %SchemeObject %74, ptr %variable18, align 8
+  br label %comparison_branch
+
+true_branch19:                                    ; preds = %merge_branch24
+  br label %comparison_branch38
+
+false_branch20:                                   ; preds = %merge_branch24
+  br label %merge_branch21
+
+merge_branch21:                                   ; preds = %false_branch20, %merge_branch37
+  %75 = phi ptr [ %118, %merge_branch37 ], [ %variable12, %false_branch20 ]
+  br label %merge_branch
+
+comparison_branch:                                ; preds = %merge_branch15
+  %76 = getelementptr %SchemeObject, ptr %variable12, i32 0, i32 0
+  %77 = load i64, ptr %76, align 4
+  %is_type_check31 = icmp eq i64 %77, 3
+  br i1 %is_type_check31, label %true_branch28, label %false_branch29
+
+true_branch22:                                    ; preds = %merge_branch27
+  %boolean33 = alloca %SchemeObject, align 8
+  %78 = getelementptr %SchemeObject, ptr %boolean33, i32 0, i32 0
+  store i64 1, ptr %78, align 4
+  %79 = getelementptr %SchemeObject, ptr %boolean33, i32 0, i32 2
+  store i1 true, ptr %79, align 1
+  br label %merge_branch24
+
+false_branch23:                                   ; preds = %merge_branch27
+  %boolean34 = alloca %SchemeObject, align 8
+  %80 = getelementptr %SchemeObject, ptr %boolean34, i32 0, i32 0
+  store i64 1, ptr %80, align 4
+  %81 = getelementptr %SchemeObject, ptr %boolean34, i32 0, i32 2
+  store i1 false, ptr %81, align 1
+  br label %merge_branch24
+
+merge_branch24:                                   ; preds = %false_branch23, %true_branch22
+  %82 = phi ptr [ %boolean33, %true_branch22 ], [ %boolean34, %false_branch23 ]
+  %83 = getelementptr %SchemeObject, ptr %82, i32 0, i32 0
+  %84 = load i64, ptr %83, align 4
+  %85 = icmp eq i64 %84, 1
+  call void @__GLAssert(i1 %85)
+  %86 = getelementptr %SchemeObject, ptr %82, i32 0, i32 2
+  %87 = load i1, ptr %86, align 1
+  br i1 %87, label %true_branch19, label %false_branch20
+
+true_branch25:                                    ; preds = %merge_branch30
+  %88 = getelementptr %SchemeObject, ptr %109, i32 0, i32 4
+  %89 = load ptr, ptr %88, align 8
+  br label %merge_branch27
+
+false_branch26:                                   ; preds = %merge_branch30
+  %90 = phi ptr [ %109, %merge_branch30 ]
+  br label %merge_branch27
+
+merge_branch27:                                   ; preds = %false_branch26, %true_branch25
+  %91 = phi ptr [ %89, %true_branch25 ], [ %90, %false_branch26 ]
+  %92 = getelementptr %SchemeObject, ptr %91, i32 0, i32 0
+  %93 = load i64, ptr %92, align 4
+  %94 = icmp eq i64 %93, 0
+  call void @__GLAssert(i1 %94)
+  %95 = getelementptr %SchemeObject, ptr %variable18, i32 0, i32 0
+  %96 = load i64, ptr %95, align 4
+  %97 = icmp eq i64 %96, 0
+  call void @__GLAssert(i1 %97)
+  %98 = getelementptr %SchemeObject, ptr %91, i32 0, i32 1
+  %99 = load i64, ptr %98, align 4
+  %100 = getelementptr %SchemeObject, ptr %variable18, i32 0, i32 1
+  %101 = load i64, ptr %100, align 4
+  %102 = icmp sle i64 %99, %101
+  br i1 %102, label %false_branch23, label %true_branch22
+
+true_branch28:                                    ; preds = %comparison_branch
+  %103 = getelementptr %SchemeObject, ptr %variable12, i32 0, i32 5
+  %104 = load ptr, ptr %103, align 8
+  br label %merge_branch30
+
+false_branch29:                                   ; preds = %comparison_branch
+  %105 = alloca %SchemeObject, align 8
+  %106 = getelementptr %SchemeObject, ptr %105, i32 0, i32 0
+  store i64 3, ptr %106, align 4
+  %107 = getelementptr %SchemeObject, ptr %105, i32 0, i32 4
+  store ptr null, ptr %107, align 8
+  %108 = getelementptr %SchemeObject, ptr %105, i32 0, i32 5
+  store ptr null, ptr %108, align 8
+  br label %merge_branch30
+
+merge_branch30:                                   ; preds = %false_branch29, %true_branch28
+  %109 = phi ptr [ %104, %true_branch28 ], [ %105, %false_branch29 ]
+  %110 = getelementptr %SchemeObject, ptr %109, i32 0, i32 0
+  %111 = load i64, ptr %110, align 4
+  %is_type_check32 = icmp eq i64 %111, 3
+  br i1 %is_type_check32, label %true_branch25, label %false_branch26
+
+true_branch35:                                    ; preds = %merge_branch41
+  br label %merge_branch37
+
+false_branch36:                                   ; preds = %merge_branch41
+  %112 = alloca %SchemeObject, align 8
+  %113 = getelementptr %SchemeObject, ptr %112, i32 0, i32 0
+  store i64 3, ptr %113, align 4
+  %114 = getelementptr %SchemeObject, ptr %112, i32 0, i32 4
+  store ptr null, ptr %114, align 8
+  %115 = getelementptr %SchemeObject, ptr %112, i32 0, i32 5
+  store ptr null, ptr %115, align 8
+  %116 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 0
+  %117 = load i64, ptr %116, align 4
+  %is_type_check48 = icmp eq i64 %117, 3
+  br i1 %is_type_check48, label %true_branch45, label %false_branch46
+
+merge_branch37:                                   ; preds = %merge_branch47, %true_branch35
+  %118 = phi ptr [ %variable12, %true_branch35 ], [ %112, %merge_branch47 ]
+  br label %merge_branch21
+
+comparison_branch38:                              ; preds = %true_branch19
+  %119 = getelementptr %SchemeObject, ptr %variable18, i32 0, i32 0
+  %120 = load i64, ptr %119, align 4
+  %121 = icmp eq i64 %120, 0
+  call void @__GLAssert(i1 %121)
+  %number42 = alloca %SchemeObject, align 8
+  %122 = getelementptr %SchemeObject, ptr %number42, i32 0, i32 0
+  store i64 0, ptr %122, align 4
+  %123 = getelementptr %SchemeObject, ptr %number42, i32 0, i32 1
+  store i64 0, ptr %123, align 4
+  %124 = getelementptr %SchemeObject, ptr %number42, i32 0, i32 0
+  %125 = load i64, ptr %124, align 4
+  %126 = icmp eq i64 %125, 0
+  call void @__GLAssert(i1 %126)
+  %127 = getelementptr %SchemeObject, ptr %variable18, i32 0, i32 1
+  %128 = load i64, ptr %127, align 4
+  %129 = getelementptr %SchemeObject, ptr %number42, i32 0, i32 1
+  %130 = load i64, ptr %129, align 4
+  %131 = icmp sge i64 %128, %130
+  br i1 %131, label %false_branch40, label %true_branch39
+
+true_branch39:                                    ; preds = %comparison_branch38
+  %boolean43 = alloca %SchemeObject, align 8
+  %132 = getelementptr %SchemeObject, ptr %boolean43, i32 0, i32 0
+  store i64 1, ptr %132, align 4
+  %133 = getelementptr %SchemeObject, ptr %boolean43, i32 0, i32 2
+  store i1 true, ptr %133, align 1
+  br label %merge_branch41
+
+false_branch40:                                   ; preds = %comparison_branch38
+  %boolean44 = alloca %SchemeObject, align 8
+  %134 = getelementptr %SchemeObject, ptr %boolean44, i32 0, i32 0
+  store i64 1, ptr %134, align 4
+  %135 = getelementptr %SchemeObject, ptr %boolean44, i32 0, i32 2
+  store i1 false, ptr %135, align 1
+  br label %merge_branch41
+
+merge_branch41:                                   ; preds = %false_branch40, %true_branch39
+  %136 = phi ptr [ %boolean43, %true_branch39 ], [ %boolean44, %false_branch40 ]
+  %137 = getelementptr %SchemeObject, ptr %136, i32 0, i32 0
+  %138 = load i64, ptr %137, align 4
+  %139 = icmp eq i64 %138, 1
+  call void @__GLAssert(i1 %139)
+  %140 = getelementptr %SchemeObject, ptr %136, i32 0, i32 2
+  %141 = load i1, ptr %140, align 1
+  br i1 %141, label %true_branch35, label %false_branch36
+
+true_branch45:                                    ; preds = %false_branch36
+  %142 = getelementptr %SchemeObject, ptr %variable, i32 0, i32 4
+  %143 = load ptr, ptr %142, align 8
+  br label %merge_branch47
+
+false_branch46:                                   ; preds = %false_branch36
+  %144 = phi ptr [ %variable, %false_branch36 ]
+  br label %merge_branch47
+
+merge_branch47:                                   ; preds = %false_branch46, %true_branch45
+  %145 = phi ptr [ %143, %true_branch45 ], [ %144, %false_branch46 ]
+  %146 = getelementptr %SchemeObject, ptr %112, i32 0, i32 4
+  store ptr %145, ptr %146, align 8
+  %147 = alloca %SchemeObject, align 8
+  %148 = getelementptr %SchemeObject, ptr %147, i32 0, i32 0
+  store i64 3, ptr %148, align 4
+  %149 = getelementptr %SchemeObject, ptr %147, i32 0, i32 4
+  store ptr null, ptr %149, align 8
+  %150 = getelementptr %SchemeObject, ptr %147, i32 0, i32 5
+  store ptr null, ptr %150, align 8
+  %151 = getelementptr %SchemeObject, ptr %112, i32 0, i32 5
+  store ptr %147, ptr %151, align 8
+  %152 = getelementptr %SchemeObject, ptr %147, i32 0, i32 4
+  store ptr %variable18, ptr %152, align 8
+  %153 = alloca %SchemeObject, align 8
+  %154 = getelementptr %SchemeObject, ptr %153, i32 0, i32 0
+  store i64 3, ptr %154, align 4
+  %155 = getelementptr %SchemeObject, ptr %153, i32 0, i32 4
+  store ptr null, ptr %155, align 8
+  %156 = getelementptr %SchemeObject, ptr %153, i32 0, i32 5
+  store ptr null, ptr %156, align 8
+  %157 = getelementptr %SchemeObject, ptr %147, i32 0, i32 5
+  store ptr %153, ptr %157, align 8
+  %158 = getelementptr %SchemeObject, ptr %147, i32 0, i32 5
+  store ptr null, ptr %158, align 8
+  br label %merge_branch37
+}
+
+define %SchemeObject @LambdaFunction.24(ptr %0, ptr %1, ptr %2, ptr %3) {
+entry:
+  %variable = alloca %SchemeObject, align 8
+  %4 = getelementptr %SchemeObject, ptr %0, i32 0
+  %5 = load %SchemeObject, ptr %4, align 8
+  store %SchemeObject %5, ptr %variable, align 8
+  %variable1 = alloca %SchemeObject, align 8
+  %6 = getelementptr %SchemeObject, ptr %1, i32 0
+  %7 = load %SchemeObject, ptr %6, align 8
+  store %SchemeObject %7, ptr %variable1, align 8
+  %variable2 = alloca %SchemeObject, align 8
+  %8 = getelementptr %SchemeObject, ptr %2, i32 0
+  %9 = load %SchemeObject, ptr %8, align 8
+  store %SchemeObject %9, ptr %variable2, align 8
+  %variable3 = alloca %SchemeObject, align 8
+  %10 = getelementptr %SchemeObject, ptr %3, i32 0
+  %11 = load %SchemeObject, ptr %10, align 8
+  store %SchemeObject %11, ptr %variable3, align 8
+  br label %comparison_branch
+
+true_branch:                                      ; preds = %merge_branch6
+  %number8 = alloca %SchemeObject, align 8
+  %12 = getelementptr %SchemeObject, ptr %number8, i32 0, i32 0
+  store i64 0, ptr %12, align 4
+  %13 = getelementptr %SchemeObject, ptr %number8, i32 0, i32 1
+  store i64 100, ptr %13, align 4
+  %number9 = alloca %SchemeObject, align 8
+  %14 = getelementptr %SchemeObject, ptr %number9, i32 0, i32 0
+  store i64 0, ptr %14, align 4
+  %15 = getelementptr %SchemeObject, ptr %number9, i32 0, i32 1
+  store i64 100, ptr %15, align 4
+  %number10 = alloca %SchemeObject, align 8
+  %16 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 0
+  store i64 0, ptr %16, align 4
+  %17 = getelementptr %SchemeObject, ptr %number10, i32 0, i32 1
+  store i64 100, ptr %17, align 4
+  %function_returned = alloca %SchemeObject, align 8
+  %18 = call ptr @llvm.stacksave()
+  %19 = call %SchemeObject @LambdaFunction.2(ptr %number8, ptr %number9, ptr %number10)
+  store %SchemeObject %19, ptr %function_returned, align 8
+  call void @llvm.stackrestore(ptr %18)
+  br label %merge_branch
+
+false_branch:                                     ; preds = %merge_branch6
+  %function_returned11 = alloca %SchemeObject, align 8
+  %20 = call ptr @llvm.stacksave()
+  %21 = call %SchemeObject @LambdaFunction.23(ptr %variable1, ptr %variable)
+  store %SchemeObject %21, ptr %function_returned11, align 8
+  call void @llvm.stackrestore(ptr %20)
+  %variable12 = alloca %SchemeObject, align 8
+  %22 = getelementptr %SchemeObject, ptr %function_returned11, i32 0
+  %23 = load %SchemeObject, ptr %22, align 8
+  store %SchemeObject %23, ptr %variable12, align 8
+  %24 = getelementptr %SchemeObject, ptr %variable12, i32 0, i32 0
+  %25 = load i64, ptr %24, align 4
+  %is_type_check = icmp eq i64 %25, 3
+  br i1 %is_type_check, label %true_branch19, label %false_branch20
+
+merge_branch:                                     ; preds = %merge_branch15, %true_branch
+  %26 = phi ptr [ %function_returned, %true_branch ], [ %62, %merge_branch15 ]
+  %27 = getelementptr %SchemeObject, ptr %26, i32 0
+  %28 = load %SchemeObject, ptr %27, align 8
+  ret %SchemeObject %28
+
+comparison_branch:                                ; preds = %entry
+  %29 = getelementptr %SchemeObject, ptr %variable2, i32 0, i32 0
+  %30 = load i64, ptr %29, align 4
+  %31 = icmp eq i64 %30, 0
+  call void @__GLAssert(i1 %31)
+  %number = alloca %SchemeObject, align 8
+  %32 = getelementptr %SchemeObject, ptr %number, i32 0, i32 0
+  store i64 0, ptr %32, align 4
+  %33 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  store i64 300, ptr %33, align 4
+  %34 = getelementptr %SchemeObject, ptr %number, i32 0, i32 0
+  %35 = load i64, ptr %34, align 4
+  %36 = icmp eq i64 %35, 0
+  call void @__GLAssert(i1 %36)
+  %37 = getelementptr %SchemeObject, ptr %variable2, i32 0, i32 1
+  %38 = load i64, ptr %37, align 4
+  %39 = getelementptr %SchemeObject, ptr %number, i32 0, i32 1
+  %40 = load i64, ptr %39, align 4
+  %41 = icmp ne i64 %38, %40
+  br i1 %41, label %false_branch5, label %true_branch4
+
+true_branch4:                                     ; preds = %comparison_branch
+  %boolean = alloca %SchemeObject, align 8
+  %42 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 0
+  store i64 1, ptr %42, align 4
+  %43 = getelementptr %SchemeObject, ptr %boolean, i32 0, i32 2
+  store i1 true, ptr %43, align 1
+  br label %merge_branch6
+
+false_branch5:                                    ; preds = %comparison_branch
+  %boolean7 = alloca %SchemeObject, align 8
+  %44 = getelementptr %SchemeObject, ptr %boolean7, i32 0, i32 0
+  store i64 1, ptr %44, align 4
+  %45 = getelementptr %SchemeObject, ptr %boolean7, i32 0, i32 2
+  store i1 false, ptr %45, align 1
+  br label %merge_branch6
+
+merge_branch6:                                    ; preds = %false_branch5, %true_branch4
+  %46 = phi ptr [ %boolean, %true_branch4 ], [ %boolean7, %false_branch5 ]
+  %47 = getelementptr %SchemeObject, ptr %46, i32 0, i32 0
+  %48 = load i64, ptr %47, align 4
+  %49 = icmp eq i64 %48, 1
+  call void @__GLAssert(i1 %49)
+  %50 = getelementptr %SchemeObject, ptr %46, i32 0, i32 2
+  %51 = load i1, ptr %50, align 1
+  br i1 %51, label %true_branch, label %false_branch
+
+true_branch13:                                    ; preds = %end_branch
+  %number42 = alloca %SchemeObject, align 8
+  %52 = getelementptr %SchemeObject, ptr %number42, i32 0, i32 0
+  store i64 0, ptr %52, align 4
+  %53 = getelementptr %SchemeObject, ptr %number42, i32 0, i32 1
+  store i64 100, ptr %53, align 4
+  %number43 = alloca %SchemeObject, align 8
+  %54 = getelementptr %SchemeObject, ptr %number43, i32 0, i32 0
+  store i64 0, ptr %54, align 4
+  %55 = getelementptr %SchemeObject, ptr %number43, i32 0, i32 1
+  store i64 100, ptr %55, align 4
+  %number44 = alloca %SchemeObject, align 8
+  %56 = getelementptr %SchemeObject, ptr %number44, i32 0, i32 0
+  store i64 0, ptr %56, align 4
+  %57 = getelementptr %SchemeObject, ptr %number44, i32 0, i32 1
+  store i64 100, ptr %57, align 4
+  %function_returned45 = alloca %SchemeObject, align 8
+  %58 = call ptr @llvm.stacksave()
+  %59 = call %SchemeObject @LambdaFunction.2(ptr %number42, ptr %number43, ptr %number44)
+  store %SchemeObject %59, ptr %function_returned45, align 8
+  call void @llvm.stackrestore(ptr %58)
+  br label %merge_branch15
+
+false_branch14:                                   ; preds = %end_branch
+  %60 = getelementptr %SchemeObject, ptr %variable12, i32 0, i32 0
+  %61 = load i64, ptr %60, align 4
+  %is_type_check49 = icmp eq i64 %61, 3
+  br i1 %is_type_check49, label %true_branch46, label %false_branch47
+
+merge_branch15:                                   ; preds = %merge_branch48, %true_branch13
+  %62 = phi ptr [ %function_returned45, %true_branch13 ], [ %function_returned50, %merge_branch48 ]
+  br label %merge_branch
+
+end_branch:                                       ; preds = %continue_branch37, %is_boolean_smth_branch39, %is_boolean_smth_branch
+  %63 = phi ptr [ %86, %is_boolean_smth_branch ], [ %117, %is_boolean_smth_branch39 ], [ %113, %continue_branch37 ]
+  %64 = getelementptr %SchemeObject, ptr %63, i32 0, i32 0
+  %65 = load i64, ptr %64, align 4
+  %66 = icmp eq i64 %65, 1
+  call void @__GLAssert(i1 %66)
+  %67 = getelementptr %SchemeObject, ptr %63, i32 0, i32 2
+  %68 = load i1, ptr %67, align 1
+  br i1 %68, label %true_branch13, label %false_branch14
+
+true_branch16:                                    ; preds = %merge_branch21
+  %boolean23 = alloca %SchemeObject, align 8
+  %69 = getelementptr %SchemeObject, ptr %boolean23, i32 0, i32 0
+  store i64 1, ptr %69, align 4
+  %70 = getelementptr %SchemeObject, ptr %boolean23, i32 0, i32 2
+  store i1 true, ptr %70, align 1
+  br label %merge_branch18
+
+false_branch17:                                   ; preds = %merge_branch21
+  %boolean24 = alloca %SchemeObject, align 8
+  %71 = getelementptr %SchemeObject, ptr %boolean24, i32 0, i32 0
+  store i64 1, ptr %71, align 4
+  %72 = getelementptr %SchemeObject, ptr %boolean24, i32 0, i32 2
+  store i1 false, ptr %72, align 1
+  br label %merge_branch18
+
+merge_branch18:                                   ; preds = %false_branch17, %true_branch16
+  %73 = phi ptr [ %boolean23, %true_branch16 ], [ %boolean24, %false_branch17 ]
+  %74 = getelementptr %SchemeObject, ptr %73, i32 0, i32 0
+  %75 = load i64, ptr %74, align 4
+  %is_type_check25 = icmp eq i64 %75, 1
+  br i1 %is_type_check25, label %is_boolean_branch, label %continue_branch
+
+true_branch19:                                    ; preds = %false_branch
+  %76 = getelementptr %SchemeObject, ptr %variable12, i32 0, i32 4
+  %77 = load ptr, ptr %76, align 8
+  br label %merge_branch21
+
+false_branch20:                                   ; preds = %false_branch
+  %78 = phi ptr [ %variable12, %false_branch ]
+  br label %merge_branch21
+
+merge_branch21:                                   ; preds = %false_branch20, %true_branch19
+  %79 = phi ptr [ %77, %true_branch19 ], [ %78, %false_branch20 ]
+  %80 = getelementptr %SchemeObject, ptr %79, i32 0, i32 0
+  %81 = load i64, ptr %80, align 4
+  %is_type_check22 = icmp eq i64 %81, 0
+  br i1 %is_type_check22, label %true_branch16, label %false_branch17
+
+continue_branch:                                  ; preds = %is_boolean_branch, %merge_branch18
+  %82 = phi ptr [ %73, %merge_branch18 ], [ %85, %is_boolean_branch ]
+  br label %comparison_branch26
+
+is_boolean_branch:                                ; preds = %merge_branch18
+  %83 = getelementptr %SchemeObject, ptr %73, i32 0, i32 2
+  %84 = load i1, ptr %83, align 1
+  %is_boolean_smth_check = icmp eq i1 %84, false
+  %85 = phi ptr [ %73, %merge_branch18 ]
+  br i1 %is_boolean_smth_check, label %is_boolean_smth_branch, label %continue_branch
+
+is_boolean_smth_branch:                           ; preds = %is_boolean_branch
+  %86 = phi ptr [ %85, %is_boolean_branch ]
+  br label %end_branch
+
+comparison_branch26:                              ; preds = %continue_branch
+  %87 = getelementptr %SchemeObject, ptr %variable12, i32 0, i32 0
+  %88 = load i64, ptr %87, align 4
+  %is_type_check33 = icmp eq i64 %88, 3
+  br i1 %is_type_check33, label %true_branch30, label %false_branch31
+
+true_branch27:                                    ; preds = %merge_branch32
+  %boolean35 = alloca %SchemeObject, align 8
+  %89 = getelementptr %SchemeObject, ptr %boolean35, i32 0, i32 0
+  store i64 1, ptr %89, align 4
+  %90 = getelementptr %SchemeObject, ptr %boolean35, i32 0, i32 2
+  store i1 true, ptr %90, align 1
+  br label %merge_branch29
+
+false_branch28:                                   ; preds = %merge_branch32
+  %boolean36 = alloca %SchemeObject, align 8
+  %91 = getelementptr %SchemeObject, ptr %boolean36, i32 0, i32 0
+  store i64 1, ptr %91, align 4
+  %92 = getelementptr %SchemeObject, ptr %boolean36, i32 0, i32 2
+  store i1 false, ptr %92, align 1
+  br label %merge_branch29
+
+merge_branch29:                                   ; preds = %false_branch28, %true_branch27
+  %93 = phi ptr [ %boolean35, %true_branch27 ], [ %boolean36, %false_branch28 ]
+  %94 = getelementptr %SchemeObject, ptr %93, i32 0, i32 0
+  %95 = load i64, ptr %94, align 4
+  %is_type_check40 = icmp eq i64 %95, 1
+  br i1 %is_type_check40, label %is_boolean_branch38, label %continue_branch37
+
+true_branch30:                                    ; preds = %comparison_branch26
+  %96 = getelementptr %SchemeObject, ptr %variable12, i32 0, i32 4
+  %97 = load ptr, ptr %96, align 8
+  br label %merge_branch32
+
+false_branch31:                                   ; preds = %comparison_branch26
+  %98 = phi ptr [ %variable12, %comparison_branch26 ]
+  br label %merge_branch32
+
+merge_branch32:                                   ; preds = %false_branch31, %true_branch30
+  %99 = phi ptr [ %97, %true_branch30 ], [ %98, %false_branch31 ]
+  %100 = getelementptr %SchemeObject, ptr %99, i32 0, i32 0
+  %101 = load i64, ptr %100, align 4
+  %102 = icmp eq i64 %101, 0
+  call void @__GLAssert(i1 %102)
+  %number34 = alloca %SchemeObject, align 8
+  %103 = getelementptr %SchemeObject, ptr %number34, i32 0, i32 0
+  store i64 0, ptr %103, align 4
+  %104 = getelementptr %SchemeObject, ptr %number34, i32 0, i32 1
+  store i64 -100, ptr %104, align 4
+  %105 = getelementptr %SchemeObject, ptr %number34, i32 0, i32 0
+  %106 = load i64, ptr %105, align 4
+  %107 = icmp eq i64 %106, 0
+  call void @__GLAssert(i1 %107)
+  %108 = getelementptr %SchemeObject, ptr %99, i32 0, i32 1
+  %109 = load i64, ptr %108, align 4
+  %110 = getelementptr %SchemeObject, ptr %number34, i32 0, i32 1
+  %111 = load i64, ptr %110, align 4
+  %112 = icmp ne i64 %109, %111
+  br i1 %112, label %false_branch28, label %true_branch27
+
+continue_branch37:                                ; preds = %is_boolean_branch38, %merge_branch29
+  %113 = phi ptr [ %93, %merge_branch29 ], [ %116, %is_boolean_branch38 ]
+  br label %end_branch
+
+is_boolean_branch38:                              ; preds = %merge_branch29
+  %114 = getelementptr %SchemeObject, ptr %93, i32 0, i32 2
+  %115 = load i1, ptr %114, align 1
+  %is_boolean_smth_check41 = icmp eq i1 %115, false
+  %116 = phi ptr [ %93, %merge_branch29 ]
+  br i1 %is_boolean_smth_check41, label %is_boolean_smth_branch39, label %continue_branch37
+
+is_boolean_smth_branch39:                         ; preds = %is_boolean_branch38
+  %117 = phi ptr [ %116, %is_boolean_branch38 ]
+  br label %end_branch
+
+true_branch46:                                    ; preds = %false_branch14
+  %118 = getelementptr %SchemeObject, ptr %variable12, i32 0, i32 4
+  %119 = load ptr, ptr %118, align 8
+  br label %merge_branch48
+
+false_branch47:                                   ; preds = %false_branch14
+  %120 = phi ptr [ %variable12, %false_branch14 ]
+  br label %merge_branch48
+
+merge_branch48:                                   ; preds = %false_branch47, %true_branch46
+  %121 = phi ptr [ %119, %true_branch46 ], [ %120, %false_branch47 ]
+  %function_returned50 = alloca %SchemeObject, align 8
+  %122 = call ptr @llvm.stacksave()
+  %123 = call %SchemeObject @LambdaFunction.20(ptr %121)
+  store %SchemeObject %123, ptr %function_returned50, align 8
+  call void @llvm.stackrestore(ptr %122)
+  br label %merge_branch15
+}
 
 attributes #0 = { nocallback nofree nosync nounwind willreturn }
