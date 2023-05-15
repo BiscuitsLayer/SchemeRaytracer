@@ -1,9 +1,14 @@
 [submodule "include/OOGL"]
 	path = include/OOGL
 	url = https://github.com/BiscuitsLayer/OOGL.git
+	ignore = dirty
+
 [submodule "include/imgui"]
 	path = include/imgui
 	url = https://github.com/ocornut/imgui.git
+	ignore = dirty
+
 [submodule "include/llvm-project-mod"]
 	path = include/llvm-project-mod
 	url = https://github.com/BiscuitsLayer/llvm-project-mod.git
+	ignore = dirty
