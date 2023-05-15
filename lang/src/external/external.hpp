@@ -21,11 +21,6 @@ enum FieldType : int64_t {
     FIELD_SYMBOL = 3,
     FIELD_FIRST = 4,
     FIELD_SECOND = 5
-    // FIELD_NUMBER = 1,
-    // FIELD_BOOLEAN = 1,
-    // FIELD_SYMBOL = 1,
-    // FIELD_FIRST = 1,
-    // FIELD_SECOND = 2
 };
 
 struct SchemeObject {
@@ -35,8 +30,6 @@ struct SchemeObject {
     char* symbol;
     SchemeObject* first;
     SchemeObject* second;
-    // void* first;
-    // void* second;
 };
 
 // Graphics

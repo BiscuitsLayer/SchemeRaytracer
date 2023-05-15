@@ -116,6 +116,8 @@ Context::Context() {
     };
     object_type->setBody(object_type_subtypes);
 
+    nullptr_value = llvm::Constant::getNullValue(builder->getInt8PtrTy());
+
     SetExternalFunctions();
 }
 
@@ -170,6 +172,42 @@ void Context::SetExternalFunction(std::string name, llvm::Type* return_value_typ
     llvm::Function* function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, name, llvm_module.value());
 }
 
+llvm::Value* CreateValueCopy(llvm::Value* object_value, llvm::BasicBlock* object_value_branch) {
+    auto& context = Codegen::Context::Get();
+
+    llvm::PHINode* new_object_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 1);
+    new_object_value->addIncoming(object_value, object_value_branch);
+    return new_object_value;
+}
+
+llvm::Value* CreateValueCopy(const std::vector<std::pair<llvm::Value*, llvm::BasicBlock*>>& object_value_and_branch_vector) {
+    auto& context = Codegen::Context::Get();
+
+    llvm::PHINode* new_object_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), object_value_and_branch_vector.size());
+    for (auto object_value_and_branch : object_value_and_branch_vector) {
+        new_object_value->addIncoming(object_value_and_branch.first, object_value_and_branch.second);
+    }
+    return new_object_value;
+}
+
+void CreateStackSave() {
+    auto& context = Codegen::Context::Get();
+
+    llvm::Function* stack_save_function = llvm::Intrinsic::getDeclaration(&context.llvm_module.value(), llvm::Intrinsic::stacksave);
+    llvm::Value* stack_state_before_loop = context.builder->CreateCall(stack_save_function);
+
+    context.last_stack_saves.push(stack_state_before_loop);
+}
+
+void CreateStackRestore() {
+    auto& context = Codegen::Context::Get();
+    auto stack_state_before_loop = context.last_stack_saves.top();
+    context.last_stack_saves.pop();
+
+    llvm::Function* stack_restore_function = llvm::Intrinsic::getDeclaration(&context.llvm_module.value(), llvm::Intrinsic::stackrestore);
+    context.builder->CreateCall(stack_restore_function, {stack_state_before_loop});
+}
+
 llvm::Value* CreateStoreNewCell() {
     auto& context = Codegen::Context::Get();
     llvm::Value* object_value = context.builder->CreateAlloca(context.object_type, nullptr);
@@ -180,6 +218,20 @@ llvm::Value* CreateStoreNewCell() {
     };
     llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
     context.builder->CreateStore(context.builder->getInt64(ObjectType::TYPE_CELL), object_value_type_field);
+
+    std::vector<llvm::Value*> object_value_first_field_indices {
+        context.builder->getInt32(0), // because there is no array, so just the object itself
+        context.builder->getInt32(FieldType::FIELD_FIRST)
+    };
+    llvm::Value* object_value_first_field = context.builder->CreateGEP(context.object_type, object_value, object_value_first_field_indices);
+    context.builder->CreateStore(context.nullptr_value, object_value_first_field);
+
+    std::vector<llvm::Value*> object_value_second_field_indices {
+        context.builder->getInt32(0), // because there is no array, so just the object itself
+        context.builder->getInt32(FieldType::FIELD_SECOND)
+    };
+    llvm::Value* object_value_second_field = context.builder->CreateGEP(context.object_type, object_value, object_value_second_field_indices);
+    context.builder->CreateStore(context.nullptr_value, object_value_second_field);
 
     return object_value;
 }
@@ -202,6 +254,32 @@ void CreateStoreCellSecond(llvm::Value* object_value, llvm::Value* second_value)
     };
     llvm::Value* object_value_second_field = context.builder->CreateGEP(context.object_type, object_value, object_value_second_field_indices);
     context.builder->CreateStore(second_value, object_value_second_field);
+}
+
+llvm::Value* CreateLoadCellFirst(llvm::Value* object_value) {
+    auto& context = Codegen::Context::Get();
+
+    std::vector<llvm::Value*> object_value_first_field_indices {
+        context.builder->getInt32(0), // because there is no array, so just the object itself
+        context.builder->getInt32(FieldType::FIELD_FIRST)
+    };
+    llvm::Value* object_value_first_field = context.builder->CreateGEP(context.object_type, object_value, object_value_first_field_indices);
+    llvm::Value* object_value_first = context.builder->CreateLoad(context.builder->getInt8PtrTy(), object_value_first_field);
+
+    return object_value_first;
+}
+
+llvm::Value* CreateLoadCellSecond(llvm::Value* object_value) {
+    auto& context = Codegen::Context::Get();
+
+    std::vector<llvm::Value*> object_value_second_field_indices {
+        context.builder->getInt32(0), // because there is no array, so just the object itself
+        context.builder->getInt32(FieldType::FIELD_SECOND)
+    };
+    llvm::Value* object_value_second_field = context.builder->CreateGEP(context.object_type, object_value, object_value_second_field_indices);
+    llvm::Value* object_value_second = context.builder->CreateLoad(context.builder->getInt8PtrTy(), object_value_second_field);
+
+    return object_value_second;
 }
 
 llvm::Value* CreateStoreNewNumber(int64_t number) {
@@ -413,6 +491,20 @@ void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type) {
     std::vector<llvm::Value*> assert_function_call_arguments = { context.builder->CreateICmpEQ(object_value_type, context.builder->getInt64(type)) };
     llvm::Function* assert_function = context.llvm_module->getFunction("__GLAssert");
     context.builder->CreateCall(assert_function, assert_function_call_arguments);
+}
+
+void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type, llvm::BasicBlock* true_branch, llvm::BasicBlock* false_branch) {
+    auto& context = Codegen::Context::Get();
+
+    std::vector<llvm::Value*> object_value_type_field_indices {
+        context.builder->getInt32(0), // because there is no array, so just the object itself
+        context.builder->getInt32(FieldType::FIELD_TYPE)
+    };
+    llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
+    llvm::Value* object_value_type = context.builder->CreateLoad(context.builder->getInt64Ty(), object_value_type_field);
+
+    llvm::Value* is_type_check = context.builder->CreateICmpEQ(object_value_type, context.builder->getInt64(type), "is_type_check");
+    context.builder->CreateCondBr(is_type_check, true_branch, false_branch);
 }
 
 void CreateIsIntegerCheck(llvm::Value* number_value) {
