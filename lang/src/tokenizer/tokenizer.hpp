@@ -32,19 +32,19 @@ enum class BracketToken { OPEN, CLOSE };
 
 struct ConstantToken {
 public:
-    ConstantToken(int64_t new_value = 0, int64_t new_fractional_part = 0, int64_t new_fractional_power = 1)
+    ConstantToken(number_t new_value = 0, number_t new_fractional_part = 0, number_t new_fractional_power = 1)
         : value(new_value), fractional_part(new_fractional_part), fractional_power(new_fractional_power) {}
 
-    int64_t GetValueWithPrecision() const;
+    number_t GetValueWithPrecision() const;
 
     bool operator==(const ConstantToken& other) const {
         return (value == other.value) || (fractional_part == other.fractional_part);
     }
 
 private:
-    int64_t value;
-    int64_t fractional_part = 0;
-    int64_t fractional_power = 1;
+    number_t value;
+    number_t fractional_part = 0;
+    number_t fractional_power = 1;
 };
 
 enum class DummyToken { DUMMY };

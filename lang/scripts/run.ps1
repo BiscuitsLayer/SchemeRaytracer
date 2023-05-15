@@ -5,4 +5,4 @@ cd build
 cd ..
 cd scripts
 ./build_codegen_executable.ps1
-./../codegen/codegen.exe
+../codegen/codegen.exe

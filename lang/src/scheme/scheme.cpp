@@ -84,7 +84,6 @@ void Scheme::SetSystemFunctions() {
     global_scope_->SetVariableFunction("*", std::make_shared<Multiply>());
     global_scope_->SetVariableFunction("-", std::make_shared<Subtract>());
     global_scope_->SetVariableFunction("/", std::make_shared<Divide>());
-    global_scope_->SetVariableFunction("quotient", std::make_shared<Quotient>());
     global_scope_->SetVariableFunction("mod", std::make_shared<Mod>());
 
     global_scope_->SetVariableFunction("expt", std::make_shared<Expt>());

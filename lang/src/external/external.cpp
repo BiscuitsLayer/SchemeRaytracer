@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include "external.hpp"
 
 #include <iostream>
@@ -132,6 +134,11 @@ void __GLFinish() {
     vao.reset();
     ebo.reset();
     vbo.reset();
+
+    texture.reset();
+    image.reset();
+
+    window.reset();
 }
 
 // Auxiliary functions for print formatting
@@ -150,9 +157,9 @@ std::string GLObjectToString(SchemeObject* object) {
     } else {
         switch(object->type) {
             case ObjectType::TYPE_NUMBER: {
-                int64_t unhandled_value = object->number;
+                number_t unhandled_value = object->number;
                 if (unhandled_value % PRECISION == 0) {
-                    int64_t value = unhandled_value / PRECISION;
+                    number_t value = unhandled_value / PRECISION;
                     ans = std::to_string(value);
                 } else {
                     double value = 1.0 * unhandled_value / PRECISION;
@@ -228,5 +235,33 @@ SchemeObject __GLSqrt(SchemeObject* value_object) {
     double value_number = static_cast<double>(value_object->number) / PRECISION;
 
     ans.number = std::sqrt(value_number) * PRECISION;
+    return ans;
+}
+
+SchemeObject __GLMax(SchemeObject* lhs, SchemeObject* rhs) {
+    SchemeObject ans;
+    ans.type = ObjectType::TYPE_NUMBER;
+
+    assert(lhs->type == ObjectType::TYPE_NUMBER);
+    double lhs_number = static_cast<double>(lhs->number) / PRECISION;
+
+    assert(rhs->type == ObjectType::TYPE_NUMBER);
+    double rhs_number = static_cast<double>(rhs->number) / PRECISION;
+
+    ans.number = std::max(lhs_number, rhs_number) * PRECISION;
+    return ans;
+}
+
+SchemeObject __GLMin(SchemeObject* lhs, SchemeObject* rhs) {
+    SchemeObject ans;
+    ans.type = ObjectType::TYPE_NUMBER;
+
+    assert(lhs->type == ObjectType::TYPE_NUMBER);
+    double lhs_number = static_cast<double>(lhs->number) / PRECISION;
+
+    assert(rhs->type == ObjectType::TYPE_NUMBER);
+    double rhs_number = static_cast<double>(rhs->number) / PRECISION;
+
+    ans.number = std::min(lhs_number, rhs_number) * PRECISION;
     return ans;
 }

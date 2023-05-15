@@ -31,7 +31,7 @@ ObjectPtr BuildLambda(std::optional<std::string> name, ObjectPtr init, ScopePtr 
         throw RuntimeError("\"BuildLambda\" error: second argument (body) is not a list");
     }
 
-    for (int64_t argument_idx = 1; argument_idx < arguments.size(); ++argument_idx) {
+    for (number_t argument_idx = 1; argument_idx < arguments.size(); ++argument_idx) {
         commands.push_back(arguments[argument_idx]);
     }
     
@@ -131,7 +131,7 @@ ObjectPtr BuildLambdaCodegen(std::optional<std::string> name, ObjectPtr init, Sc
     }
 
     llvm::Value* return_value = nullptr;
-    for (int64_t argument_idx = 1; argument_idx < arguments.size(); ++argument_idx) {
+    for (number_t argument_idx = 1; argument_idx < arguments.size(); ++argument_idx) {
         if (argument_idx + 1 == arguments.size() && Interp::CheckIfCellIsLambda(arguments[argument_idx])) {
             std::cout << "last command lambda found" << std::endl;
             std::shared_ptr<Cell> lambda_cell = As<Cell>(arguments[argument_idx]);

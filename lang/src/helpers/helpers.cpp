@@ -24,9 +24,9 @@ std::string ObjectToString(ObjectPtr value) {
     if (!value) {
         ans = "()";
     } else if (Is<Number>(value)) {
-        int64_t unhandled_value = As<Number>(value)->GetValue();
+        number_t unhandled_value = As<Number>(value)->GetValue();
         if (unhandled_value % PRECISION == 0) {
-            int64_t value = unhandled_value / PRECISION;
+            number_t value = unhandled_value / PRECISION;
             ans = std::to_string(value);
         } else {
             double value = 1.0 * unhandled_value / PRECISION;
@@ -165,6 +165,18 @@ void Context::SetExternalFunctions() {
             builder->getInt8PtrTy()
         }
     );
+    SetExternalFunction("__GLMax", object_type,
+        { 
+            builder->getInt8PtrTy(),
+            builder->getInt8PtrTy()
+        }
+    );
+    SetExternalFunction("__GLMin", object_type,
+        { 
+            builder->getInt8PtrTy(),
+            builder->getInt8PtrTy()
+        }
+    );
 }
 
 void Context::SetExternalFunction(std::string name, llvm::Type* return_value_type, const std::vector<llvm::Type*>& argument_types) {
@@ -282,7 +294,7 @@ llvm::Value* CreateLoadCellSecond(llvm::Value* object_value) {
     return object_value_second;
 }
 
-llvm::Value* CreateStoreNewNumber(int64_t number) {
+llvm::Value* CreateStoreNewNumber(number_t number) {
     auto& context = Codegen::Context::Get();
     llvm::AllocaInst* object_value = context.builder->CreateAlloca(context.object_type, nullptr, "number");
 
@@ -423,10 +435,6 @@ void CreateStoreNumber(llvm::Value* object_value, llvm::Value* number_value) {
     context.builder->CreateStore(number_value, object_value_number_field);
 }
 
-// void CreateStoreSymbol(llvm::Value* object_value, llvm::Value* symbol_value) {
-
-// }
-
 void CreateStoreBoolean(llvm::Value* object_value, llvm::Value* boolean_value) {
     auto& context = Codegen::Context::Get();
 
@@ -450,20 +458,6 @@ llvm::Value* CreateLoadNumber(llvm::Value* object_value) {
 
     return object_value_number;
 }
-
-// TODO: implement
-// llvm::Value* CreateLoadSymbol(llvm::Value* object_value) {
-//     auto& context = Codegen::Context::Get();
-
-//     std::vector<llvm::Value*> object_value_symbol_field_indices {
-//         context.builder->getInt32(0), // because there is no array, so just the object itself
-//         context.builder->getInt32(FieldType::FIELD_SYMBOL)
-//     };
-//     llvm::Value* object_value_symbol_field = context.builder->CreateGEP(context.object_type, object_value, object_value_symbol_field_indices);
-//     llvm::Value* object_value_symbol = context.builder->CreateLoad(context.builder->getInt64Ty(), object_value_symbol_field);
-
-//     return object_value_symbol;
-// }
 
 llvm::Value* CreateLoadBoolean(llvm::Value* object_value) {
     auto& context = Codegen::Context::Get();

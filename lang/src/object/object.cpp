@@ -1187,8 +1187,8 @@ ObjectPtr Add::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope,
         if (!Is<Number>(value)) {
             throw RuntimeError("\"Add\" error: not a number given");
         } else {
-            int64_t old_number = As<Number>(ans)->GetValue();
-            int64_t update_number = As<Number>(value)->GetValue();
+            number_t old_number = As<Number>(ans)->GetValue();
+            number_t update_number = As<Number>(value)->GetValue();
 
             ans = std::make_shared<Number>(old_number + update_number);
         }
@@ -1226,8 +1226,8 @@ ObjectPtr Multiply::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr s
         if (!Is<Number>(value)) {
             throw RuntimeError("\"Multiply\" error: not a number given");
         } else {
-            int64_t old_number = As<Number>(ans)->GetValue();
-            int64_t update_number = As<Number>(value)->GetValue();
+            number_t old_number = As<Number>(ans)->GetValue();
+            number_t update_number = As<Number>(value)->GetValue();
 
             ans = std::make_shared<Number>((old_number * update_number) / PRECISION);
         }
@@ -1271,12 +1271,12 @@ ObjectPtr Subtract::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr s
             throw RuntimeError("\"Subtract\" error: not a number given");
         } else {
             if (argument_idx == 0) {
-                int64_t update_number = As<Number>(value)->GetValue();
+                number_t update_number = As<Number>(value)->GetValue();
 
                 ans = std::make_shared<Number>(update_number);
             } else {
-                int64_t old_number = As<Number>(ans)->GetValue();
-                int64_t update_number = As<Number>(value)->GetValue();
+                number_t old_number = As<Number>(ans)->GetValue();
+                number_t update_number = As<Number>(value)->GetValue();
 
                 ans = std::make_shared<Number>(old_number - update_number);
             }
@@ -1322,12 +1322,12 @@ ObjectPtr Divide::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr sco
             throw RuntimeError("\"Divide\" error: not a number given");
         } else {
             if (argument_idx == 0) {
-                int64_t update_number = As<Number>(value)->GetValue();
+                number_t update_number = As<Number>(value)->GetValue();
 
                 ans = std::make_shared<Number>(update_number);
             } else {
-                int64_t old_number = As<Number>(ans)->GetValue();
-                int64_t update_number = As<Number>(value)->GetValue();
+                number_t old_number = As<Number>(ans)->GetValue();
+                number_t update_number = As<Number>(value)->GetValue();
 
                 ans = std::make_shared<Number>(old_number * PRECISION / (update_number != 0 ? update_number : 1));
             }
@@ -1362,61 +1362,6 @@ llvm::Value* Divide::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr s
     return ans;
 }
 
-ObjectPtr Quotient::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
-    if (arguments.size() != 2) {
-        throw RuntimeError("Exactly 2 arguments required for \"Quotient\" function");
-    }
-
-    auto lhs = arguments[0]->Evaluate({}, scope);
-    if (!Is<Number>(lhs)) {
-        throw RuntimeError("\"Quotient\" error: not a number given as lhs");
-    }
-    auto lhs_value = As<Number>(lhs)->GetValue();
-    if (lhs_value % PRECISION != 0) {
-        throw RuntimeError("\"Quotient\" error: not an integer given as lhs");
-    }
-
-    auto rhs = arguments[1]->Evaluate({}, scope);
-    if (!Is<Number>(rhs)) {
-        throw RuntimeError("\"Quotient\" error: not a number given as rhs");
-    }
-    auto rhs_value = As<Number>(rhs)->GetValue();
-    if (rhs_value % PRECISION != 0) {
-        throw RuntimeError("\"Quotient\" error: not an integer given as rhs");
-    }
-
-    ObjectPtr ans = std::make_shared<Number>(lhs_value * PRECISION / (rhs_value != 0 ? rhs_value : 1));
-    return ans;
-}
-
-llvm::Value* Quotient::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
-    auto& context = Codegen::Context::Get();
-
-    if (arguments.size() != 2) {
-        throw RuntimeError("Exactly 2 arguments required for \"Quotient\" function");
-    }
-
-    llvm::Value* lhs_value = arguments[0]->Codegen({}, scope);
-    Codegen::CreateObjectTypeCheck(lhs_value, ObjectType::TYPE_NUMBER);
-
-    llvm::Value* lhs_value_number = Codegen::CreateLoadNumber(lhs_value);
-    Codegen::CreateIsIntegerCheck(lhs_value_number);
-
-    llvm::Value* rhs_value = arguments[1]->Codegen({}, scope);
-    Codegen::CreateObjectTypeCheck(rhs_value, ObjectType::TYPE_NUMBER);
-
-    llvm::Value* rhs_value_number_not_checked = Codegen::CreateLoadNumber(rhs_value);
-    Codegen::CreateIsIntegerCheck(rhs_value_number_not_checked);
-
-    llvm::Value* rhs_value_number_checked = Codegen::CreateIsZeroThenOneCheck(rhs_value_number_not_checked);
-
-    llvm::Value* lhs_value_number_precised = context.builder->CreateMul(lhs_value_number, context.builder->getInt64(PRECISION));
-    llvm::Value* ans_value_number = context.builder->CreateSDiv(lhs_value_number_precised, rhs_value_number_checked);
-
-    llvm::Value* ans = Codegen::CreateStoreNewNumber(ans_value_number);
-    return ans;
-}
-
 ObjectPtr Mod::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
     if (arguments.size() != 2) {
         throw RuntimeError("Exactly 2 arguments required for \"Mod\" function");
@@ -1448,7 +1393,7 @@ llvm::Value* Mod::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scop
     auto& context = Codegen::Context::Get();
 
     if (arguments.size() != 2) {
-        throw RuntimeError("Exactly 2 arguments required for \"Quotient\" function");
+        throw RuntimeError("Exactly 2 arguments required for \"Mod\" function");
     }
 
     llvm::Value* lhs_value = arguments[0]->Codegen({}, scope);
@@ -1556,16 +1501,14 @@ ObjectPtr Max::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope,
             throw RuntimeError("\"Max\" error: not a number given");
         } else {
             if (argument_idx == 0) {
-                int64_t new_number = As<Number>(value)->GetValue();
+                number_t new_number = As<Number>(value)->GetValue();
 
                 ans = std::make_shared<Number>(new_number);
             } else {
-                int64_t old_number = As<Number>(ans)->GetValue();
-                int64_t new_number = As<Number>(value)->GetValue();
+                number_t old_number = As<Number>(ans)->GetValue();
+                number_t new_number = As<Number>(value)->GetValue();
 
-                if (new_number > old_number) {
-                    ans = std::make_shared<Number>(new_number);
-                }
+                ans = std::make_shared<Number>(std::max(old_number, new_number));
             }
         }
     }
@@ -1573,7 +1516,29 @@ ObjectPtr Max::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope,
 }
 
 llvm::Value* Max::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
-    throw std::runtime_error("Ignoring by now, TODO later");
+    auto& context = Codegen::Context::Get();
+
+    // Can store 0 in the initial answer value, it will be definetely changed on the first cycle iteration 
+    llvm::Value* ans = Codegen::CreateStoreNewNumber(0 * PRECISION);
+    llvm::Value* value = context.nullptr_value;
+
+    for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
+        value = arguments[argument_idx]->Codegen({}, scope);
+        Codegen::CreateObjectTypeCheck(value, ObjectType::TYPE_NUMBER);
+
+        std::vector<llvm::Value*> function_call_arguments{ans, value};
+        llvm::Function* function = context.llvm_module->getFunction("__GLMax");
+        llvm::Value* max_return_value = context.builder->CreateAlloca(context.object_type, nullptr, "max");
+        context.builder->CreateStore(context.builder->CreateCall(function, function_call_arguments), max_return_value);
+
+        if (argument_idx == 0) {
+            ans = value;
+        } else {
+            ans = max_return_value;
+        }
+    }
+
+    return ans;
 }
 
 ObjectPtr Min::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -1589,16 +1554,14 @@ ObjectPtr Min::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope,
             throw RuntimeError("\"Min\" error: not a number given");
         } else {
             if (argument_idx == 0) {
-                int64_t new_number = As<Number>(value)->GetValue();
+                number_t new_number = As<Number>(value)->GetValue();
 
                 ans = std::make_shared<Number>(new_number);
             } else {
-                int64_t old_number = As<Number>(ans)->GetValue();
-                int64_t new_number = As<Number>(value)->GetValue();
+                number_t old_number = As<Number>(ans)->GetValue();
+                number_t new_number = As<Number>(value)->GetValue();
 
-                if (new_number < old_number) {
-                    ans = std::make_shared<Number>(new_number);
-                }
+                ans = std::make_shared<Number>(std::min(old_number, new_number));
             }
         }
     }
@@ -1606,7 +1569,28 @@ ObjectPtr Min::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope,
 }
 
 llvm::Value* Min::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
-    throw std::runtime_error("min unimplemented codegen");
+    auto& context = Codegen::Context::Get();
+
+    // Can store 0 in the initial answer value, it will be definetely changed on the first cycle iteration 
+    llvm::Value* ans = Codegen::CreateStoreNewNumber(0 * PRECISION);
+    llvm::Value* value = context.nullptr_value;
+
+    for (size_t argument_idx = 0; argument_idx < arguments.size(); ++argument_idx) {
+        value = arguments[argument_idx]->Codegen({}, scope);
+        
+        std::vector<llvm::Value*> function_call_arguments{ans, value};
+        llvm::Function* function = context.llvm_module->getFunction("__GLMin");
+        llvm::Value* min_return_value = context.builder->CreateAlloca(context.object_type, nullptr, "min");
+        context.builder->CreateStore(context.builder->CreateCall(function, function_call_arguments), min_return_value);
+
+        if (argument_idx == 0) {
+            ans = value;
+        } else {
+            ans = min_return_value;
+        }
+    }
+
+    return ans;
 }
 
 ObjectPtr Abs::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote) {
@@ -1621,7 +1605,7 @@ ObjectPtr Abs::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope,
         throw RuntimeError("\"Abs\" error: not a number given");
     }
 
-    int64_t new_number = As<Number>(value)->GetValue();
+    number_t new_number = As<Number>(value)->GetValue();
     new_number = abs(new_number);
     ans = std::make_shared<Number>(new_number);
 
@@ -2032,7 +2016,7 @@ ObjectPtr ListRef::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr sc
     if (!Is<Number>(idx)) {
         throw RuntimeError("\"ListRef\" error: idx is not a number");
     }
-    int64_t idx_number = As<Number>(idx)->GetValue() / PRECISION;
+    number_t idx_number = As<Number>(idx)->GetValue() / PRECISION;
 
     for (std::shared_ptr<Cell> cell = As<Cell>(init); cell; cell = As<Cell>(cell->GetSecond())) {
         if (idx_number == 0) {
@@ -2056,7 +2040,7 @@ ObjectPtr ListTail::Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr s
     if (!Is<Number>(idx)) {
         throw RuntimeError("\"ListTail\" error: idx is not a number");
     }
-    int64_t idx_number = As<Number>(idx)->GetValue() / PRECISION;
+    number_t idx_number = As<Number>(idx)->GetValue() / PRECISION;
 
     for (std::shared_ptr<Cell> cell = As<Cell>(init); cell; cell = As<Cell>(cell->GetSecond())) {
         if (idx_number == 0) {

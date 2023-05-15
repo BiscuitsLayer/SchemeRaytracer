@@ -38,18 +38,18 @@ public:
 
 class Number : public Object {
 public:
-    Number(int64_t value) : value_(value) {
+    Number(number_t value) : value_(value) {
     }
 
     virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
     virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
 
-    int64_t GetValue() const {
+    number_t GetValue() const {
         return value_;
     }
 
 private:
-    int64_t value_ = 0;
+    number_t value_ = 0;
 };
 
 class Function : public Object {
@@ -368,15 +368,6 @@ public:
 class Divide : public Function {
 public:
     Divide() : Function("/") {
-    }
-
-    virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
-    virtual llvm::Value* Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;
-};
-
-class Quotient : public Function {
-public:
-    Quotient() : Function("quotient") {
     }
 
     virtual ObjectPtr Evaluate(const std::vector<ObjectPtr>& arguments, ScopePtr scope, bool is_quote = false) override;

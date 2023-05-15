@@ -206,11 +206,14 @@
 ; (print (null? (car (cdr (cdr lst)))))
 ; (print (null? (cdr (cdr (cdr lst)))))
 
-(define inc-long (lambda (x) (+ x 1)))
-(print (inc-long -1))
+; (define inc-long (lambda (x) (+ x 1)))
+; (print (inc-long -1))
 
-(define (inc-short x) (+ x 1))
-(print (inc-short -1))
+; (define (inc-short x) (+ x 1))
+; (print (inc-short -1))
 
-(define (add x y) (+ x y 1))
-(print (add 10 10))
+; (define (add x y) (+ x y 1))
+; (print (add 10 10))
+
+(print (min 5 3))
+; (print (max 5 3 6 4))

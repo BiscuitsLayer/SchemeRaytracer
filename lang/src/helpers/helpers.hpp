@@ -62,7 +62,7 @@ llvm::Value* CreateLoadCellFirst(llvm::Value* object_value);
 llvm::Value* CreateLoadCellSecond(llvm::Value* object_value);
 
 // BUILD NEW FROM CPP TYPE
-llvm::Value* CreateStoreNewNumber(int64_t number);
+llvm::Value* CreateStoreNewNumber(number_t number);
 llvm::Value* CreateStoreNewSymbol(std::string symbol);
 llvm::Value* CreateStoreNewBoolean(bool boolean);
 
@@ -73,12 +73,10 @@ llvm::Value* CreateStoreNewBoolean(llvm::Value* boolean_value);
 
 // STORE FROM OBJECT TYPE
 void CreateStoreNumber(llvm::Value* object_value, llvm::Value* number_value);
-// void CreateStoreSymbol(llvm::Value* object_value, llvm::Value* symbol_value);
 void CreateStoreBoolean(llvm::Value* object_value, llvm::Value* boolean_value);
 
 // LOAD CPP TYPE FROM OBJECT TYPE
 llvm::Value* CreateLoadNumber(llvm::Value* object_value);
-// llvm::Value* CreateLoadSymbol(llvm::Value* object_value);
 llvm::Value* CreateLoadBoolean(llvm::Value* object_value);
 
 // CHECKS

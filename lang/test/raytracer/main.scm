@@ -7,15 +7,15 @@
 (load 'shoot.scm)
 
 ;; generate random direction in sphere
-(define random-in-unit-sphere
-    (lambda ()
-        (define v (vec-sub (vec-mul (vec3 (random) (random) (random)) 2) 1))
-        (if (< (vec-len v) 1.0)
-            v
-            (random-in-unit-sphere)
-        )
-    )
-)
+; (define random-in-unit-sphere
+;     (lambda ()
+;         (define v (vec-sub (vec-mul (vec3 (random) (random) (random)) 2) 1))
+;         (if (< (vec-len v) 1.0)
+;             v
+;             (random-in-unit-sphere)
+;         )
+;     )
+; )
 
 (define (min a b)
     (if (< a b) a b)
@@ -77,9 +77,11 @@
                 vec
                 (begin
                     ;; pixel center (add -0.5) and small random adjustment (between 0.0 and 1.0)
-                    (define vx (* (/ (+ x -0.5 (random) (* -0.5 width)) width) xtan))
-                    (define vy (* (/ (- (* 0.5 height) (+ y -0.5 (random))) height) ytan))
-
+                    ; (define vx (* (/ (+ x -0.5 (random) (* -0.5 width)) width) xtan))
+                    ; (define vy (* (/ (- (* 0.5 height) (+ y -0.5 (random))) height) ytan))
+                    (define vx (* (/ (+ x -0.5 (* -0.5 width)) width) xtan))
+                    (define vy (* (/ (- (* 0.5 height) (+ y -0.5)) height) ytan))
+                    
                     ;; generate ray with given direction and normalize
                     (define v (vec3 vx vy 1))
                     (define v (vec-unit v))
@@ -109,52 +111,49 @@
 ;; draw every n-th frame
 (define should-draw 0)
 
-;; RNG generates number from 0 to 1 with
-;; given precision (digits after dot)
-; (define PRECISION 100) 
-
-(gl-init)
-(while (gl-is-open)
-    (begin
-        (gl-clear)
-
-        (define x (mod (* (random) PRECISION) width))
-        (define y (mod (* (random) PRECISION) height))
-
-        (draw-pixel x y)
-
-        (if (= (mod should-draw 10) 0)
-            (gl-draw)
-        )
-        (set! should-draw (+ should-draw 1))
-    )
-)
-(gl-finish)
-
-;; Legacy: iterate over all pixels, not randomly
+;; Random method: iterate over all pixels, randomly choosing x and y values in bounds
 ; (gl-init)
 ; (while (gl-is-open)
 ;     (begin
 ;         (gl-clear)
 
-;         (define i 0)
-;         (while (and (< i 100) (gl-is-open))
-;             (begin
-;                 (define j 0)
-;                 (while (and (< j 100) (gl-is-open))
-;                     (begin
-;                         (if (= (mod j 5) 0)
-;                             (gl-draw)
-;                         )
+;         (define x (mod (* (random) PRECISION) width))
+;         (define y (mod (* (random) PRECISION) height))
 
-;                         (draw-pixel i j)
-;                         (set! j (+ j 1))
-;                     )
-;                 )
-;                 (set! i (+ i 1))
-;             )
+;         (draw-pixel x y)
+
+;         (if (= (mod should-draw 10) 0)
+;             (gl-draw)
 ;         )
-;         (gl-draw)
+;         (set! should-draw (+ should-draw 1))
 ;     )
 ; )
 ; (gl-finish)
+
+;; Two-cycles method: iterate over all pixels, not randomly
+(gl-init)
+(while (gl-is-open)
+    (begin
+        (gl-clear)
+
+        (define i 0)
+        (while (and (< i 100) (gl-is-open))
+            (begin
+                (define j 0)
+                (while (and (< j 100) (gl-is-open))
+                    (begin
+                        (if (= (mod j 5) 0)
+                            (gl-draw)
+                        )
+
+                        (draw-pixel i j)
+                        (set! j (+ j 1))
+                    )
+                )
+                (set! i (+ i 1))
+            )
+        )
+        (gl-draw)
+    )
+)
+(gl-finish)

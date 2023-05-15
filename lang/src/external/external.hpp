@@ -5,16 +5,17 @@
 extern "C" {
 #endif
 
-constexpr int64_t PRECISION = 100;
+using number_t = int32_t;
+constexpr number_t PRECISION = 100;
 
-enum ObjectType : int64_t {
+enum ObjectType : number_t {
     TYPE_NUMBER = 0,
     TYPE_BOOLEAN = 1,
     TYPE_SYMBOL = 2,
     TYPE_CELL = 3
 };
 
-enum FieldType : int64_t {
+enum FieldType : number_t {
     FIELD_TYPE = 0,
     FIELD_NUMBER = 1,
     FIELD_BOOLEAN = 2,
@@ -25,7 +26,7 @@ enum FieldType : int64_t {
 
 struct SchemeObject {
     ObjectType type;
-    int64_t number;
+    number_t number;
     bool boolean;
     char* symbol;
     SchemeObject* first;
@@ -49,6 +50,8 @@ void __GLAssert(bool value);
 // Math
 SchemeObject __GLExpt(SchemeObject* value_object, SchemeObject* power_object);
 SchemeObject __GLSqrt(SchemeObject* object);
+SchemeObject __GLMax(SchemeObject* lhs, SchemeObject* rhs);
+SchemeObject __GLMin(SchemeObject* lhs, SchemeObject* rhs);
 
 #ifdef __cplusplus
 }

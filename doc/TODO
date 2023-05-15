@@ -1,0 +1,4 @@
+1. Implement lambda scopes (see ideas.txt)
+2. Implement more methods in object.cpp (also fix IsList and empty list cases)
+3. Fix lambda creation functions (currently setting lambda in scope is done twice because of recursion, maybe fix later)
+4. Implement better lc rng in raytracer, use random draw method instead of two cycles

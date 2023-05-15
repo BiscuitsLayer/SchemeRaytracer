@@ -2,11 +2,11 @@
 
 namespace Tokenizer {
 
-int64_t ConstantToken::GetValueWithPrecision() const {
+number_t ConstantToken::GetValueWithPrecision() const {
     if (fractional_part != 0) {
-        int64_t temp = fractional_part;
+        number_t temp = fractional_part;
         double divisor = (1.0f * fractional_power) / (1.0f * PRECISION);
-        int64_t fractional_part_result = static_cast<int64_t>(1.0f * fractional_part / divisor);
+        number_t fractional_part_result = static_cast<number_t>(1.0f * fractional_part / divisor);
         return value * PRECISION + fractional_part_result;
     }
     return value * PRECISION;
@@ -33,8 +33,8 @@ void Tokenizer::Next() {
 
     // Constant Token
     while (isdigit(symbol) || (isdigit(in_->peek()) && ((symbol == '-') || (symbol == '+')))) {
-        int64_t number = 0;
-        int64_t sign = 0;
+        number_t number = 0;
+        number_t sign = 0;
         if (isdigit(symbol)) {
             number += symbol - '0';
             sign = +1;
@@ -52,8 +52,8 @@ void Tokenizer::Next() {
                 number *= 10;
                 number += (symbol - '0');
             } else { // symbol == '.'
-                int64_t fractional_part = 0;
-                int64_t fractional_power = 1;
+                number_t fractional_part = 0;
+                number_t fractional_power = 1;
                 while (in_->peek(), !in_->eof() && isdigit(in_->peek())) {
                     *in_ >> symbol;
                     fractional_part *= 10;
