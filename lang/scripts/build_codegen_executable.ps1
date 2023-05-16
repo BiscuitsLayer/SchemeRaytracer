@@ -1,5 +1,6 @@
 # D:\smartcar\LLVM0task\llvm-project\build\Debug\bin\
-../../include/llvm-project-mod/build/Debug/bin/clang++.exe `
+# ../../include/llvm-project-mod/build/Debug/bin/
+clang++.exe `
     ..\codegen\outfile.ll `
     ..\src\external\external.cpp `
     -I ..\..\include\OOGL\include\ `

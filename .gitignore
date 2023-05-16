@@ -1,8 +1,5 @@
 # Scheme language build
 lang/build/*
 
-# Scheme codegen for Windows
-lang/codegen/*
-
 # Simulator build
 sim/build/*

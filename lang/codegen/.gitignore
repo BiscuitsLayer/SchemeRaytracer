@@ -1,0 +1,9 @@
+# Executable
+codegen.exe
+
+# Debug info
+codegen.ilk
+codegen.pdb
+
+# LLVM Codegen result
+outfile.ll

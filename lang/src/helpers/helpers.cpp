@@ -107,8 +107,8 @@ Context::Context() {
     llvm::PointerType* object_ptr_type = llvm::PointerType::get(object_type, 0);
     object_type->setName("SchemeObject");
     std::vector<llvm::Type*> object_type_subtypes = {
-        builder->getInt64Ty(),   // type enum
-        builder->getInt64Ty(),   // number
+        BuilderGetNumberType(),   // type enum
+        BuilderGetNumberType(),   // number
         builder->getInt1Ty(),    // boolean
         builder->getInt8PtrTy(), // string
         object_ptr_type,        // pointer to itself (first)
@@ -229,7 +229,7 @@ llvm::Value* CreateStoreNewCell() {
         context.builder->getInt32(FieldType::FIELD_TYPE)
     };
     llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
-    context.builder->CreateStore(context.builder->getInt64(ObjectType::TYPE_CELL), object_value_type_field);
+    context.builder->CreateStore(context.BuilderGetNumber(ObjectType::TYPE_CELL), object_value_type_field);
 
     std::vector<llvm::Value*> object_value_first_field_indices {
         context.builder->getInt32(0), // because there is no array, so just the object itself
@@ -303,14 +303,14 @@ llvm::Value* CreateStoreNewNumber(number_t number) {
         context.builder->getInt32(FieldType::FIELD_TYPE)
     };
     llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
-    context.builder->CreateStore(context.builder->getInt64(ObjectType::TYPE_NUMBER), object_value_type_field);
+    context.builder->CreateStore(context.BuilderGetNumber(ObjectType::TYPE_NUMBER), object_value_type_field);
 
     std::vector<llvm::Value*> object_value_number_field_indices {
         context.builder->getInt32(0), // because there is no array, so just the object itself
         context.builder->getInt32(FieldType::FIELD_NUMBER)
     };
     llvm::Value* object_value_number_field = context.builder->CreateGEP(context.object_type, object_value, object_value_number_field_indices);
-    context.builder->CreateStore(context.builder->getInt64(number), object_value_number_field);
+    context.builder->CreateStore(context.BuilderGetNumber(number), object_value_number_field);
 
     return object_value;
 }
@@ -324,7 +324,7 @@ llvm::Value* CreateStoreNewSymbol(std::string symbol) {
         context.builder->getInt32(FieldType::FIELD_TYPE)
     };
     llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
-    context.builder->CreateStore(context.builder->getInt64(ObjectType::TYPE_SYMBOL), object_value_type_field);
+    context.builder->CreateStore(context.BuilderGetNumber(ObjectType::TYPE_SYMBOL), object_value_type_field);
 
     std::vector<llvm::Value*> object_value_symbol_field_indices {
         context.builder->getInt32(0), // because there is no array, so just the object itself
@@ -347,7 +347,7 @@ llvm::Value* CreateStoreNewBoolean(bool boolean) {
         context.builder->getInt32(FieldType::FIELD_TYPE)
     };
     llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
-    context.builder->CreateStore(context.builder->getInt64(ObjectType::TYPE_BOOLEAN), object_value_type_field);
+    context.builder->CreateStore(context.BuilderGetNumber(ObjectType::TYPE_BOOLEAN), object_value_type_field);
 
     std::vector<llvm::Value*> object_value_boolean_field_indices {
         context.builder->getInt32(0), // because there is no array, so just the object itself
@@ -368,7 +368,7 @@ llvm::Value* CreateStoreNewNumber(llvm::Value* number_value) {
         context.builder->getInt32(FieldType::FIELD_TYPE)
     };
     llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
-    context.builder->CreateStore(context.builder->getInt64(ObjectType::TYPE_NUMBER), object_value_type_field);
+    context.builder->CreateStore(context.BuilderGetNumber(ObjectType::TYPE_NUMBER), object_value_type_field);
 
     std::vector<llvm::Value*> object_value_number_field_indices {
         context.builder->getInt32(0), // because there is no array, so just the object itself
@@ -390,7 +390,7 @@ llvm::Value* CreateStoreNewSymbol(llvm::Value* symbol_value) {
         context.builder->getInt32(FieldType::FIELD_TYPE)
     };
     llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
-    context.builder->CreateStore(context.builder->getInt64(ObjectType::TYPE_SYMBOL), object_value_type_field);
+    context.builder->CreateStore(context.BuilderGetNumber(ObjectType::TYPE_SYMBOL), object_value_type_field);
 
     std::vector<llvm::Value*> object_value_symbol_field_indices {
         context.builder->getInt32(0), // because there is no array, so just the object itself
@@ -412,7 +412,7 @@ llvm::Value* CreateStoreNewBoolean(llvm::Value* boolean_value) {
         context.builder->getInt32(FieldType::FIELD_TYPE)
     };
     llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
-    context.builder->CreateStore(context.builder->getInt64(ObjectType::TYPE_BOOLEAN), object_value_type_field);
+    context.builder->CreateStore(context.BuilderGetNumber(ObjectType::TYPE_BOOLEAN), object_value_type_field);
 
     std::vector<llvm::Value*> object_value_boolean_field_indices {
         context.builder->getInt32(0), // because there is no array, so just the object itself
@@ -454,7 +454,7 @@ llvm::Value* CreateLoadNumber(llvm::Value* object_value) {
         context.builder->getInt32(FieldType::FIELD_NUMBER)
     };
     llvm::Value* object_value_number_field = context.builder->CreateGEP(context.object_type, object_value, object_value_number_field_indices);
-    llvm::Value* object_value_number = context.builder->CreateLoad(context.builder->getInt64Ty(), object_value_number_field);
+    llvm::Value* object_value_number = context.builder->CreateLoad(context.BuilderGetNumberType(), object_value_number_field);
 
     return object_value_number;
 }
@@ -480,9 +480,9 @@ void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type) {
         context.builder->getInt32(FieldType::FIELD_TYPE)
     };
     llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
-    llvm::Value* object_value_type = context.builder->CreateLoad(context.builder->getInt64Ty(), object_value_type_field);
+    llvm::Value* object_value_type = context.builder->CreateLoad(context.BuilderGetNumberType(), object_value_type_field);
 
-    std::vector<llvm::Value*> assert_function_call_arguments = { context.builder->CreateICmpEQ(object_value_type, context.builder->getInt64(type)) };
+    std::vector<llvm::Value*> assert_function_call_arguments = { context.builder->CreateICmpEQ(object_value_type, context.BuilderGetNumber(type)) };
     llvm::Function* assert_function = context.llvm_module->getFunction("__GLAssert");
     context.builder->CreateCall(assert_function, assert_function_call_arguments);
 }
@@ -495,17 +495,17 @@ void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type, llvm::Bas
         context.builder->getInt32(FieldType::FIELD_TYPE)
     };
     llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
-    llvm::Value* object_value_type = context.builder->CreateLoad(context.builder->getInt64Ty(), object_value_type_field);
+    llvm::Value* object_value_type = context.builder->CreateLoad(context.BuilderGetNumberType(), object_value_type_field);
 
-    llvm::Value* is_type_check = context.builder->CreateICmpEQ(object_value_type, context.builder->getInt64(type), "is_type_check");
+    llvm::Value* is_type_check = context.builder->CreateICmpEQ(object_value_type, context.BuilderGetNumber(type), "is_type_check");
     context.builder->CreateCondBr(is_type_check, true_branch, false_branch);
 }
 
 void CreateIsIntegerCheck(llvm::Value* number_value) {
     auto& context = Codegen::Context::Get();
-    llvm::Value* number_value_reminder = context.builder->CreateSRem(number_value, context.builder->getInt64(PRECISION));
+    llvm::Value* number_value_reminder = context.builder->CreateSRem(number_value, context.BuilderGetNumber(PRECISION));
 
-    std::vector<llvm::Value*> assert_function_call_arguments = { context.builder->CreateICmpEQ(number_value_reminder, context.builder->getInt64(0)) };
+    std::vector<llvm::Value*> assert_function_call_arguments = { context.builder->CreateICmpEQ(number_value_reminder, context.BuilderGetNumber(0)) };
     llvm::Function* assert_function = context.llvm_module->getFunction("__GLAssert");
     context.builder->CreateCall(assert_function, assert_function_call_arguments);
 }
@@ -519,16 +519,16 @@ llvm::Value* CreateIsZeroThenOneCheck(llvm::Value* number_value) {
     llvm::BasicBlock* modify_branch = llvm::BasicBlock::Create(llvm_context, "modify_branch", current_function);
     llvm::BasicBlock* continue_branch = llvm::BasicBlock::Create(llvm_context, "continue_branch", current_function);
 
-    llvm::Value* is_not_zero = context.builder->CreateICmpNE(number_value, context.builder->getInt64(0), "is_zero_then_one_check");
+    llvm::Value* is_not_zero = context.builder->CreateICmpNE(number_value, context.BuilderGetNumber(0), "is_zero_then_one_check");
     context.builder->CreateCondBr(is_not_zero, continue_branch, modify_branch);
 
     context.builder->SetInsertPoint(modify_branch);
-    llvm::Value* one = context.builder->getInt64(1);
+    llvm::Value* one = context.BuilderGetNumber(1);
     context.builder->CreateBr(continue_branch);
     modify_branch = context.builder->GetInsertBlock();
 
     context.builder->SetInsertPoint(continue_branch);
-    llvm::PHINode* ans = context.builder->CreatePHI(context.builder->getInt64Ty(), 2);
+    llvm::PHINode* ans = context.builder->CreatePHI(context.BuilderGetNumberType(), 2);
     ans->addIncoming(one, modify_branch);
     ans->addIncoming(number_value, old_branch);
     continue_branch = context.builder->GetInsertBlock();

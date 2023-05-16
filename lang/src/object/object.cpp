@@ -1250,7 +1250,7 @@ llvm::Value* Multiply::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr
         llvm::Value* object_value_number = Codegen::CreateLoadNumber(value);
 
         llvm::Value* new_ans_number_not_precised = context.builder->CreateMul(ans_value_number, object_value_number);
-        llvm::Value* new_ans_number = context.builder->CreateSDiv(new_ans_number_not_precised, context.builder->getInt64(PRECISION));
+        llvm::Value* new_ans_number = context.builder->CreateSDiv(new_ans_number_not_precised, context.BuilderGetNumber(PRECISION));
 
         Codegen::CreateStoreNumber(ans, new_ans_number);
     }
@@ -1350,7 +1350,7 @@ llvm::Value* Divide::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr s
         llvm::Value* object_value_number_not_checked = Codegen::CreateLoadNumber(value);
         llvm::Value* object_value_number_checked = Codegen::CreateIsZeroThenOneCheck(object_value_number_not_checked);
 
-        llvm::Value* ans_value_number_precised = context.builder->CreateMul(ans_value_number, context.builder->getInt64(PRECISION));
+        llvm::Value* ans_value_number_precised = context.builder->CreateMul(ans_value_number, context.BuilderGetNumber(PRECISION));
         llvm::Value* new_ans_number = context.builder->CreateSDiv(ans_value_number_precised, object_value_number_checked);
         if (argument_idx == 0) {
             Codegen::CreateStoreNumber(ans, object_value_number_not_checked);

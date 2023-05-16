@@ -7,7 +7,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
 find_package(Catch REQUIRED)
 
-find_package(LLVM REQUIRED PATHS "${CMAKE_SOURCE_DIR}/../include/llvm-project-mod/build" NO_DEFAULT_PATH)
+find_package(LLVM REQUIRED PATHS "D:/smartcar/LLVM0task/llvm-project/build" NO_DEFAULT_PATH)
+# find_package(LLVM REQUIRED PATHS "${CMAKE_SOURCE_DIR}/../include/llvm-project-mod/build" NO_DEFAULT_PATH)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 

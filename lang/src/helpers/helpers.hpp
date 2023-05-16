@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <cstdint>
+#include <type_traits>
 
 #include "llvm_headers.hpp"
 #include <external/external.hpp>
@@ -38,6 +39,30 @@ public:
 
     std::stack<llvm::Value*> last_stack_saves;
     llvm::Value* nullptr_value = nullptr;
+
+    llvm::IntegerType* BuilderGetNumberType() {
+        if (std::is_same<number_t, int64_t>::value) {
+            return builder->getInt64Ty();
+        } else if (std::is_same<number_t, int32_t>::value) {
+            return builder->getInt32Ty();
+        } else if (std::is_same<number_t, int16_t>::value) {
+            return builder->getInt16Ty();
+        }
+
+        throw std::runtime_error("\"BuilderGetNumberType\" error: wrong number_t set!");
+    }
+
+    llvm::ConstantInt* BuilderGetNumber(number_t number_value) {
+        if (std::is_same<number_t, int64_t>::value) {
+            return builder->getInt64(number_value);
+        } else if (std::is_same<number_t, int32_t>::value) {
+            return builder->getInt32(number_value);
+        } else if (std::is_same<number_t, int16_t>::value) {
+            return builder->getInt16(number_value);
+        }
+
+        throw std::runtime_error("\"BuilderGetNumber\" error: wrong number_t set!");
+    }
 
 private:
     Context();
