@@ -1400,13 +1400,13 @@ llvm::Value* Mod::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scop
     Codegen::CreateObjectTypeCheck(lhs_value, ObjectType::TYPE_NUMBER);
 
     llvm::Value* lhs_value_number = Codegen::CreateLoadNumber(lhs_value);
-    Codegen::CreateIsIntegerCheck(lhs_value_number);
+    Codegen::CreateIsIntegerCheck(lhs_value);
 
     llvm::Value* rhs_value = arguments[1]->Codegen({}, scope);
     Codegen::CreateObjectTypeCheck(rhs_value, ObjectType::TYPE_NUMBER);
 
     llvm::Value* rhs_value_number_not_checked = Codegen::CreateLoadNumber(rhs_value);
-    Codegen::CreateIsIntegerCheck(rhs_value_number_not_checked);
+    Codegen::CreateIsIntegerCheck(rhs_value);
 
     llvm::Value* rhs_value_number_checked = Codegen::CreateIsZeroThenOneCheck(rhs_value_number_not_checked);
 
@@ -2099,9 +2099,7 @@ llvm::Value* LambdaCodegen::Codegen(const std::vector<ObjectPtr>& arguments, Sco
     }
 
     llvm::AllocaInst* function_returned_object = context.builder->CreateAlloca(context.object_type, nullptr, "function_returned");
-    Codegen::CreateStackSave();
     context.builder->CreateStore(context.builder->CreateCall(function_, function_call_arguments), function_returned_object);
-    Codegen::CreateStackRestore();
 
     return function_returned_object;
 }

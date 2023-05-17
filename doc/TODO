@@ -1,3 +1,5 @@
+0. [MAJOR] Unsolved problem with returning lists from lambdas - list parts are allocated on stack inside lambda,
+    then stack  is cleared, so the objects created are lost (and you cannot operate them after return from function)
 1. Implement lambda scopes (see ideas.txt)
 2. Implement more methods in object.cpp (also fix IsList and empty list cases)
 3. Fix lambda creation functions (currently setting lambda in scope is done twice because of recursion, maybe fix later)

@@ -45,7 +45,7 @@ void __GLFinish();
 void __GLPrint(SchemeObject* object);
 
 // Assert
-void __GLAssert(bool value);
+void __GLAssert(bool value, const char* reason, SchemeObject* object_to_debug);
 
 // Math
 SchemeObject __GLExpt(SchemeObject* value_object, SchemeObject* power_object);

@@ -209,8 +209,30 @@ std::string GLListToString(SchemeObject* object) {
     return ans;
 }
 
-void __GLAssert(bool value) {
-    assert(value);
+void __GLAssert(bool value, const char* reason, SchemeObject* object_to_debug) {
+    std::string message{reason};
+    if (!value) {
+        std::cout << message << std::endl;
+        std::cout << std::endl;
+        std::cout << "Debug failed object:" << std::endl;
+        std::cout << "type = " << object_to_debug->type << std::endl;
+
+        if (object_to_debug->type == ObjectType::TYPE_NUMBER) {
+            std::cout << "number = " << object_to_debug->number << std::endl;
+        }
+        if (object_to_debug->type == ObjectType::TYPE_BOOLEAN) {
+            std::cout << "boolean = " << std::boolalpha << object_to_debug->boolean << std::endl;
+        }
+        if (object_to_debug->type == ObjectType::TYPE_SYMBOL) {
+            std::cout << "symbol = " << object_to_debug->symbol << std::endl;
+        }
+        if (object_to_debug->type == ObjectType::TYPE_CELL) {
+            std::cout << "first = " << static_cast<void*>(object_to_debug->first) << std::endl;
+            std::cout << "second = " << static_cast<void*>(object_to_debug->second) << std::endl;
+        }
+
+        assert(value);
+    }
 }
 
 SchemeObject __GLExpt(SchemeObject* value_object, SchemeObject* power_object) {

@@ -109,10 +109,10 @@ Context::Context() {
     std::vector<llvm::Type*> object_type_subtypes = {
         BuilderGetNumberType(),   // type enum
         BuilderGetNumberType(),   // number
-        builder->getInt1Ty(),    // boolean
-        builder->getInt8PtrTy(), // string
-        object_ptr_type,        // pointer to itself (first)
-        object_ptr_type         // pointer to itself (second)
+        builder->getInt1Ty(),     // boolean
+        builder->getInt8PtrTy(),  // symbol
+        object_ptr_type,          // first
+        object_ptr_type           // second
     };
     object_type->setBody(object_type_subtypes);
 
@@ -151,7 +151,9 @@ void Context::SetExternalFunctions() {
     );
     SetExternalFunction("__GLAssert", builder->getVoidTy(),
         { 
-            builder->getInt1Ty()
+            builder->getInt1Ty(),
+            builder->getInt8PtrTy(),
+            builder->getInt8PtrTy()
         }
     );
     SetExternalFunction("__GLExpt", object_type,
@@ -475,6 +477,9 @@ llvm::Value* CreateLoadBoolean(llvm::Value* object_value) {
 void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type) {
     auto& context = Codegen::Context::Get();
 
+    static std::string msg{"Type check failed"};
+    static llvm::Value* msg_global = context.builder->CreateGlobalString(msg, "type_check_symbol_global");
+
     std::vector<llvm::Value*> object_value_type_field_indices {
         context.builder->getInt32(0), // because there is no array, so just the object itself
         context.builder->getInt32(FieldType::FIELD_TYPE)
@@ -482,7 +487,11 @@ void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type) {
     llvm::Value* object_value_type_field = context.builder->CreateGEP(context.object_type, object_value, object_value_type_field_indices);
     llvm::Value* object_value_type = context.builder->CreateLoad(context.BuilderGetNumberType(), object_value_type_field);
 
-    std::vector<llvm::Value*> assert_function_call_arguments = { context.builder->CreateICmpEQ(object_value_type, context.BuilderGetNumber(type)) };
+    std::vector<llvm::Value*> assert_function_call_arguments = {
+        context.builder->CreateICmpEQ(object_value_type, context.BuilderGetNumber(type)),
+        msg_global,
+        object_value
+    };
     llvm::Function* assert_function = context.llvm_module->getFunction("__GLAssert");
     context.builder->CreateCall(assert_function, assert_function_call_arguments);
 }
@@ -501,11 +510,20 @@ void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type, llvm::Bas
     context.builder->CreateCondBr(is_type_check, true_branch, false_branch);
 }
 
-void CreateIsIntegerCheck(llvm::Value* number_value) {
+void CreateIsIntegerCheck(llvm::Value* number_object) {
     auto& context = Codegen::Context::Get();
+
+    static std::string msg{"Integer check failed"};
+    static llvm::Value* msg_global = context.builder->CreateGlobalString(msg, "integer_check_symbol_global");
+
+    llvm::Value* number_value = Codegen::CreateLoadNumber(number_object);
     llvm::Value* number_value_reminder = context.builder->CreateSRem(number_value, context.BuilderGetNumber(PRECISION));
 
-    std::vector<llvm::Value*> assert_function_call_arguments = { context.builder->CreateICmpEQ(number_value_reminder, context.BuilderGetNumber(0)) };
+    std::vector<llvm::Value*> assert_function_call_arguments = { 
+        context.builder->CreateICmpEQ(number_value_reminder, context.BuilderGetNumber(0)),
+        msg_global,
+        number_object
+    };
     llvm::Function* assert_function = context.llvm_module->getFunction("__GLAssert");
     context.builder->CreateCall(assert_function, assert_function_call_arguments);
 }

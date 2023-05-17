@@ -107,7 +107,7 @@ llvm::Value* CreateLoadBoolean(llvm::Value* object_value);
 // CHECKS
 void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type);
 void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type, llvm::BasicBlock* true_branch, llvm::BasicBlock* false_branch);
-void CreateIsIntegerCheck(llvm::Value* number_value);
+void CreateIsIntegerCheck(llvm::Value* number_object);
 llvm::Value* CreateIsZeroThenOneCheck(llvm::Value* number_value);
 
 // CHECK FOR SPECIFIC VALUE
