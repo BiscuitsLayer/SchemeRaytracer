@@ -1,6 +1,6 @@
 cd ..
 cd build
-.\Debug\SchemeMain.exe 2 ..\test\codegen.scm
+.\Debug\SchemeMain.exe 2 ..\test\all_tests_codegen.scm
 
 cd ..
 cd scripts

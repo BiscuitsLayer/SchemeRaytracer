@@ -104,19 +104,21 @@ Context::Context() {
     builder->SetInsertPoint(main_function_entry);
 
     object_type = llvm::StructType::create(llvm_context.value());
-    llvm::PointerType* object_ptr_type = llvm::PointerType::get(object_type, 0);
+    object_ptr_type = llvm::PointerType::get(object_type, 0);
+    llvm::PointerType* char_ptr_type = llvm::PointerType::get(builder->getInt8Ty(), 0);
+
     object_type->setName("SchemeObject");
     std::vector<llvm::Type*> object_type_subtypes = {
         BuilderGetNumberType(),   // type enum
         BuilderGetNumberType(),   // number
         builder->getInt1Ty(),     // boolean
-        builder->getInt8PtrTy(),  // symbol
+        char_ptr_type,            // symbol
         object_ptr_type,          // first
         object_ptr_type           // second
     };
     object_type->setBody(object_type_subtypes);
 
-    nullptr_value = llvm::Constant::getNullValue(builder->getInt8PtrTy());
+    nullptr_value = llvm::Constant::getNullValue(object_ptr_type);
 
     SetExternalFunctions();
 }
@@ -134,11 +136,11 @@ void Context::SetExternalFunctions() {
     SetExternalFunction("__GLClear", builder->getVoidTy(), {});
     SetExternalFunction("__GLPutPixel", builder->getVoidTy(), 
         { 
-            builder->getInt8PtrTy(), 
-            builder->getInt8PtrTy(), 
-            builder->getInt8PtrTy(), 
-            builder->getInt8PtrTy(), 
-            builder->getInt8PtrTy()
+            object_ptr_type, 
+            object_ptr_type, 
+            object_ptr_type, 
+            object_ptr_type, 
+            object_ptr_type
         }
     );
     SetExternalFunction("__GLIsOpen", object_type, {});
@@ -146,37 +148,38 @@ void Context::SetExternalFunctions() {
     SetExternalFunction("__GLFinish", builder->getVoidTy(), {});
     SetExternalFunction("__GLPrint", builder->getVoidTy(),
         { 
-            builder->getInt8PtrTy()
+            object_ptr_type
         }
     );
+    llvm::PointerType* char_ptr_type = llvm::PointerType::get(builder->getInt8Ty(), 0);
     SetExternalFunction("__GLAssert", builder->getVoidTy(),
         { 
             builder->getInt1Ty(),
-            builder->getInt8PtrTy(),
-            builder->getInt8PtrTy()
+            char_ptr_type,
+            object_ptr_type
         }
     );
     SetExternalFunction("__GLExpt", object_type,
         { 
-            builder->getInt8PtrTy(),
-            builder->getInt8PtrTy()
+            object_ptr_type,
+            object_ptr_type
         }
     );
     SetExternalFunction("__GLSqrt", object_type,
         { 
-            builder->getInt8PtrTy()
+            object_ptr_type
         }
     );
     SetExternalFunction("__GLMax", object_type,
         { 
-            builder->getInt8PtrTy(),
-            builder->getInt8PtrTy()
+            object_ptr_type,
+            object_ptr_type
         }
     );
     SetExternalFunction("__GLMin", object_type,
         { 
-            builder->getInt8PtrTy(),
-            builder->getInt8PtrTy()
+            object_ptr_type,
+            object_ptr_type
         }
     );
 }
@@ -189,7 +192,7 @@ void Context::SetExternalFunction(std::string name, llvm::Type* return_value_typ
 llvm::Value* CreateValueCopy(llvm::Value* object_value, llvm::BasicBlock* object_value_branch) {
     auto& context = Codegen::Context::Get();
 
-    llvm::PHINode* new_object_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 1);
+    llvm::PHINode* new_object_value = context.builder->CreatePHI(context.object_ptr_type, 1);
     new_object_value->addIncoming(object_value, object_value_branch);
     return new_object_value;
 }
@@ -197,7 +200,7 @@ llvm::Value* CreateValueCopy(llvm::Value* object_value, llvm::BasicBlock* object
 llvm::Value* CreateValueCopy(const std::vector<std::pair<llvm::Value*, llvm::BasicBlock*>>& object_value_and_branch_vector) {
     auto& context = Codegen::Context::Get();
 
-    llvm::PHINode* new_object_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), object_value_and_branch_vector.size());
+    llvm::PHINode* new_object_value = context.builder->CreatePHI(context.object_ptr_type, object_value_and_branch_vector.size());
     for (auto object_value_and_branch : object_value_and_branch_vector) {
         new_object_value->addIncoming(object_value_and_branch.first, object_value_and_branch.second);
     }
@@ -278,7 +281,7 @@ llvm::Value* CreateLoadCellFirst(llvm::Value* object_value) {
         context.builder->getInt32(FieldType::FIELD_FIRST)
     };
     llvm::Value* object_value_first_field = context.builder->CreateGEP(context.object_type, object_value, object_value_first_field_indices);
-    llvm::Value* object_value_first = context.builder->CreateLoad(context.builder->getInt8PtrTy(), object_value_first_field);
+    llvm::Value* object_value_first = context.builder->CreateLoad(context.object_ptr_type, object_value_first_field);
 
     return object_value_first;
 }
@@ -291,7 +294,7 @@ llvm::Value* CreateLoadCellSecond(llvm::Value* object_value) {
         context.builder->getInt32(FieldType::FIELD_SECOND)
     };
     llvm::Value* object_value_second_field = context.builder->CreateGEP(context.object_type, object_value, object_value_second_field_indices);
-    llvm::Value* object_value_second = context.builder->CreateLoad(context.builder->getInt8PtrTy(), object_value_second_field);
+    llvm::Value* object_value_second = context.builder->CreateLoad(context.object_ptr_type, object_value_second_field);
 
     return object_value_second;
 }
@@ -334,7 +337,7 @@ llvm::Value* CreateStoreNewSymbol(std::string symbol) {
     };
     llvm::Value* object_value_symbol_field = context.builder->CreateGEP(context.object_type, object_value, object_value_symbol_field_indices);
 
-    llvm::Value* symbol_global = context.builder->CreateGlobalString(symbol, "symbol_global");
+    llvm::Value* symbol_global = context.builder->CreateGlobalStringPtr(symbol, "symbol_global");
     context.builder->CreateStore(symbol_global, object_value_symbol_field);
 
     return object_value;
@@ -478,7 +481,7 @@ void CreateObjectTypeCheck(llvm::Value* object_value, ObjectType type) {
     auto& context = Codegen::Context::Get();
 
     static std::string msg{"Type check failed"};
-    static llvm::Value* msg_global = context.builder->CreateGlobalString(msg, "type_check_symbol_global");
+    static llvm::Value* msg_global = context.builder->CreateGlobalStringPtr(msg, "type_check_symbol_global");
 
     std::vector<llvm::Value*> object_value_type_field_indices {
         context.builder->getInt32(0), // because there is no array, so just the object itself
@@ -514,7 +517,7 @@ void CreateIsIntegerCheck(llvm::Value* number_object) {
     auto& context = Codegen::Context::Get();
 
     static std::string msg{"Integer check failed"};
-    static llvm::Value* msg_global = context.builder->CreateGlobalString(msg, "integer_check_symbol_global");
+    static llvm::Value* msg_global = context.builder->CreateGlobalStringPtr(msg, "integer_check_symbol_global");
 
     llvm::Value* number_value = Codegen::CreateLoadNumber(number_object);
     llvm::Value* number_value_reminder = context.builder->CreateSRem(number_value, context.BuilderGetNumber(PRECISION));

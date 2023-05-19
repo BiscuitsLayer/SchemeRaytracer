@@ -85,7 +85,7 @@ ObjectPtr BuildLambdaCodegen(std::optional<std::string> name, ObjectPtr init, Sc
         ++temp_argument_counter;
     }
     int arguments_count = temp_argument_counter;
-    std::vector<llvm::Type*> new_function_arguments(arguments_count, context.builder->getInt8PtrTy());
+    std::vector<llvm::Type*> new_function_arguments(arguments_count, context.object_ptr_type);
     llvm::FunctionType* new_function_type = llvm::FunctionType::get(context.object_type, new_function_arguments, false);
     llvm::Function* new_function = llvm::Function::Create(new_function_type, llvm::Function::ExternalLinkage, "LambdaFunction", context.llvm_module.value());
     assert(new_function->empty());
@@ -175,7 +175,7 @@ std::pair<std::string, ObjectPtr> BuildLambdaSugarCodegen(std::vector<ObjectPtr>
         ++temp_argument_counter;
     }
     int arguments_count = temp_argument_counter;
-    std::vector<llvm::Type*> new_function_arguments(arguments_count, context.builder->getInt8PtrTy());
+    std::vector<llvm::Type*> new_function_arguments(arguments_count, context.object_ptr_type);
     llvm::FunctionType* new_function_type = llvm::FunctionType::get(context.object_type, new_function_arguments, false);
     llvm::Function* new_function = llvm::Function::Create(new_function_type, llvm::Function::ExternalLinkage, "LambdaFunction", context.llvm_module.value());
     assert(new_function->empty());

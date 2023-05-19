@@ -348,7 +348,7 @@ llvm::Value* IsBoolean::Codegen(const std::vector<ObjectPtr>& arguments, ScopePt
 
     // PHI NODE
     context.builder->SetInsertPoint(merge_branch);
-    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.object_ptr_type, 2);
     ans_value->addIncoming(true_ans, true_branch);
     ans_value->addIncoming(false_ans, false_branch);
 
@@ -394,7 +394,7 @@ llvm::Value* IsNumber::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr
 
     // PHI NODE
     context.builder->SetInsertPoint(merge_branch);
-    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.object_ptr_type, 2);
     ans_value->addIncoming(true_ans, true_branch);
     ans_value->addIncoming(false_ans, false_branch);
 
@@ -440,7 +440,7 @@ llvm::Value* IsSymbol::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr
 
     // PHI NODE
     context.builder->SetInsertPoint(merge_branch);
-    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.object_ptr_type, 2);
     ans_value->addIncoming(true_ans, true_branch);
     ans_value->addIncoming(false_ans, false_branch);
 
@@ -554,7 +554,7 @@ llvm::Value* IsNull::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr s
 
     // PHI NODE
     context.builder->SetInsertPoint(merge_branch);
-    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.object_ptr_type, 2);
     ans_value->addIncoming(true_ans, true_branch);
     ans_value->addIncoming(false_ans, false_branch);
 
@@ -611,7 +611,7 @@ llvm::Value* IsList::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr s
 
     // PHI NODE
     context.builder->SetInsertPoint(merge_branch);
-    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.object_ptr_type, 2);
     ans_value->addIncoming(true_ans, true_branch);
     ans_value->addIncoming(false_ans, false_branch);
 
@@ -704,7 +704,7 @@ llvm::Value* And::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scop
         return Codegen::CreateStoreNewBoolean(true);
     }
 
-    llvm::PHINode* phi_node = context.builder->CreatePHI(context.builder->getInt8PtrTy(), incoming_values_for_phi_node.size());
+    llvm::PHINode* phi_node = context.builder->CreatePHI(context.object_ptr_type, incoming_values_for_phi_node.size());
     for (auto incoming_value_for_phi_node : incoming_values_for_phi_node) {
         phi_node->addIncoming(incoming_value_for_phi_node.first, incoming_value_for_phi_node.second);
     }
@@ -755,7 +755,7 @@ llvm::Value* Or::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope
         return Codegen::CreateStoreNewBoolean(false);
     }
 
-    llvm::PHINode* phi_node = context.builder->CreatePHI(context.builder->getInt8PtrTy(), incoming_values_for_phi_node.size());
+    llvm::PHINode* phi_node = context.builder->CreatePHI(context.object_ptr_type, incoming_values_for_phi_node.size());
     for (auto incoming_value_for_phi_node : incoming_values_for_phi_node) {
         phi_node->addIncoming(incoming_value_for_phi_node.first, incoming_value_for_phi_node.second);
     }
@@ -839,7 +839,7 @@ llvm::Value* Equal::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr sc
 
     // PHI NODE
     context.builder->SetInsertPoint(merge_branch);
-    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.object_ptr_type, 2);
     ans_value->addIncoming(true_ans, true_branch);
     ans_value->addIncoming(false_ans, false_branch);
 
@@ -922,7 +922,7 @@ llvm::Value* Greater::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr 
 
     // PHI NODE
     context.builder->SetInsertPoint(merge_branch);
-    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.object_ptr_type, 2);
     ans_value->addIncoming(true_ans, true_branch);
     ans_value->addIncoming(false_ans, false_branch);
 
@@ -1005,7 +1005,7 @@ llvm::Value* GreaterEqual::Codegen(const std::vector<ObjectPtr>& arguments, Scop
 
     // PHI NODE
     context.builder->SetInsertPoint(merge_branch);
-    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.object_ptr_type, 2);
     ans_value->addIncoming(true_ans, true_branch);
     ans_value->addIncoming(false_ans, false_branch);
 
@@ -1088,7 +1088,7 @@ llvm::Value* Less::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr sco
 
     // PHI NODE
     context.builder->SetInsertPoint(merge_branch);
-    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.object_ptr_type, 2);
     ans_value->addIncoming(true_ans, true_branch);
     ans_value->addIncoming(false_ans, false_branch);
 
@@ -1171,7 +1171,7 @@ llvm::Value* LessEqual::Codegen(const std::vector<ObjectPtr>& arguments, ScopePt
 
     // PHI NODE
     context.builder->SetInsertPoint(merge_branch);
-    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.object_ptr_type, 2);
     ans_value->addIncoming(true_ans, true_branch);
     ans_value->addIncoming(false_ans, false_branch);
 
@@ -1689,6 +1689,7 @@ llvm::Value* If::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope
     llvm::Value* condition_value_boolean = Codegen::CreateLoadBoolean(condition_value);
 
     // CONDITION CHECK
+    auto old_branch = context.builder->GetInsertBlock();
     if (arguments.size() == 3) {
         // if we have false branch
         context.builder->CreateCondBr(condition_value_boolean, true_branch, false_branch);
@@ -1696,7 +1697,6 @@ llvm::Value* If::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope
         // if we don't have false branch
         context.builder->CreateCondBr(condition_value_boolean, true_branch, merge_branch);
     }
-    llvm::Value* return_result = context.nullptr_value;
 
     // TRUE BRANCH
     context.builder->SetInsertPoint(true_branch);
@@ -1719,13 +1719,14 @@ llvm::Value* If::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scope
     llvm::PHINode* phi_node = nullptr;
     if (arguments.size() == 3) {
         // if we have false branch
-        phi_node = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+        phi_node = context.builder->CreatePHI(context.object_ptr_type, 2);
         phi_node->addIncoming(true_branch_return_result, true_branch);
         phi_node->addIncoming(false_branch_return_result, false_branch);
     } else {
         // if we don't have false branch
-        phi_node = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 1);
+        phi_node = context.builder->CreatePHI(context.object_ptr_type, 2);
         phi_node->addIncoming(true_branch_return_result, true_branch);
+        phi_node->addIncoming(context.nullptr_value, old_branch);
     }
 
     return phi_node;
@@ -1865,7 +1866,7 @@ llvm::Value* Car::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scop
 
     // PHI NODE
     context.builder->SetInsertPoint(merge_branch);
-    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.object_ptr_type, 2);
     ans_value->addIncoming(true_ans, true_branch);
     ans_value->addIncoming(false_ans, false_branch);
 
@@ -1915,7 +1916,7 @@ llvm::Value* Cdr::Codegen(const std::vector<ObjectPtr>& arguments, ScopePtr scop
 
     // PHI NODE
     context.builder->SetInsertPoint(merge_branch);
-    llvm::PHINode* ans_value = context.builder->CreatePHI(context.builder->getInt8PtrTy(), 2);
+    llvm::PHINode* ans_value = context.builder->CreatePHI(context.object_ptr_type, 2);
     ans_value->addIncoming(true_ans, true_branch);
     ans_value->addIncoming(false_ans, false_branch);
 

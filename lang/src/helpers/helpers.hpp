@@ -36,6 +36,7 @@ public:
     std::optional<llvm::Module> llvm_module;
     std::optional<llvm::IRBuilder<>> builder;
     llvm::StructType* object_type;
+    llvm::PointerType* object_ptr_type;
 
     std::stack<llvm::Value*> last_stack_saves;
     llvm::Value* nullptr_value = nullptr;
@@ -126,9 +127,9 @@ std::vector<PairValueBB> CreateIsBooleanSmthThenBranch(llvm::Value* object_value
     CreateObjectTypeCheck(object_value, ObjectType::TYPE_BOOLEAN, is_boolean_branch, continue_branch);
     
     context.builder->SetInsertPoint(is_boolean_branch);
+    llvm::Value* object_value_copy_in_is_boolean_branch = CreateValueCopy(object_value, old_branch);
     llvm::Value* boolean_value = CreateLoadBoolean(object_value);
     llvm::Value* is_boolean_smth = context.builder->CreateICmpEQ(boolean_value, context.builder->getInt1(boolean_smth), "is_boolean_smth_check");
-    llvm::Value* object_value_copy_in_is_boolean_branch = CreateValueCopy(object_value, old_branch);
     context.builder->CreateCondBr(is_boolean_smth, is_boolean_smth_branch, continue_branch);
 
     context.builder->SetInsertPoint(is_boolean_smth_branch);
