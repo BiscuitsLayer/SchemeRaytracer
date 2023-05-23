@@ -9,4 +9,4 @@ codegen.ilk
 codegen.pdb
 
 # LLVM Codegen result
-outfile.ll
+# outfile.ll
